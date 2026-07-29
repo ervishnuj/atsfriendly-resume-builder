@@ -25,11 +25,11 @@ export const Route = createFileRoute("/")({
         content:
           "Paste a job description and generate a tailored, ATS-friendly resume with an AI match score, keyword analysis, and one-click PDF download.",
       },
-      { property: "og:title", content: "ATS Resume Builder" },
+      { property: "og:title", content: "ATS Resume Builder — AI-Optimized Resumes for 90+ ATS Score" },
       {
         property: "og:description",
         content:
-          "Generate ATS-optimized resumes tailored to any job description in seconds.",
+          "Paste a job description and generate a tailored, ATS-friendly resume with an AI match score, keyword analysis, and one-click PDF download.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
