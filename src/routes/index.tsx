@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Download, Loader2 } from "lucide-react";
+import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
+
+const STORAGE_KEY = "ats-resume-builder:profile";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +43,63 @@ function Index() {
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [savedLocally, setSavedLocally] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const jdRef = useRef<HTMLTextAreaElement>(null);
   const run = useServerFn(generateResume);
+
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Profile;
+        setProfile(parsed);
+        setSavedLocally(true);
+        setProfileOpen(false);
+        // Focus JD for returning users
+        setTimeout(() => jdRef.current?.focus(), 50);
+      } else {
+        setProfileOpen(true);
+        toast.info("Fill in your profile once — we'll remember it for next time.");
+      }
+    } catch {
+      // ignore
+    }
+    setHydrated(true);
+  }, []);
+
+  // Auto-save profile on change (after hydration)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const isEmpty =
+        !profile.personal.fullName.trim() &&
+        !profile.personal.email.trim() &&
+        profile.experience.every((e) => !e.title && !e.company);
+      if (isEmpty) {
+        setSavedLocally(false);
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      setSavedLocally(true);
+    } catch {
+      // ignore quota errors
+    }
+  }, [profile, hydrated]);
+
+  const handleClearProfile = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    setProfile(emptyProfile);
+    setSavedLocally(false);
+    setProfileOpen(true);
+    toast.success("Stored profile cleared.");
+  };
 
   const handleGenerate = async () => {
     if (!jd.trim()) {
@@ -86,6 +144,15 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {savedLocally && (
+              <Badge
+                variant="secondary"
+                className="hidden gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 sm:inline-flex dark:bg-emerald-900/40 dark:text-emerald-200"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Profile Saved Locally
+              </Badge>
+            )}
             <Button
               onClick={handleGenerate}
               disabled={loading}
@@ -96,7 +163,7 @@ function Index() {
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {loading ? "Generating..." : "Generate Resume"}
+              {loading ? "Generating..." : "Generate ATS Resume"}
             </Button>
             <Button
               variant="outline"
@@ -113,17 +180,70 @@ function Index() {
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
         <section className="space-y-4 print:hidden">
           <Card className="p-4">
-            <h2 className="mb-2 text-sm font-semibold">Target Job Description</h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Target Job Description</h2>
+              <span className="text-xs text-muted-foreground">Primary input</span>
+            </div>
             <Textarea
+              ref={jdRef}
               rows={8}
               value={jd}
               onChange={(e) => setJd(e.target.value)}
               placeholder="Paste the full job description here — the AI will extract keywords and requirements..."
+              autoFocus={savedLocally}
             />
           </Card>
           <Card className="p-4">
-            <h2 className="mb-3 text-sm font-semibold">Your Profile</h2>
-            <ProfileForm profile={profile} setProfile={setProfile} />
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold">Your Profile</h2>
+                {savedLocally && (
+                  <Badge
+                    variant="secondary"
+                    className="gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200"
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    Saved
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="gap-1"
+                >
+                  {profileOpen ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" /> Collapse
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" /> Edit
+                    </>
+                  )}
+                </Button>
+                {savedLocally && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearProfile}
+                    className="gap-1 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" /> Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+            {profileOpen ? (
+              <ProfileForm profile={profile} setProfile={setProfile} />
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Your profile is stored locally and will be used automatically.
+                Click <span className="font-medium">Edit</span> to update it.
+              </p>
+            )}
           </Card>
         </section>
 
