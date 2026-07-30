@@ -104,7 +104,15 @@ function AdminConfig() {
     );
   }
 
-  const act = async (payload: Parameters<typeof adminUpdateUserPlan>[0]["data"]) => {
+  type PlanUpdate = {
+    targetUserId: string;
+    isUnlimited?: boolean;
+    extendDays?: number;
+    clearSubscription?: boolean;
+    resetUsage?: boolean;
+  };
+
+  const act = async (payload: PlanUpdate) => {
     try {
       await updatePlan({ data: payload });
       toast.success("User plan updated.");
