@@ -1,20 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
-import { ResumePreview } from "@/components/ResumePreview";
-import { AtsScoreBadge } from "@/components/AtsScoreBadge";
-import { generateResume } from "@/lib/resume.functions";
-import type { OptimizedResume } from "@/lib/resume.functions";
-
-const STORAGE_KEY = "ats-resume-builder:profile";
+import { FileText, Sparkles, ShieldCheck, Gauge, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
