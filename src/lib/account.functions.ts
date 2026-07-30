@@ -2,6 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export type StoredProfile = {
+  personal: Record<string, string>;
+  skills: { category: string; items: string[] }[];
+  experience: {
+    title: string;
+    company: string;
+    dateRange: string;
+    bullets: string[];
+  }[];
+  education: Record<string, string>[];
+};
+
 export type AccountSummary = {
   userId: string;
   email: string;
@@ -11,7 +23,7 @@ export type AccountSummary = {
   dailyUsageCount: number;
   dailyLimit: number;
   remaining: number | null;
-  profile: unknown | null;
+  profile: StoredProfile | null;
 };
 
 export const getMyAccount = createServerFn({ method: "POST" })
@@ -32,10 +44,13 @@ export const getMyAccount = createServerFn({ method: "POST" })
 
     const profile = data
       ? {
-          personal: decryptJson(data.encrypted_personal_info, null),
-          skills: decryptJson(data.encrypted_skills, []),
-          experience: decryptJson(data.encrypted_projects, []),
-          education: decryptJson(data.encrypted_education, []),
+          personal: decryptJson<StoredProfile["personal"] | null>(
+            data.encrypted_personal_info,
+            null,
+          ),
+          skills: decryptJson<StoredProfile["skills"]>(data.encrypted_skills, []),
+          experience: decryptJson<StoredProfile["experience"]>(data.encrypted_projects, []),
+          education: decryptJson<StoredProfile["education"]>(data.encrypted_education, []),
         }
       : null;
 
@@ -48,7 +63,7 @@ export const getMyAccount = createServerFn({ method: "POST" })
       dailyUsageCount: row.daily_usage_count,
       dailyLimit: quota.limit,
       remaining: quota.unlimited ? null : quota.remaining,
-      profile: profile?.personal ? profile : null,
+      profile: profile?.personal ? (profile as StoredProfile) : null,
     };
   });
 

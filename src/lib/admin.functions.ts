@@ -99,7 +99,11 @@ export const adminUpdateUserPlan = createServerFn({ method: "POST" })
     if (readErr) throw new Error(readErr.message);
     if (!row) throw new Error("User not found");
 
-    const update: Record<string, unknown> = {};
+    const update: {
+      is_unlimited?: boolean;
+      daily_usage_count?: number;
+      subscription_expires_at?: string | null;
+    } = {};
     if (typeof data.isUnlimited === "boolean") update.is_unlimited = data.isUnlimited;
     if (data.resetUsage) update.daily_usage_count = 0;
     if (data.clearSubscription) update.subscription_expires_at = null;
