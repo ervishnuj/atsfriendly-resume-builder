@@ -11,6 +11,7 @@ import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDow
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
+import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
 
@@ -99,6 +100,18 @@ function Index() {
     setSavedLocally(false);
     setProfileOpen(true);
     toast.success("Stored profile cleared.");
+  };
+
+  const handleImportProfile = (imported: Profile) => {
+    setProfile(imported);
+    setProfileOpen(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
+      setSavedLocally(true);
+    } catch {
+      // ignore
+    }
+    toast.success("Profile imported and saved locally.");
   };
 
   const handleGenerate = async () => {
@@ -208,6 +221,7 @@ function Index() {
                 )}
               </div>
               <div className="flex items-center gap-1">
+                <ImportProfileDialog onImport={handleImportProfile} />
                 <Button
                   variant="ghost"
                   size="sm"
