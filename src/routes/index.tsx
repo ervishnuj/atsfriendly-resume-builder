@@ -221,6 +221,7 @@ function Index() {
                 )}
               </div>
               <div className="flex items-center gap-1">
+                <ImportProfileDialog onImport={handleImportProfile} />
                 <Button
                   variant="ghost"
                   size="sm"
