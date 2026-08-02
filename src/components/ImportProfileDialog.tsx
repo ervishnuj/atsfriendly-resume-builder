@@ -10,12 +10,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileUp } from "lucide-react";
-import { parseProfileJson, ProfileImportError, type ProfileImportIssue } from "@/lib/profile-io";
+import { Upload, FileUp, ArrowRight } from "lucide-react";
+import {
+  parseProfileJsonLoose,
+  ProfileImportError,
+  type ProfileImportIssue,
+} from "@/lib/profile-io";
 import type { Profile } from "@/components/ProfileForm";
 
 type Props = {
-  onImport: (profile: Profile) => void;
+  onImport: (profile: Profile, issues: ProfileImportIssue[]) => void;
 };
 
 export function ImportProfileDialog({ onImport }: Props) {
@@ -23,6 +27,7 @@ export function ImportProfileDialog({ onImport }: Props) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [issues, setIssues] = useState<ProfileImportIssue[]>([]);
+  const [draft, setDraft] = useState<Profile | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File | undefined) => {
@@ -38,14 +43,29 @@ export function ImportProfileDialog({ onImport }: Props) {
     }
   };
 
+  const finish = (profile: Profile, found: ProfileImportIssue[]) => {
+    onImport(profile, found);
+    setText("");
+    setError(null);
+    setIssues([]);
+    setDraft(null);
+    setOpen(false);
+  };
+
   const handleImport = () => {
     try {
-      onImport(parseProfileJson(text));
-      setText("");
-      setError(null);
-      setIssues([]);
-      setOpen(false);
+      const { profile, issues: found } = parseProfileJsonLoose(text);
+      if (found.length > 0) {
+        setDraft(profile);
+        setIssues(found);
+        setError(
+          `This profile JSON is missing or has invalid required fields (${found.length}).`,
+        );
+        return;
+      }
+      finish(profile, []);
     } catch (err) {
+      setDraft(null);
       setError(err instanceof Error ? err.message : "Import failed.");
       setIssues(err instanceof ProfileImportError ? err.issues : []);
     }
@@ -59,6 +79,7 @@ export function ImportProfileDialog({ onImport }: Props) {
         if (!next) {
           setError(null);
           setIssues([]);
+          setDraft(null);
         }
       }}
     >
@@ -102,6 +123,7 @@ export function ImportProfileDialog({ onImport }: Props) {
             setText(e.target.value);
             setError(null);
             setIssues([]);
+            setDraft(null);
           }}
           placeholder={'{\n  "personal": { "fullName": "Ada Lovelace", ... },\n  "skills": [],\n  "experience": [],\n  "education": []\n}'}
           className="font-mono text-xs"
@@ -122,6 +144,17 @@ export function ImportProfileDialog({ onImport }: Props) {
                   </li>
                 ))}
               </ul>
+            )}
+            {draft && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 gap-1"
+                onClick={() => finish(draft, issues)}
+              >
+                Import anyway and highlight these fields
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
             )}
           </div>
         )}
