@@ -72,22 +72,115 @@ export function normalizeProfile(input: unknown): Profile {
   };
 }
 
+export type ProfileImportIssue = { field: string; message: string };
+
+export class ProfileImportError extends Error {
+  issues: ProfileImportIssue[];
+  constructor(message: string, issues: ProfileImportIssue[] = []) {
+    super(message);
+    this.name = "ProfileImportError";
+    this.issues = issues;
+  }
+}
+
+const nonEmpty = (label: string, max = 200) =>
+  z
+    .string({ required_error: `${label} is required.`, invalid_type_error: `${label} must be text.` })
+    .trim()
+    .min(1, `${label} cannot be empty.`)
+    .max(max, `${label} must be under ${max} characters.`);
+
+/** Schema applied to the *normalized* profile — required keys must be present and non-empty. */
+const profileSchema = z.object({
+  personal: z.object({
+    fullName: nonEmpty("Full name", 100),
+    title: z.string().max(120).optional().default(""),
+    email: z
+      .string({ required_error: "Email is required." })
+      .trim()
+      .min(1, "Email is required.")
+      .email("Email must be a valid address (e.g. name@example.com).")
+      .max(255),
+    phone: z.string().max(40).optional().default(""),
+    linkedin: z.string().max(300).optional().default(""),
+    github: z.string().max(300).optional().default(""),
+    portfolio: z.string().max(300).optional().default(""),
+    summary: z.string().max(3000).optional().default(""),
+  }),
+  skills: z
+    .array(
+      z.object({
+        category: nonEmpty("Skill category", 80),
+        items: z.array(z.string().trim().min(1)).min(1, "Add at least one skill item."),
+      }),
+    )
+    .min(1, "Add at least one skill group."),
+  experience: z
+    .array(
+      z.object({
+        title: nonEmpty("Role title", 120),
+        company: nonEmpty("Company / project", 120),
+        dateRange: z.string().max(60).optional().default(""),
+        bullets: z.array(z.string().trim().min(1)).min(1, "Add at least one bullet point."),
+      }),
+    )
+    .min(1, "Add at least one experience or project entry."),
+  education: z
+    .array(
+      z.object({
+        degree: nonEmpty("Degree", 120),
+        major: z.string().max(120).optional().default(""),
+        institution: nonEmpty("Institution", 160),
+        year: z.string().max(30).optional().default(""),
+        score: z.string().max(30).optional().default(""),
+      }),
+    )
+    .min(1, "Add at least one education entry."),
+});
+
+const LABELS: Record<string, string> = {
+  personal: "Personal info",
+  skills: "Skills",
+  experience: "Experience",
+  education: "Education",
+};
+
+const formatPath = (path: (string | number)[]): string => {
+  if (path.length === 0) return "Profile";
+  const [head, ...rest] = path;
+  const base = LABELS[String(head)] ?? String(head);
+  const tail = rest
+    .map((p) => (typeof p === "number" ? `#${p + 1}` : ` → ${p}`))
+    .join("");
+  return `${base}${tail}`;
+};
+
 export function parseProfileJson(text: string): Profile {
   const trimmed = text.trim();
-  if (!trimmed) throw new Error("Nothing to import — paste some JSON first.");
+  if (!trimmed) throw new ProfileImportError("Nothing to import — paste some JSON first.");
   let parsed: unknown;
   try {
     parsed = JSON.parse(trimmed);
   } catch {
-    throw new Error("That isn't valid JSON. Check for missing quotes, commas or brackets.");
+    throw new ProfileImportError(
+      "That isn't valid JSON. Check for missing quotes, commas or brackets.",
+    );
   }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new ProfileImportError("Expected a JSON object at the top level.");
+  }
+
   const profile = normalizeProfile(parsed);
-  const hasAnything =
-    Object.values(profile.personal).some((v) => v.trim() !== "") ||
-    profile.skills.some((s) => s.category || s.items.length) ||
-    profile.experience.some((e) => e.title || e.company || e.bullets.length) ||
-    profile.education.some((e) => e.degree || e.institution);
-  if (!hasAnything)
-    throw new Error("No recognizable profile fields found in that JSON.");
+  const result = profileSchema.safeParse(profile);
+  if (!result.success) {
+    const issues = result.error.issues.map((i) => ({
+      field: formatPath(i.path as (string | number)[]),
+      message: i.message,
+    }));
+    throw new ProfileImportError(
+      `This profile JSON is missing or has invalid required fields (${issues.length}).`,
+      issues,
+    );
+  }
   return profile;
 }
