@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileUp } from "lucide-react";
-import { parseProfileJson } from "@/lib/profile-io";
+import { parseProfileJson, ProfileImportError, type ProfileImportIssue } from "@/lib/profile-io";
 import type { Profile } from "@/components/ProfileForm";
 
 type Props = {
@@ -22,6 +22,7 @@ export function ImportProfileDialog({ onImport }: Props) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [issues, setIssues] = useState<ProfileImportIssue[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File | undefined) => {
@@ -30,8 +31,10 @@ export function ImportProfileDialog({ onImport }: Props) {
       const content = await file.text();
       setText(content);
       setError(null);
+      setIssues([]);
     } catch {
       setError("Couldn't read that file.");
+      setIssues([]);
     }
   };
 
@@ -40,9 +43,11 @@ export function ImportProfileDialog({ onImport }: Props) {
       onImport(parseProfileJson(text));
       setText("");
       setError(null);
+      setIssues([]);
       setOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");
+      setIssues(err instanceof ProfileImportError ? err.issues : []);
     }
   };
 
@@ -51,7 +56,10 @@ export function ImportProfileDialog({ onImport }: Props) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (!next) setError(null);
+        if (!next) {
+          setError(null);
+          setIssues([]);
+        }
       }}
     >
       <DialogTrigger asChild>
@@ -93,15 +101,29 @@ export function ImportProfileDialog({ onImport }: Props) {
           onChange={(e) => {
             setText(e.target.value);
             setError(null);
+            setIssues([]);
           }}
           placeholder={'{\n  "personal": { "fullName": "Ada Lovelace", ... },\n  "skills": [],\n  "experience": [],\n  "education": []\n}'}
           className="font-mono text-xs"
         />
 
         {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/5 p-3"
+          >
+            <p className="text-sm font-medium text-destructive">{error}</p>
+            {issues.length > 0 && (
+              <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-destructive">
+                {issues.map((issue, i) => (
+                  <li key={`${issue.field}-${i}`} className="flex gap-1.5">
+                    <span className="font-semibold">{issue.field}:</span>
+                    <span>{issue.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         <DialogFooter>
