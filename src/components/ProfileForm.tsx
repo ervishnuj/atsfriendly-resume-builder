@@ -57,10 +57,13 @@ export const emptyProfile: Profile = {
 type Props = {
   profile: Profile;
   setProfile: Dispatch<SetStateAction<Profile>>;
+  /** Map of field path (e.g. "experience.0.title") -> error message. */
+  fieldErrors?: Record<string, string>;
 };
 
-export function ProfileForm({ profile, setProfile }: Props) {
+export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
   const p = profile;
+  const err = (path: string) => fieldErrors[path];
   const setPersonal = (k: keyof Profile["personal"], v: string) =>
     setProfile((s) => ({ ...s, personal: { ...s.personal, [k]: v } }));
 
@@ -78,14 +81,14 @@ export function ProfileForm({ profile, setProfile }: Props) {
         </AccordionTrigger>
         <AccordionContent className="space-y-3 pt-2">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Full Name" value={p.personal.fullName} onChange={(v) => setPersonal("fullName", v)} />
-            <Field label="Professional Title" value={p.personal.title} onChange={(v) => setPersonal("title", v)} />
-            <Field label="Email" value={p.personal.email} onChange={(v) => setPersonal("email", v)} />
-            <Field label="Phone" value={p.personal.phone} onChange={(v) => setPersonal("phone", v)} />
-            <Field label="LinkedIn URL" value={p.personal.linkedin} onChange={(v) => setPersonal("linkedin", v)} />
-            <Field label="GitHub URL" value={p.personal.github} onChange={(v) => setPersonal("github", v)} />
+            <Field path="personal.fullName" error={err("personal.fullName")} label="Full Name" value={p.personal.fullName} onChange={(v) => setPersonal("fullName", v)} />
+            <Field path="personal.title" error={err("personal.title")} label="Professional Title" value={p.personal.title} onChange={(v) => setPersonal("title", v)} />
+            <Field path="personal.email" error={err("personal.email")} label="Email" value={p.personal.email} onChange={(v) => setPersonal("email", v)} />
+            <Field path="personal.phone" error={err("personal.phone")} label="Phone" value={p.personal.phone} onChange={(v) => setPersonal("phone", v)} />
+            <Field path="personal.linkedin" error={err("personal.linkedin")} label="LinkedIn URL" value={p.personal.linkedin} onChange={(v) => setPersonal("linkedin", v)} />
+            <Field path="personal.github" error={err("personal.github")} label="GitHub URL" value={p.personal.github} onChange={(v) => setPersonal("github", v)} />
             <div className="col-span-2">
-              <Field label="Portfolio / Website" value={p.personal.portfolio} onChange={(v) => setPersonal("portfolio", v)} />
+              <Field path="personal.portfolio" error={err("personal.portfolio")} label="Portfolio / Website" value={p.personal.portfolio} onChange={(v) => setPersonal("portfolio", v)} />
             </div>
           </div>
           <div>
@@ -111,6 +114,9 @@ export function ProfileForm({ profile, setProfile }: Props) {
             <div key={i} className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center gap-2">
                 <Input
+                  id={`field-skills.${i}.category`}
+                  aria-invalid={!!err(`skills.${i}.category`)}
+                  className={err(`skills.${i}.category`) ? ERROR_RING : undefined}
                   value={s.category}
                   onChange={(e) =>
                     setProfile((prev) => {
@@ -134,7 +140,11 @@ export function ProfileForm({ profile, setProfile }: Props) {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
+              {err(`skills.${i}.category`) && <ErrorText>{err(`skills.${i}.category`)}</ErrorText>}
               <Textarea
+                id={`field-skills.${i}.items`}
+                aria-invalid={!!err(`skills.${i}.items`)}
+                className={err(`skills.${i}.items`) ? ERROR_RING : undefined}
                 rows={2}
                 value={s.items.join(", ")}
                 onChange={(e) =>
@@ -152,6 +162,7 @@ export function ProfileForm({ profile, setProfile }: Props) {
                 }
                 placeholder="Comma-separated (React, TypeScript, Node.js)"
               />
+              {err(`skills.${i}.items`) && <ErrorText>{err(`skills.${i}.items`)}</ErrorText>}
             </div>
           ))}
           <Button
@@ -194,6 +205,8 @@ export function ProfileForm({ profile, setProfile }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Field
+                  path={`experience.${i}.title`}
+                  error={err(`experience.${i}.title`)}
                   label="Title / Role"
                   value={e.title}
                   onChange={(v) =>
@@ -205,6 +218,8 @@ export function ProfileForm({ profile, setProfile }: Props) {
                   }
                 />
                 <Field
+                  path={`experience.${i}.company`}
+                  error={err(`experience.${i}.company`)}
                   label="Company / Project"
                   value={e.company}
                   onChange={(v) =>
@@ -217,6 +232,8 @@ export function ProfileForm({ profile, setProfile }: Props) {
                 />
                 <div className="col-span-2">
                   <Field
+                    path={`experience.${i}.dateRange`}
+                    error={err(`experience.${i}.dateRange`)}
                     label="Date Range"
                     value={e.dateRange}
                     onChange={(v) =>
@@ -232,6 +249,9 @@ export function ProfileForm({ profile, setProfile }: Props) {
               <div>
                 <Label className="mb-1 block text-xs">Key Responsibilities / Achievements (one per line)</Label>
                 <Textarea
+                  id={`field-experience.${i}.bullets`}
+                  aria-invalid={!!err(`experience.${i}.bullets`)}
+                  className={err(`experience.${i}.bullets`) ? ERROR_RING : undefined}
                   rows={4}
                   value={e.bullets.join("\n")}
                   onChange={(ev) =>
@@ -246,6 +266,9 @@ export function ProfileForm({ profile, setProfile }: Props) {
                   }
                   placeholder="Led a team of 5 engineers to ship..."
                 />
+                {err(`experience.${i}.bullets`) && (
+                  <ErrorText>{err(`experience.${i}.bullets`)}</ErrorText>
+                )}
               </div>
             </div>
           ))}
@@ -291,13 +314,13 @@ export function ProfileForm({ profile, setProfile }: Props) {
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <Field label="Degree" value={ed.degree} onChange={(v) => updateEd(setProfile, i, "degree", v)} />
-                <Field label="Major" value={ed.major} onChange={(v) => updateEd(setProfile, i, "major", v)} />
+                <Field path={`education.${i}.degree`} error={err(`education.${i}.degree`)} label="Degree" value={ed.degree} onChange={(v) => updateEd(setProfile, i, "degree", v)} />
+                <Field path={`education.${i}.major`} error={err(`education.${i}.major`)} label="Major" value={ed.major} onChange={(v) => updateEd(setProfile, i, "major", v)} />
                 <div className="col-span-2">
-                  <Field label="Institution" value={ed.institution} onChange={(v) => updateEd(setProfile, i, "institution", v)} />
+                  <Field path={`education.${i}.institution`} error={err(`education.${i}.institution`)} label="Institution" value={ed.institution} onChange={(v) => updateEd(setProfile, i, "institution", v)} />
                 </div>
-                <Field label="Graduation Year" value={ed.year} onChange={(v) => updateEd(setProfile, i, "year", v)} />
-                <Field label="Score / CGPA" value={ed.score} onChange={(v) => updateEd(setProfile, i, "score", v)} />
+                <Field path={`education.${i}.year`} error={err(`education.${i}.year`)} label="Graduation Year" value={ed.year} onChange={(v) => updateEd(setProfile, i, "year", v)} />
+                <Field path={`education.${i}.score`} error={err(`education.${i}.score`)} label="Score / CGPA" value={ed.score} onChange={(v) => updateEd(setProfile, i, "score", v)} />
               </div>
             </div>
           ))}
@@ -339,15 +362,33 @@ function Field({
   label,
   value,
   onChange,
+  path,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  path?: string;
+  error?: string;
 }) {
   return (
     <div>
-      <Label className="mb-1 block text-xs">{label}</Label>
-      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+      <Label className={`mb-1 block text-xs ${error ? "text-destructive" : ""}`}>{label}</Label>
+      <Input
+        id={path ? `field-${path}` : undefined}
+        aria-invalid={!!error}
+        className={error ? ERROR_RING : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {error && <ErrorText>{error}</ErrorText>}
     </div>
   );
+}
+
+const ERROR_RING =
+  "border-destructive ring-2 ring-destructive/30 focus-visible:ring-destructive/40";
+
+function ErrorText({ children }: { children: React.ReactNode }) {
+  return <p className="mt-1 text-xs font-medium text-destructive">{children}</p>;
 }
