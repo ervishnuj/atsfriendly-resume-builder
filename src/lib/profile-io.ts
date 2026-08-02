@@ -72,7 +72,7 @@ export function normalizeProfile(input: unknown): Profile {
   };
 }
 
-export type ProfileImportIssue = { field: string; message: string };
+export type ProfileImportIssue = { field: string; message: string; path: string };
 
 export class ProfileImportError extends Error {
   issues: ProfileImportIssue[];
@@ -155,7 +155,13 @@ const formatPath = (path: (string | number)[]): string => {
   return `${base}${tail}`;
 };
 
-export function parseProfileJson(text: string): Profile {
+const toPath = (path: (string | number)[]): string => path.join(".");
+
+/** Parses + normalizes without throwing on schema issues (only on bad JSON). */
+export function parseProfileJsonLoose(text: string): {
+  profile: Profile;
+  issues: ProfileImportIssue[];
+} {
   const trimmed = text.trim();
   if (!trimmed) throw new ProfileImportError("Nothing to import — paste some JSON first.");
   let parsed: unknown;
@@ -172,11 +178,19 @@ export function parseProfileJson(text: string): Profile {
 
   const profile = normalizeProfile(parsed);
   const result = profileSchema.safeParse(profile);
-  if (!result.success) {
-    const issues = result.error.issues.map((i) => ({
-      field: formatPath(i.path as (string | number)[]),
-      message: i.message,
-    }));
+  const issues = result.success
+    ? []
+    : result.error.issues.map((i) => ({
+        field: formatPath(i.path as (string | number)[]),
+        message: i.message,
+        path: toPath(i.path as (string | number)[]),
+      }));
+  return { profile, issues };
+}
+
+export function parseProfileJson(text: string): Profile {
+  const { profile, issues } = parseProfileJsonLoose(text);
+  if (issues.length > 0) {
     throw new ProfileImportError(
       `This profile JSON is missing or has invalid required fields (${issues.length}).`,
       issues,
