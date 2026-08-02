@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, User, Wrench, Briefcase, GraduationCap } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 export type Profile = {
   personal: {
@@ -389,6 +389,6 @@ function Field({
 const ERROR_RING =
   "border-destructive ring-2 ring-destructive/30 focus-visible:ring-destructive/40";
 
-function ErrorText({ children }: { children: React.ReactNode }) {
+function ErrorText({ children }: { children: ReactNode }) {
   return <p className="mt-1 text-xs font-medium text-destructive">{children}</p>;
 }
