@@ -72,7 +72,7 @@ export function normalizeProfile(input: unknown): Profile {
   };
 }
 
-export type ProfileImportIssue = { field: string; message: string };
+export type ProfileImportIssue = { field: string; message: string; path: string };
 
 export class ProfileImportError extends Error {
   issues: ProfileImportIssue[];
