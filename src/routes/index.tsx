@@ -12,6 +12,7 @@ import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileFor
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
+import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
 
@@ -47,6 +48,7 @@ function Index() {
   const [hydrated, setHydrated] = useState(false);
   const [savedLocally, setSavedLocally] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
   const jdRef = useRef<HTMLTextAreaElement>(null);
   const run = useServerFn(generateResume);
 
@@ -99,19 +101,38 @@ function Index() {
     setProfile(emptyProfile);
     setSavedLocally(false);
     setProfileOpen(true);
+    setImportIssues([]);
     toast.success("Stored profile cleared.");
   };
 
-  const handleImportProfile = (imported: Profile) => {
+  const focusField = (path: string) => {
+    const el = document.getElementById(`field-${path}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    (el as HTMLElement).focus({ preventScroll: true });
+  };
+
+  const handleImportProfile = (
+    imported: Profile,
+    issues: ProfileImportIssue[] = [],
+  ) => {
     setProfile(imported);
     setProfileOpen(true);
+    setImportIssues(issues);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
       setSavedLocally(true);
     } catch {
       // ignore
     }
-    toast.success("Profile imported and saved locally.");
+    if (issues.length > 0) {
+      toast.warning(
+        `Imported with ${issues.length} field${issues.length > 1 ? "s" : ""} to fix — highlighted below.`,
+      );
+      setTimeout(() => focusField(issues[0].path), 120);
+    } else {
+      toast.success("Profile imported and saved locally.");
+    }
   };
 
   const handleGenerate = async () => {
@@ -251,7 +272,50 @@ function Index() {
               </div>
             </div>
             {profileOpen ? (
-              <ProfileForm profile={profile} setProfile={setProfile} />
+              <>
+                {importIssues.length > 0 && (
+                  <div
+                    role="alert"
+                    className="mb-3 rounded-md border border-destructive/40 bg-destructive/5 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium text-destructive">
+                        {importIssues.length} imported field
+                        {importIssues.length > 1 ? "s need" : " needs"} attention
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                        onClick={() => setImportIssues([])}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                    <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs">
+                      {importIssues.map((issue, i) => (
+                        <li key={`${issue.path}-${i}`}>
+                          <button
+                            type="button"
+                            onClick={() => focusField(issue.path)}
+                            className="text-left text-destructive underline-offset-2 hover:underline"
+                          >
+                            <span className="font-semibold">{issue.field}:</span>{" "}
+                            {issue.message}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <ProfileForm
+                  profile={profile}
+                  setProfile={setProfile}
+                  fieldErrors={Object.fromEntries(
+                    importIssues.map((i) => [i.path, i.message]),
+                  )}
+                />
+              </>
             ) : (
               <p className="text-xs text-muted-foreground">
                 Your profile is stored locally and will be used automatically.
