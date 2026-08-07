@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -15,19 +16,22 @@ import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
+import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { LogOut } from "lucide-react";
 
 const STORAGE_KEY = "ats-resume-builder:profile";
 
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
     meta: [
-      { title: "ATS Resume Builder — AI-Optimized Resumes for 90+ ATS Score" },
+      { title: "Resume Builder — ATS Resume Builder" },
       {
         name: "description",
         content:
           "Paste a job description and generate a tailored, ATS-friendly resume with an AI match score, keyword analysis, and one-click PDF download.",
       },
-      { property: "og:title", content: "ATS Resume Builder" },
+      { property: "og:title", content: "Resume Builder — ATS Resume Builder" },
       {
         property: "og:description",
         content:
@@ -51,58 +55,104 @@ function Index() {
   const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
   const jdRef = useRef<HTMLTextAreaElement>(null);
   const run = useServerFn(generateResume);
+  const loadRemote = useServerFn(getMyProfile);
+  const saveRemote = useServerFn(saveMyProfile);
+  const clearRemote = useServerFn(clearMyProfile);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // Hydrate from localStorage on mount
+  // Hydrate from the account first, falling back to localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Profile;
-        setProfile(parsed);
+    let cancelled = false;
+    const localProfile = (() => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? (JSON.parse(raw) as Profile) : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const apply = (merged: Profile | null) => {
+      if (merged) {
+        setProfile(merged);
         setSavedLocally(true);
         setProfileOpen(false);
-        // Focus JD for returning users
         setTimeout(() => jdRef.current?.focus(), 50);
       } else {
         setProfileOpen(true);
         toast.info("Fill in your profile once — we'll remember it for next time.");
       }
-    } catch {
-      // ignore
-    }
-    setHydrated(true);
+    };
+
+    loadRemote()
+      .then((remote) =>
+        apply(
+          remote
+            ? {
+                personal: remote.personal ?? emptyProfile.personal,
+                skills: remote.skills ?? emptyProfile.skills,
+                experience: remote.experience ?? emptyProfile.experience,
+                education: remote.education ?? emptyProfile.education,
+              }
+            : localProfile,
+        ),
+      )
+      .catch(() => apply(localProfile))
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-save profile on change (after hydration)
+  // Auto-save profile on change (after hydration): localStorage + account
   useEffect(() => {
     if (!hydrated) return;
+    const isEmpty =
+      !profile.personal.fullName.trim() &&
+      !profile.personal.email.trim() &&
+      profile.experience.every((e) => !e.title && !e.company);
     try {
-      const isEmpty =
-        !profile.personal.fullName.trim() &&
-        !profile.personal.email.trim() &&
-        profile.experience.every((e) => !e.title && !e.company);
       if (isEmpty) {
         setSavedLocally(false);
-        return;
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+        setSavedLocally(true);
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-      setSavedLocally(true);
     } catch {
       // ignore quota errors
     }
+    if (isEmpty) return;
+    const t = setTimeout(() => {
+      void saveRemote({ data: { profile } }).catch(() => undefined);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, hydrated]);
 
-  const handleClearProfile = () => {
+  const handleClearProfile = async () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
       // ignore
     }
+    await clearRemote().catch(() => undefined);
     setProfile(emptyProfile);
     setSavedLocally(false);
     setProfileOpen(true);
     setImportIssues([]);
     toast.success("Stored profile cleared.");
+  };
+
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
   };
 
   const focusField = (path: string) => {
@@ -206,6 +256,9 @@ function Index() {
               className="gap-2"
             >
               <Download className="h-4 w-4" /> Download PDF
+            </Button>
+            <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
+              <LogOut className="h-4 w-4" /> Sign out
             </Button>
           </div>
         </div>
