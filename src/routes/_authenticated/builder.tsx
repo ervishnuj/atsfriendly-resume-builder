@@ -18,7 +18,7 @@ import type { OptimizedResume } from "@/lib/resume.functions";
 
 const STORAGE_KEY = "ats-resume-builder:profile";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
     meta: [
       { title: "ATS Resume Builder — AI-Optimized Resumes for 90+ ATS Score" },
