@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
@@ -17,6 +17,8 @@ import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
+import { getCurrentSubscription, amIAdmin } from "@/lib/billing.functions";
+import { daysRemaining } from "@/lib/billing-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
@@ -60,6 +62,14 @@ function Index() {
   const clearRemote = useServerFn(clearMyProfile);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const fetchSubscription = useServerFn(getCurrentSubscription);
+  const fetchAdmin = useServerFn(amIAdmin);
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription"],
+    queryFn: () => fetchSubscription(),
+  });
+  const { data: admin } = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fetchAdmin() });
+  const isSubscribed = subscription?.active === true;
 
   // Hydrate from the account first, falling back to localStorage
   useEffect(() => {
