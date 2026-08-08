@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
 import { Route as AuthenticatedPaymentIndexRouteImport } from './routes/_authenticated/payment/index'
+import { Route as AuthenticatedPaymentCheckoutPlanIdRouteImport } from './routes/_authenticated/payment/checkout.$planId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -40,18 +41,26 @@ const AuthenticatedPaymentIndexRoute =
     path: '/payment/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPaymentCheckoutPlanIdRoute =
+  AuthenticatedPaymentCheckoutPlanIdRouteImport.update({
+    id: '/payment/checkout/$planId',
+    path: '/payment/checkout/$planId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/payment': typeof AuthenticatedPaymentIndexRoute
+  '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -60,12 +69,18 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
   '/_authenticated/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/_authenticated/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/builder' | '/payment/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/builder'
+    | '/payment/'
+    | '/payment/checkout/$planId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/builder' | '/payment'
+  to: '/' | '/auth' | '/builder' | '/payment' | '/payment/checkout/$planId'
   id:
     | '__root__'
     | '/'
@@ -73,6 +88,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/builder'
     | '/_authenticated/payment/'
+    | '/_authenticated/payment/checkout/$planId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,17 +134,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPaymentIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payment/checkout/$planId': {
+      id: '/_authenticated/payment/checkout/$planId'
+      path: '/payment/checkout/$planId'
+      fullPath: '/payment/checkout/$planId'
+      preLoaderRoute: typeof AuthenticatedPaymentCheckoutPlanIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
   AuthenticatedPaymentIndexRoute: typeof AuthenticatedPaymentIndexRoute
+  AuthenticatedPaymentCheckoutPlanIdRoute: typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
   AuthenticatedPaymentIndexRoute: AuthenticatedPaymentIndexRoute,
+  AuthenticatedPaymentCheckoutPlanIdRoute:
+    AuthenticatedPaymentCheckoutPlanIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
