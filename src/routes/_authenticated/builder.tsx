@@ -196,6 +196,11 @@ function Index() {
   };
 
   const handleGenerate = async () => {
+    if (!isSubscribed) {
+      toast.error("An active subscription is required to generate resumes.");
+      void navigate({ to: "/payment" });
+      return;
+    }
     if (!jd.trim()) {
       toast.error("Please paste the target Job Description first.");
       return;
@@ -211,13 +216,25 @@ function Index() {
       toast.success(`Resume generated · ATS Score ${res.atsScore}/100`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
-      toast.error(msg);
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        toast.error("Your subscription has expired. Please renew to continue.");
+        void navigate({ to: "/payment" });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownload = () => window.print();
+  const handleDownload = () => {
+    if (!isSubscribed) {
+      toast.error("PDF download is a premium feature. Please subscribe.");
+      void navigate({ to: "/payment" });
+      return;
+    }
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -238,6 +255,30 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {subscription && (
+              <Link to="/subscription">
+                <Badge
+                  variant="secondary"
+                  className={
+                    isSubscribed
+                      ? "hidden gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100 sm:inline-flex dark:bg-amber-900/40 dark:text-amber-100"
+                      : "hidden gap-1 sm:inline-flex"
+                  }
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                  {subscription.active
+                    ? `${subscription.planName} · ${daysRemaining(subscription.endDate)}d left`
+                    : "No active plan"}
+                </Badge>
+              </Link>
+            )}
+            {admin?.isAdmin && (
+              <Button asChild variant="ghost" size="sm" className="gap-1">
+                <Link to="/admin/payments">
+                  <ShieldCheck className="h-4 w-4" /> Admin
+                </Link>
+              </Button>
+            )}
             {savedLocally && (
               <Badge
                 variant="secondary"
