@@ -12,7 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
+import { Route as AuthenticatedPaymentIndexRouteImport } from './routes/_authenticated/payment/index'
+import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authenticated/admin/upi-config'
+import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
+import { Route as AuthenticatedPaymentCheckoutPlanIdRouteImport } from './routes/_authenticated/payment/checkout.$planId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -28,21 +33,61 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSubscriptionRoute =
+  AuthenticatedSubscriptionRouteImport.update({
+    id: '/subscription',
+    path: '/subscription',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBuilderRoute = AuthenticatedBuilderRouteImport.update({
   id: '/builder',
   path: '/builder',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPaymentIndexRoute =
+  AuthenticatedPaymentIndexRouteImport.update({
+    id: '/payment/',
+    path: '/payment/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminUpiConfigRoute =
+  AuthenticatedAdminUpiConfigRouteImport.update({
+    id: '/admin/upi-config',
+    path: '/admin/upi-config',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminPaymentsRoute =
+  AuthenticatedAdminPaymentsRouteImport.update({
+    id: '/admin/payments',
+    path: '/admin/payments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentCheckoutPlanIdRoute =
+  AuthenticatedPaymentCheckoutPlanIdRouteImport.update({
+    id: '/payment/checkout/$planId',
+    path: '/payment/checkout/$planId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/builder': typeof AuthenticatedBuilderRoute
+  '/subscription': typeof AuthenticatedSubscriptionRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/builder': typeof AuthenticatedBuilderRoute
+  '/subscription': typeof AuthenticatedSubscriptionRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/payment': typeof AuthenticatedPaymentIndexRoute
+  '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +95,44 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
+  '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
+  '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/_authenticated/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/_authenticated/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/builder'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/builder'
+    | '/subscription'
+    | '/admin/payments'
+    | '/admin/upi-config'
+    | '/payment/'
+    | '/payment/checkout/$planId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/builder'
-  id: '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/builder'
+  to:
+    | '/'
+    | '/auth'
+    | '/builder'
+    | '/subscription'
+    | '/admin/payments'
+    | '/admin/upi-config'
+    | '/payment'
+    | '/payment/checkout/$planId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/builder'
+    | '/_authenticated/subscription'
+    | '/_authenticated/admin/payments'
+    | '/_authenticated/admin/upi-config'
+    | '/_authenticated/payment/'
+    | '/_authenticated/payment/checkout/$planId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/subscription': {
+      id: '/_authenticated/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/builder': {
       id: '/_authenticated/builder'
       path: '/builder'
@@ -95,15 +178,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBuilderRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payment/': {
+      id: '/_authenticated/payment/'
+      path: '/payment'
+      fullPath: '/payment/'
+      preLoaderRoute: typeof AuthenticatedPaymentIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/upi-config': {
+      id: '/_authenticated/admin/upi-config'
+      path: '/admin/upi-config'
+      fullPath: '/admin/upi-config'
+      preLoaderRoute: typeof AuthenticatedAdminUpiConfigRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/payments': {
+      id: '/_authenticated/admin/payments'
+      path: '/admin/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AuthenticatedAdminPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment/checkout/$planId': {
+      id: '/_authenticated/payment/checkout/$planId'
+      path: '/payment/checkout/$planId'
+      fullPath: '/payment/checkout/$planId'
+      preLoaderRoute: typeof AuthenticatedPaymentCheckoutPlanIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
+  AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
+  AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
+  AuthenticatedAdminUpiConfigRoute: typeof AuthenticatedAdminUpiConfigRoute
+  AuthenticatedPaymentIndexRoute: typeof AuthenticatedPaymentIndexRoute
+  AuthenticatedPaymentCheckoutPlanIdRoute: typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
+  AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
+  AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
+  AuthenticatedAdminUpiConfigRoute: AuthenticatedAdminUpiConfigRoute,
+  AuthenticatedPaymentIndexRoute: AuthenticatedPaymentIndexRoute,
+  AuthenticatedPaymentCheckoutPlanIdRoute:
+    AuthenticatedPaymentCheckoutPlanIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -117,13 +239,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

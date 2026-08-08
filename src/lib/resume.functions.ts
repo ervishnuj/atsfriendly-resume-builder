@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const ExperienceSchema = z.object({
   title: z.string().default(""),
@@ -77,8 +78,14 @@ export type OptimizedResume = {
 };
 
 export const generateResume = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
-  .handler(async ({ data }): Promise<OptimizedResume> => {
+  .handler(async ({ data, context }): Promise<OptimizedResume> => {
+    const { getActiveSubscription } = await import("./billing.server");
+    const subscription = await getActiveSubscription(context.userId);
+    if (!subscription) {
+      throw new Error("SUBSCRIPTION_REQUIRED: Please subscribe to continue.");
+    }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
