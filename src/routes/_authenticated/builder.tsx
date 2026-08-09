@@ -58,7 +58,7 @@ function Index() {
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
@@ -81,6 +81,14 @@ function Index() {
   // Hydrate from the account first, falling back to localStorage
   useEffect(() => {
     let cancelled = false;
+    // Blank the previous identity immediately. This also prevents the old
+    // profile from being autosaved while the new identity is hydrating.
+    setHydratedUserId(null);
+    setProfile(emptyProfile);
+    setJd("");
+    setResult(null);
+    setSavedLocally(false);
+    setImportIssues([]);
     const localProfile = readLocalProfile<Profile>(userId);
 
     const apply = (merged: Profile | null) => {
@@ -111,7 +119,7 @@ function Index() {
       )
       .catch(() => apply(localProfile))
       .finally(() => {
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) setHydratedUserId(userId);
       });
 
     return () => {
@@ -122,7 +130,7 @@ function Index() {
 
   // Auto-save profile on change (after hydration): localStorage + account
   useEffect(() => {
-    if (!hydrated) return;
+    if (hydratedUserId !== userId) return;
     const isEmpty =
       !profile.personal.fullName.trim() &&
       !profile.personal.email.trim() &&
@@ -145,7 +153,7 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // saveRemote is a framework hook result; userId scopes the persisted value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, hydrated, userId]);
+  }, [profile, hydratedUserId, userId]);
 
   const handleClearProfile = async () => {
     removeLocalProfile(userId);
