@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { clearBrowserUserData } from "@/lib/profile-storage";
 
 function NotFoundComponent() {
   return (
@@ -122,6 +123,10 @@ function RootComponent() {
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // Query data may contain profile, billing, or admin information. Remove it
+      // synchronously before any route for the next identity can render.
+      queryClient.clear();
+      if (event === "SIGNED_OUT") clearBrowserUserData();
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });

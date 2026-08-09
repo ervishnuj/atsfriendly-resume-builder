@@ -19,7 +19,9 @@ export async function checkAdmin(userId: string): Promise<AdminCheck> {
 
 export async function requireAdmin(userId: string) {
   const check = await checkAdmin(userId);
-  if (!check.isAdmin) throw new Error("FORBIDDEN: admin access required");
+  if (!check.isAdmin) {
+    throw new Response("Forbidden", { status: 403 });
+  }
   return check;
 }
 

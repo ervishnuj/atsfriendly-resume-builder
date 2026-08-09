@@ -51,6 +51,7 @@ const statusColor: Record<string, string> = {
 };
 
 function AdminPayments() {
+  const { user } = Route.useRouteContext();
   const queryClient = useQueryClient();
   const checkAdmin = useServerFn(amIAdmin);
   const list = useServerFn(adminListPayments);
@@ -60,11 +61,11 @@ function AdminPayments() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const { data: admin, isLoading: checking } = useQuery({
-    queryKey: ["am-i-admin"],
+    queryKey: ["am-i-admin", user.id],
     queryFn: () => checkAdmin(),
   });
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-payments", status],
+    queryKey: ["admin-payments", user.id, status],
     queryFn: () => list({ data: { status: status as never, planName: "ALL" } }),
     enabled: admin?.isAdmin === true,
   });

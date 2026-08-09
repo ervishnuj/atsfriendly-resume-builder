@@ -26,7 +26,7 @@ import {
   readLocalProfile,
   writeLocalProfile,
   removeLocalProfile,
-  clearAllLocalProfiles,
+  clearBrowserUserData,
 } from "@/lib/profile-storage";
 
 export const Route = createFileRoute("/_authenticated/builder")({
@@ -58,7 +58,7 @@ function Index() {
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
@@ -72,18 +72,27 @@ function Index() {
   const fetchSubscription = useServerFn(getCurrentSubscription);
   const fetchAdmin = useServerFn(amIAdmin);
   const { data: subscription } = useQuery({
-    queryKey: ["subscription"],
+    queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
   });
-  const { data: admin } = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fetchAdmin() });
+  const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isSubscribed = subscription?.active === true;
 
   // Hydrate from the account first, falling back to localStorage
   useEffect(() => {
     let cancelled = false;
+    // Blank the previous identity immediately. This also prevents the old
+    // profile from being autosaved while the new identity is hydrating.
+    setHydratedUserId(null);
+    setProfile(emptyProfile);
+    setJd("");
+    setResult(null);
+    setSavedLocally(false);
+    setImportIssues([]);
     const localProfile = readLocalProfile<Profile>(userId);
 
     const apply = (merged: Profile | null) => {
+      if (cancelled) return;
       if (merged) {
         setProfile(merged);
         setSavedLocally(true);
@@ -110,7 +119,7 @@ function Index() {
       )
       .catch(() => apply(localProfile))
       .finally(() => {
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) setHydratedUserId(userId);
       });
 
     return () => {
@@ -121,7 +130,7 @@ function Index() {
 
   // Auto-save profile on change (after hydration): localStorage + account
   useEffect(() => {
-    if (!hydrated) return;
+    if (hydratedUserId !== userId) return;
     const isEmpty =
       !profile.personal.fullName.trim() &&
       !profile.personal.email.trim() &&
@@ -142,7 +151,9 @@ function Index() {
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, hydrated]);
+    // saveRemote is a framework hook result; userId scopes the persisted value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, hydratedUserId, userId]);
 
   const handleClearProfile = async () => {
     removeLocalProfile(userId);
@@ -158,7 +169,7 @@ function Index() {
     await queryClient.cancelQueries();
     queryClient.clear();
     // Drop every cached profile so the next account starts clean.
-    clearAllLocalProfiles();
+    clearBrowserUserData();
     setProfile(emptyProfile);
     setResult(null);
     setJd("");
