@@ -22,7 +22,12 @@ import { daysRemaining } from "@/lib/billing-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
-const STORAGE_KEY = "ats-resume-builder:profile";
+import {
+  readLocalProfile,
+  writeLocalProfile,
+  removeLocalProfile,
+  clearAllLocalProfiles,
+} from "@/lib/profile-storage";
 
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
@@ -47,6 +52,8 @@ export const Route = createFileRoute("/_authenticated/builder")({
 });
 
 function Index() {
+  const { user } = Route.useRouteContext();
+  const userId = user.id;
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
@@ -74,14 +81,7 @@ function Index() {
   // Hydrate from the account first, falling back to localStorage
   useEffect(() => {
     let cancelled = false;
-    const localProfile = (() => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? (JSON.parse(raw) as Profile) : null;
-      } catch {
-        return null;
-      }
-    })();
+    const localProfile = readLocalProfile<Profile>(userId);
 
     const apply = (merged: Profile | null) => {
       if (merged) {
@@ -117,7 +117,7 @@ function Index() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId]);
 
   // Auto-save profile on change (after hydration): localStorage + account
   useEffect(() => {
@@ -130,7 +130,7 @@ function Index() {
       if (isEmpty) {
         setSavedLocally(false);
       } else {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+        writeLocalProfile(userId, profile);
         setSavedLocally(true);
       }
     } catch {
@@ -145,11 +145,7 @@ function Index() {
   }, [profile, hydrated]);
 
   const handleClearProfile = async () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
+    removeLocalProfile(userId);
     await clearRemote().catch(() => undefined);
     setProfile(emptyProfile);
     setSavedLocally(false);
@@ -161,6 +157,11 @@ function Index() {
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
+    // Drop every cached profile so the next account starts clean.
+    clearAllLocalProfiles();
+    setProfile(emptyProfile);
+    setResult(null);
+    setJd("");
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
@@ -179,12 +180,8 @@ function Index() {
     setProfile(imported);
     setProfileOpen(true);
     setImportIssues(issues);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
-      setSavedLocally(true);
-    } catch {
-      // ignore
-    }
+    writeLocalProfile(userId, imported);
+    setSavedLocally(true);
     if (issues.length > 0) {
       toast.warning(
         `Imported with ${issues.length} field${issues.length > 1 ? "s" : ""} to fix — highlighted below.`,
