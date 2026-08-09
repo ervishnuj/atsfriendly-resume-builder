@@ -1,7 +1,8 @@
 // Per-user local profile cache. Keys are namespaced by the authenticated user's
 // id so one browser never leaks one account's profile into another's session.
-const PREFIX = "ats-resume-builder:profile";
-const LEGACY_KEY = PREFIX;
+const LEGACY_PREFIX = "ats-resume-builder:profile";
+const PREFIX = "ats-resume-builder:profile:v2";
+const LEGACY_KEY = LEGACY_PREFIX;
 
 export function profileStorageKey(userId: string) {
   return `${PREFIX}:${userId}`;
@@ -11,7 +12,11 @@ export function readLocalProfile<T>(userId: string): T | null {
   try {
     // Never migrate the old shared value into an account: its owner cannot be
     // established, so assigning it to the current user would leak profile data.
-    localStorage.removeItem(LEGACY_KEY);
+    for (const key of Object.keys(localStorage)) {
+      if (key === LEGACY_KEY || key.startsWith(`${LEGACY_PREFIX}:`)) {
+        localStorage.removeItem(key);
+      }
+    }
     const raw = localStorage.getItem(profileStorageKey(userId));
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
@@ -39,7 +44,13 @@ export function removeLocalProfile(userId: string) {
 export function clearAllLocalProfiles() {
   try {
     for (const key of Object.keys(localStorage)) {
-      if (key === LEGACY_KEY || key.startsWith(`${PREFIX}:`)) localStorage.removeItem(key);
+      if (
+        key === LEGACY_KEY ||
+        key.startsWith(`${LEGACY_PREFIX}:`) ||
+        key.startsWith(`${PREFIX}:`)
+      ) {
+        localStorage.removeItem(key);
+      }
     }
   } catch {
     // ignore
