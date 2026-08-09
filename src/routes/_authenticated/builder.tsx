@@ -143,7 +143,9 @@ function Index() {
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, hydrated, userId, saveRemote]);
+    // saveRemote is a framework hook result; userId scopes the persisted value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, hydrated, userId]);
 
   const handleClearProfile = async () => {
     removeLocalProfile(userId);
