@@ -26,7 +26,7 @@ import {
   readLocalProfile,
   writeLocalProfile,
   removeLocalProfile,
-  clearAllLocalProfiles,
+  clearBrowserUserData,
 } from "@/lib/profile-storage";
 
 export const Route = createFileRoute("/_authenticated/builder")({
@@ -72,10 +72,10 @@ function Index() {
   const fetchSubscription = useServerFn(getCurrentSubscription);
   const fetchAdmin = useServerFn(amIAdmin);
   const { data: subscription } = useQuery({
-    queryKey: ["subscription"],
+    queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
   });
-  const { data: admin } = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fetchAdmin() });
+  const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isSubscribed = subscription?.active === true;
 
   // Hydrate from the account first, falling back to localStorage
@@ -84,6 +84,7 @@ function Index() {
     const localProfile = readLocalProfile<Profile>(userId);
 
     const apply = (merged: Profile | null) => {
+      if (cancelled) return;
       if (merged) {
         setProfile(merged);
         setSavedLocally(true);
@@ -142,7 +143,7 @@ function Index() {
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, hydrated]);
+  }, [profile, hydrated, userId, saveRemote]);
 
   const handleClearProfile = async () => {
     removeLocalProfile(userId);
@@ -158,7 +159,7 @@ function Index() {
     await queryClient.cancelQueries();
     queryClient.clear();
     // Drop every cached profile so the next account starts clean.
-    clearAllLocalProfiles();
+    clearBrowserUserData();
     setProfile(emptyProfile);
     setResult(null);
     setJd("");

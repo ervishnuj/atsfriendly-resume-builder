@@ -42,13 +42,17 @@ const statusColor: Record<string, string> = {
 };
 
 function SubscriptionPage() {
+  const { user } = Route.useRouteContext();
   const fetchSub = useServerFn(getCurrentSubscription);
   const fetchPayments = useServerFn(getPaymentHistory);
   const { data: subscription, isLoading } = useQuery({
-    queryKey: ["subscription"],
+    queryKey: ["subscription", user.id],
     queryFn: () => fetchSub(),
   });
-  const { data: payments } = useQuery({ queryKey: ["payments"], queryFn: () => fetchPayments() });
+  const { data: payments } = useQuery({
+    queryKey: ["payments", user.id],
+    queryFn: () => fetchPayments(),
+  });
 
   return (
     <div className="min-h-screen bg-muted/30">

@@ -34,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/admin/upi-config")({
 });
 
 function UpiConfigPage() {
+  const { user } = Route.useRouteContext();
   const queryClient = useQueryClient();
   const checkAdmin = useServerFn(amIAdmin);
   const load = useServerFn(adminGetUpiConfig);
@@ -41,11 +42,11 @@ function UpiConfigPage() {
   const upload = useServerFn(adminUploadQr);
 
   const { data: admin, isLoading: checking } = useQuery({
-    queryKey: ["am-i-admin"],
+    queryKey: ["am-i-admin", user.id],
     queryFn: () => checkAdmin(),
   });
   const { data: config } = useQuery({
-    queryKey: ["admin-upi-config"],
+    queryKey: ["admin-upi-config", user.id],
     queryFn: () => load(),
     enabled: admin?.isAdmin === true,
   });

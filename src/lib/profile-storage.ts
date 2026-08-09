@@ -9,17 +9,10 @@ export function profileStorageKey(userId: string) {
 
 export function readLocalProfile<T>(userId: string): T | null {
   try {
-    const raw =
-      localStorage.getItem(profileStorageKey(userId)) ??
-      // one-time migration of the old shared key into this user's namespace
-      (() => {
-        const legacy = localStorage.getItem(LEGACY_KEY);
-        if (legacy) {
-          localStorage.setItem(profileStorageKey(userId), legacy);
-          localStorage.removeItem(LEGACY_KEY);
-        }
-        return legacy;
-      })();
+    // Never migrate the old shared value into an account: its owner cannot be
+    // established, so assigning it to the current user would leak profile data.
+    localStorage.removeItem(LEGACY_KEY);
+    const raw = localStorage.getItem(profileStorageKey(userId));
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;
@@ -50,5 +43,15 @@ export function clearAllLocalProfiles() {
     }
   } catch {
     // ignore
+  }
+}
+
+/** Clear non-auth application state that must never survive an account switch. */
+export function clearBrowserUserData() {
+  clearAllLocalProfiles();
+  try {
+    sessionStorage.clear();
+  } catch {
+    // ignore unavailable storage
   }
 }

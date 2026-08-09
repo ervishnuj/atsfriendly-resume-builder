@@ -30,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/payment/checkout/$planId")
 });
 
 function CheckoutPage() {
+  const { user } = Route.useRouteContext();
   const { planId } = useParams({ from: "/_authenticated/payment/checkout/$planId" });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -51,8 +52,8 @@ function CheckoutPage() {
     setSubmitting(true);
     try {
       await submit({ data: { planId, upiReference: reference.trim() } });
-      await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      await queryClient.invalidateQueries({ queryKey: ["payments"] });
+      await queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["payments", user.id] });
       toast.success("Payment submitted — awaiting verification.");
       void navigate({ to: "/subscription" });
     } catch (err) {

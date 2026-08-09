@@ -29,10 +29,14 @@ export const Route = createFileRoute("/_authenticated/payment/")({
 });
 
 function PlansPage() {
+  const { user } = Route.useRouteContext();
   const fetchPlans = useServerFn(listPlans);
   const fetchSub = useServerFn(getCurrentSubscription);
   const { data: plans, isLoading } = useQuery({ queryKey: ["plans"], queryFn: () => fetchPlans() });
-  const { data: subscription } = useQuery({ queryKey: ["subscription"], queryFn: () => fetchSub() });
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", user.id],
+    queryFn: () => fetchSub(),
+  });
 
   return (
     <div className="min-h-screen bg-muted/30">
