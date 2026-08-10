@@ -22,12 +22,7 @@ import { daysRemaining } from "@/lib/billing-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
-import {
-  readLocalProfile,
-  writeLocalProfile,
-  removeLocalProfile,
-  clearBrowserUserData,
-} from "@/lib/profile-storage";
+import { clearBrowserUserData } from "@/lib/profile-storage";
 
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
@@ -78,7 +73,8 @@ function Index() {
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isSubscribed = subscription?.active === true;
 
-  // Hydrate from the account first, falling back to localStorage
+  // Hydrate strictly from the signed-in account. Nothing is read from this
+  // browser, so a new login always starts with an empty profile.
   useEffect(() => {
     let cancelled = false;
     // Blank the previous identity immediately. This also prevents the old
@@ -89,7 +85,8 @@ function Index() {
     setResult(null);
     setSavedLocally(false);
     setImportIssues([]);
-    const localProfile = readLocalProfile<Profile>(userId);
+    // Drop any profile data cached by older versions of the app.
+    clearBrowserUserData();
 
     const apply = (merged: Profile | null) => {
       if (cancelled) return;
@@ -114,10 +111,10 @@ function Index() {
                 experience: remote.experience ?? emptyProfile.experience,
                 education: remote.education ?? emptyProfile.education,
               }
-            : localProfile,
+            : null,
         ),
       )
-      .catch(() => apply(localProfile))
+      .catch(() => apply(null))
       .finally(() => {
         if (!cancelled) setHydratedUserId(userId);
       });
@@ -128,35 +125,34 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  // Auto-save profile on change (after hydration): localStorage + account
+  // Auto-save profile on change (after hydration) to the signed-in account only.
   useEffect(() => {
     if (hydratedUserId !== userId) return;
     const isEmpty =
       !profile.personal.fullName.trim() &&
       !profile.personal.email.trim() &&
       profile.experience.every((e) => !e.title && !e.company);
-    try {
-      if (isEmpty) {
-        setSavedLocally(false);
-      } else {
-        writeLocalProfile(userId, profile);
-        setSavedLocally(true);
-      }
-    } catch {
-      // ignore quota errors
+    if (isEmpty) {
+      setSavedLocally(false);
+      return;
     }
-    if (isEmpty) return;
+    if (!isSubscribed) {
+      // Details are only persisted to the account for paid, signed-in users.
+      setSavedLocally(false);
+      return;
+    }
     const t = setTimeout(() => {
-      void saveRemote({ data: { profile } }).catch(() => undefined);
+      void saveRemote({ data: { profile } })
+        .then(() => setSavedLocally(true))
+        .catch(() => undefined);
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // saveRemote is a framework hook result; userId scopes the persisted value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, hydratedUserId, userId]);
+  }, [profile, hydratedUserId, userId, isSubscribed]);
 
   const handleClearProfile = async () => {
-    removeLocalProfile(userId);
     await clearRemote().catch(() => undefined);
     setProfile(emptyProfile);
     setSavedLocally(false);
@@ -191,15 +187,17 @@ function Index() {
     setProfile(imported);
     setProfileOpen(true);
     setImportIssues(issues);
-    writeLocalProfile(userId, imported);
-    setSavedLocally(true);
     if (issues.length > 0) {
       toast.warning(
         `Imported with ${issues.length} field${issues.length > 1 ? "s" : ""} to fix — highlighted below.`,
       );
       setTimeout(() => focusField(issues[0].path), 120);
     } else {
-      toast.success("Profile imported and saved locally.");
+      toast.success(
+        isSubscribed
+          ? "Profile imported and saved to your account."
+          : "Profile imported. Subscribe to save it to your account.",
+      );
     }
   };
 
@@ -293,7 +291,7 @@ function Index() {
                 className="hidden gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 sm:inline-flex dark:bg-emerald-900/40 dark:text-emerald-200"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Profile Saved Locally
+                Profile Saved To Account
               </Badge>
             )}
             <Button
@@ -430,7 +428,7 @@ function Index() {
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Your profile is stored locally and will be used automatically.
+                Your profile is stored privately in your account and will be used automatically.
                 Click <span className="font-medium">Edit</span> to update it.
               </p>
             )}
