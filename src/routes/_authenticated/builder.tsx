@@ -291,7 +291,7 @@ function Index() {
                 className="hidden gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 sm:inline-flex dark:bg-emerald-900/40 dark:text-emerald-200"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Profile Saved Locally
+                Profile Saved To Account
               </Badge>
             )}
             <Button
@@ -428,7 +428,7 @@ function Index() {
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Your profile is stored locally and will be used automatically.
+                Your profile is stored privately in your account and will be used automatically.
                 Click <span className="font-medium">Edit</span> to update it.
               </p>
             )}
