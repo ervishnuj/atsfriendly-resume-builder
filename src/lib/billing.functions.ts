@@ -13,6 +13,11 @@ export type Plan = {
 
 export type CurrentSubscription =
   | {
+      admin: true;
+      active: true;
+    }
+  | {
+      admin: false;
       active: true;
       planName: string;
       price: number;
@@ -21,7 +26,7 @@ export type CurrentSubscription =
       endDate: string;
       daysRemaining: number;
     }
-  | { active: false; message: string };
+  | { admin: false; active: false; message: string };
 
 export type PaymentRow = {
   id: string;
@@ -77,9 +82,11 @@ export const listPlans = createServerFn({ method: "GET" }).handler(async (): Pro
 export const getCurrentSubscription = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CurrentSubscription> => {
-    const { getActiveSubscription } = await import("./billing.server");
-    const sub = await getActiveSubscription(context.userId);
-    if (!sub) return { active: false, message: "Subscription expired" };
+    const { hasPremiumAccess } = await import("./billing.server");
+    const access = await hasPremiumAccess(context.userId);
+    if (access.isAdmin) return { admin: true, active: true };
+    const sub = access.subscription;
+    if (!sub) return { admin: false, active: false, message: "Subscription expired" };
     const plan = sub.subscription_plans as unknown as {
       plan_name: string;
       price: number;
@@ -87,6 +94,7 @@ export const getCurrentSubscription = createServerFn({ method: "GET" })
     };
     const ms = new Date(sub.end_date).getTime() - Date.now();
     return {
+      admin: false,
       active: true,
       planName: plan.plan_name,
       price: Number(plan.price),
