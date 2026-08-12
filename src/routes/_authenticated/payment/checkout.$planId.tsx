@@ -4,12 +4,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { Loader2, QrCode, Copy } from "lucide-react";
+import { Loader2, QrCode, Copy, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { listPlans, getUpiConfig, submitUpiPayment } from "@/lib/billing.functions";
+import { listPlans, getUpiConfig, submitUpiPayment, getCurrentSubscription } from "@/lib/billing.functions";
 import { formatINR } from "@/lib/billing-shared";
 
 export const Route = createFileRoute("/_authenticated/payment/checkout/$planId")({
@@ -36,12 +36,18 @@ function CheckoutPage() {
   const queryClient = useQueryClient();
   const fetchPlans = useServerFn(listPlans);
   const fetchUpi = useServerFn(getUpiConfig);
+  const fetchSub = useServerFn(getCurrentSubscription);
   const submit = useServerFn(submitUpiPayment);
   const [reference, setReference] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const { data: plans } = useQuery({ queryKey: ["plans"], queryFn: () => fetchPlans() });
   const { data: upi, isLoading } = useQuery({ queryKey: ["upi-config"], queryFn: () => fetchUpi() });
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", user.id],
+    queryFn: () => fetchSub(),
+  });
+  const isAdmin = subscription?.admin === true;
   const plan = plans?.find((p) => p.id === planId);
 
   const handleSubmit = async () => {
@@ -80,6 +86,21 @@ function CheckoutPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-10">
+        {isAdmin ? (
+          <Card className="p-6">
+            <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
+              <Crown className="h-5 w-5" />
+              <h2 className="text-xl font-semibold">Admin access</h2>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              All premium Resume Builder features are already unlocked for your account. No payment
+              is required.
+            </p>
+            <Button asChild className="mt-5">
+              <Link to="/builder">Go to dashboard</Link>
+            </Button>
+          </Card>
+        ) : (
         <Card className="p-6">
           {plan ? (
             <div className="flex items-baseline justify-between border-b border-border pb-4">
