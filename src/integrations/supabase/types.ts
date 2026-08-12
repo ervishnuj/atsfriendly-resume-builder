@@ -170,8 +170,13 @@ export type Database = {
           currency: string
           description: string | null
           duration_days: number
+          features: string[]
+          highlight: boolean
           id: string
+          pdf_credits: number
+          plan_code: string | null
           plan_name: string
+          plan_type: string
           price: number
           sort_order: number
           updated_at: string
@@ -182,8 +187,13 @@ export type Database = {
           currency?: string
           description?: string | null
           duration_days: number
+          features?: string[]
+          highlight?: boolean
           id?: string
+          pdf_credits?: number
+          plan_code?: string | null
           plan_name: string
+          plan_type?: string
           price: number
           sort_order?: number
           updated_at?: string
@@ -194,8 +204,13 @@ export type Database = {
           currency?: string
           description?: string | null
           duration_days?: number
+          features?: string[]
+          highlight?: boolean
           id?: string
+          pdf_credits?: number
+          plan_code?: string | null
           plan_name?: string
+          plan_type?: string
           price?: number
           sort_order?: number
           updated_at?: string
@@ -205,6 +220,8 @@ export type Database = {
       subscriptions: {
         Row: {
           created_at: string
+          credits_total: number
+          credits_used: number
           end_date: string
           id: string
           payment_id: string | null
@@ -216,6 +233,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credits_total?: number
+          credits_used?: number
           end_date: string
           id?: string
           payment_id?: string | null
@@ -227,6 +246,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credits_total?: number
+          credits_used?: number
           end_date?: string
           id?: string
           payment_id?: string | null
@@ -352,6 +373,7 @@ export type Database = {
         Args: { _daily_limit: number; _user_id: string }
         Returns: boolean
       }
+      consume_pdf_credit: { Args: { _user_id: string }; Returns: boolean }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
