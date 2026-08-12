@@ -163,6 +163,11 @@ export const submitUpiPayment = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    // Admin has unlimited free access — never create a payment for it.
+    const { checkAdmin } = await import("./billing.server");
+    const { isAdmin } = await checkAdmin(context.userId);
+    if (isAdmin) throw new Error("Admin account has unlimited free access. No payment required.");
+
     // Amount always comes from the database, never from the client
     const { data: plan, error: planError } = await context.supabase
       .from("subscription_plans")
