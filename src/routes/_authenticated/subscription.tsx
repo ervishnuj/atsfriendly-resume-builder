@@ -95,12 +95,20 @@ function SubscriptionPage() {
                 <Crown className="h-3.5 w-3.5" /> Active
               </Badge>
               <h2 className="text-2xl font-semibold">{subscription.planName}</h2>
-              <p className="text-sm text-muted-foreground">
-                Valid {formatDate(subscription.startDate)} → {formatDate(subscription.endDate)} ·{" "}
-                {subscription.daysRemaining} day{subscription.daysRemaining === 1 ? "" : "s"} remaining
-              </p>
+              {subscription.creditsRemaining !== null ? (
+                <p className="text-sm text-muted-foreground">
+                  One-time purchase · {subscription.creditsRemaining} resume PDF download remaining
+                  · usable until {formatDate(subscription.endDate)}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Valid {formatDate(subscription.startDate)} → {formatDate(subscription.endDate)} ·{" "}
+                  {subscription.daysRemaining} day{subscription.daysRemaining === 1 ? "" : "s"}{" "}
+                  remaining
+                </p>
+              )}
               <Button asChild variant="outline" className="mt-3">
-                <Link to="/payment">Renew or upgrade</Link>
+                <Link to="/payment">Buy another plan</Link>
               </Button>
             </div>
           ) : (
