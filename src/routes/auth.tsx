@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,9 +58,7 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-sm p-8 text-center">
-        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <FileText className="h-6 w-6" />
-        </div>
+        <BrandLogo className="mx-auto mb-5 h-11 sm:h-12" />
         <h1 className="text-xl font-semibold tracking-tight">Sign in to continue</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Your resume profile is saved to your account and synced across devices.
