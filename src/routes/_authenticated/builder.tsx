@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
+import { Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
@@ -249,13 +250,9 @@ function Index() {
       <header className="border-b border-border bg-background print:hidden">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <FileText className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight">
-                ATS Resume Builder
-              </h1>
+            <BrandLogo className="h-9 sm:h-10" />
+            <div className="hidden sm:block">
+              <h1 className="sr-only">ATS Resume Builder</h1>
               <p className="text-xs text-muted-foreground">
                 AI-tailored resumes for any job description
               </p>
