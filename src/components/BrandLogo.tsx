@@ -6,8 +6,8 @@ export function BrandLogo({ className }: { className?: string }) {
     <img
       src={logo.url}
       alt="Resume Rocket — AI Resume Builder"
-      width={1024}
-      height={538}
+      width={760}
+      height={190}
       className={cn("h-8 w-auto object-contain sm:h-9", className)}
     />
   );
