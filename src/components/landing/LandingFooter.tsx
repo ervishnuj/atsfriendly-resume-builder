@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function LandingFooter({ signedIn }: { signedIn: boolean }) {
   return (
@@ -7,12 +7,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
       <div className="mx-auto max-w-6xl px-5 py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-brand-foreground">
-                <FileText className="h-4.5 w-4.5" />
-              </span>
-              <span className="text-sm font-semibold tracking-tight">AI Resume Builder</span>
-            </div>
+            <BrandLogo className="h-9" />
             <p className="mt-3 text-sm text-muted-foreground">
               ATS-friendly resumes tailored to the job description you are applying for.
             </p>
