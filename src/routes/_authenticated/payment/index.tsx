@@ -37,6 +37,7 @@ function PlansPage() {
     queryKey: ["subscription", user.id],
     queryFn: () => fetchSub(),
   });
+  const isAdmin = subscription?.admin === true;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -55,11 +56,30 @@ function PlansPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {subscription?.active && (
+        {isAdmin && (
+          <Card className="mb-6 border-amber-300/60 bg-amber-50 p-6 dark:bg-amber-950/20">
+            <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
+              <Crown className="h-3.5 w-3.5" /> Admin account
+            </Badge>
+            <h2 className="mt-3 text-xl font-semibold">
+              You have unlimited free access to all Resume Builder features.
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              No subscription is required. The plans below are what regular users see.
+            </p>
+            <Button asChild className="mt-4">
+              <Link to="/builder">Go to builder</Link>
+            </Button>
+          </Card>
+        )}
+        {!isAdmin && subscription?.active && (
           <Badge className="mb-6 gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
             <Crown className="h-3.5 w-3.5" /> {subscription.planName} active · renews/expires in{" "}
             {subscription.daysRemaining} days
           </Badge>
+        )}
+        {isAdmin && (
+          <p className="mb-4 text-sm font-medium text-muted-foreground">Plans for regular users</p>
         )}
         {isLoading ? (
           <div className="flex justify-center py-20">
@@ -89,11 +109,17 @@ function PlansPage() {
                 {plan.description && (
                   <p className="mt-4 text-sm text-muted-foreground">{plan.description}</p>
                 )}
-                <Button asChild className="mt-6">
-                  <Link to="/payment/checkout/$planId" params={{ planId: plan.id }}>
-                    Pay with UPI
-                  </Link>
-                </Button>
+                {isAdmin ? (
+                  <Button className="mt-6 gap-1" variant="outline" disabled>
+                    <Check className="h-4 w-4" /> Already unlocked
+                  </Button>
+                ) : (
+                  <Button asChild className="mt-6">
+                    <Link to="/payment/checkout/$planId" params={{ planId: plan.id }}>
+                      Pay with UPI
+                    </Link>
+                  </Button>
+                )}
               </Card>
             ))}
           </div>
