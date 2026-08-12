@@ -169,3 +169,68 @@
     padding: 0 !important;
   }
 }
+
+/* --- Landing / marketing brand tokens --- */
+:root {
+  --brand: oklch(0.52 0.21 275);
+  --brand-foreground: oklch(0.985 0.005 275);
+  --brand-soft: oklch(0.96 0.03 275);
+  --violet: oklch(0.56 0.24 300);
+  --emerald: oklch(0.62 0.15 162);
+  --emerald-soft: oklch(0.95 0.04 162);
+  --gradient-brand: linear-gradient(135deg, var(--brand), var(--violet));
+  --gradient-hero: radial-gradient(
+      ellipse 80% 60% at 15% -10%,
+      color-mix(in oklab, var(--brand) 18%, transparent),
+      transparent
+    ),
+    radial-gradient(ellipse 70% 60% at 95% 0%, color-mix(in oklab, var(--violet) 16%, transparent), transparent);
+  --shadow-soft: 0 1px 2px oklch(0.2 0.04 265 / 0.04), 0 12px 32px -12px oklch(0.2 0.04 265 / 0.18);
+  --shadow-glow: 0 20px 60px -20px color-mix(in oklab, var(--brand) 45%, transparent);
+}
+
+.dark {
+  --brand: oklch(0.62 0.19 275);
+  --brand-soft: oklch(0.28 0.06 275);
+  --emerald-soft: oklch(0.28 0.05 162);
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-violet-brand: var(--violet);
+  --color-emerald-brand: var(--emerald);
+  --color-emerald-soft: var(--emerald-soft);
+}
+
+@utility bg-gradient-brand {
+  background-image: var(--gradient-brand);
+}
+
+@utility bg-hero-glow {
+  background-image: var(--gradient-hero);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+@utility text-gradient-brand {
+  background-image: var(--gradient-brand);
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes float-card {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@utility animate-float {
+  animation: float-card 6s ease-in-out infinite;
+}
