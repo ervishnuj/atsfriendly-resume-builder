@@ -180,6 +180,7 @@ function CheckoutPage() {
             </Button>
           </div>
         </Card>
+        )}
       </main>
     </div>
   );
