@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { FileText, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,11 +27,8 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3 lg:flex lg:justify-between">
-        <Link to="/" className="flex min-w-0 items-center gap-2.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-brand text-brand-foreground shadow-glow">
-            <FileText className="h-4.5 w-4.5" />
-          </span>
-          <span className="truncate text-base font-semibold tracking-tight">AI Resume Builder</span>
+        <Link to="/" aria-label="Resume Rocket home" className="flex min-w-0 items-center">
+          <BrandLogo className="h-8 sm:h-10" />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
