@@ -5,9 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type Plan = {
   id: string;
   planName: string;
+  planCode: string | null;
+  planType: "ONE_TIME" | "PASS";
   price: number;
   currency: string;
   durationDays: number;
+  pdfCredits: number;
+  features: string[];
+  highlight: boolean;
   description: string | null;
 };
 
@@ -20,6 +25,8 @@ export type CurrentSubscription =
       admin: false;
       active: true;
       planName: string;
+      planType: "ONE_TIME" | "PASS";
+      creditsRemaining: number | null;
       price: number;
       currency: string;
       startDate: string;
@@ -65,16 +72,21 @@ export const listPlans = createServerFn({ method: "GET" }).handler(async (): Pro
   });
   const { data, error } = await client
     .from("subscription_plans")
-    .select("id, plan_name, price, currency, duration_days, description")
+    .select("id, plan_name, plan_code, plan_type, price, currency, duration_days, pdf_credits, features, highlight, description")
     .eq("active", true)
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map((p) => ({
     id: p.id as string,
     planName: p.plan_name as string,
+    planCode: (p.plan_code as string | null) ?? null,
+    planType: (p.plan_type as "ONE_TIME" | "PASS") ?? "PASS",
     price: Number(p.price),
     currency: p.currency as string,
     durationDays: p.duration_days as number,
+    pdfCredits: Number(p.pdf_credits ?? 0),
+    features: (p.features as string[] | null) ?? [],
+    highlight: Boolean(p.highlight),
     description: (p.description as string | null) ?? null,
   }));
 });
@@ -89,6 +101,7 @@ export const getCurrentSubscription = createServerFn({ method: "GET" })
     if (!sub) return { admin: false, active: false, message: "Subscription expired" };
     const plan = sub.subscription_plans as unknown as {
       plan_name: string;
+      plan_type: string;
       price: number;
       currency: string;
     };
@@ -97,12 +110,29 @@ export const getCurrentSubscription = createServerFn({ method: "GET" })
       admin: false,
       active: true,
       planName: plan.plan_name,
+      planType: (plan.plan_type as "ONE_TIME" | "PASS") ?? "PASS",
+      creditsRemaining: access.kind === "credit" ? access.creditsRemaining : null,
       price: Number(plan.price),
       currency: plan.currency,
       startDate: sub.start_date,
       endDate: sub.end_date,
       daysRemaining: Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000))),
     };
+  });
+
+/**
+ * Server-authoritative download gate. Passes and the admin account download
+ * freely; a one-time Single Resume purchase spends its single PDF credit here.
+ */
+export const consumeDownloadEntitlement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { consumeDownloadEntitlement: consume } = await import("./billing.server");
+    const result = await consume(context.userId);
+    if (!result.allowed) {
+      throw new Error("SUBSCRIPTION_REQUIRED: Purchase a plan to download your resume PDF.");
+    }
+    return result;
   });
 
 export const getPaymentHistory = createServerFn({ method: "GET" })

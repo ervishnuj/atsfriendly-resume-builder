@@ -5,8 +5,8 @@ import { Check, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PricingCards } from "@/components/PricingCards";
 import { listPlans, getCurrentSubscription } from "@/lib/billing.functions";
-import { formatINR } from "@/lib/billing-shared";
 
 export const Route = createFileRoute("/_authenticated/payment/")({
   head: () => ({
@@ -14,12 +14,13 @@ export const Route = createFileRoute("/_authenticated/payment/")({
       { title: "Plans & Pricing — ATS Resume Builder" },
       {
         name: "description",
-        content: "Choose a daily, monthly or yearly plan to unlock AI resume generation and PDF downloads.",
+        content:
+          "Choose the ₹29 Single Resume, ₹99 7-Day Job Pass or ₹249 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
       },
       { property: "og:title", content: "Plans & Pricing — ATS Resume Builder" },
       {
         property: "og:description",
-        content: "Daily, monthly and yearly subscription plans for the ATS Resume Builder.",
+        content: "One-time and time-based plans for the ATS Resume Builder, paid over UPI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -74,8 +75,10 @@ function PlansPage() {
         )}
         {!isAdmin && subscription?.active && (
           <Badge className="mb-6 gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
-            <Crown className="h-3.5 w-3.5" /> {subscription.planName} active · renews/expires in{" "}
-            {subscription.daysRemaining} days
+            <Crown className="h-3.5 w-3.5" /> {subscription.planName} active ·{" "}
+            {subscription.creditsRemaining !== null
+              ? `${subscription.creditsRemaining} PDF download left`
+              : `expires in ${subscription.daysRemaining} days`}
           </Badge>
         )}
         {isAdmin && (
@@ -86,47 +89,31 @@ function PlansPage() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-3">
-            {(plans ?? []).map((plan) => (
-              <Card key={plan.id} className="flex flex-col p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {plan.planName}
-                </h2>
-                <p className="mt-3 text-3xl font-semibold">{formatINR(plan.price)}</p>
-                <p className="text-sm text-muted-foreground">
-                  for {plan.durationDays} day{plan.durationDays > 1 ? "s" : ""}
-                </p>
-                <ul className="mt-5 space-y-2 text-sm">
-                  {["Unlimited ATS resume generation", "PDF download", "Keyword match analysis"].map(
-                    (feature) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ),
-                  )}
-                </ul>
-                {plan.description && (
-                  <p className="mt-4 text-sm text-muted-foreground">{plan.description}</p>
-                )}
-                {isAdmin ? (
-                  <Button className="mt-6 gap-1" variant="outline" disabled>
-                    <Check className="h-4 w-4" /> Already unlocked
-                  </Button>
-                ) : (
-                  <Button asChild className="mt-6">
-                    <Link to="/payment/checkout/$planId" params={{ planId: plan.id }}>
-                      Pay with UPI
-                    </Link>
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </div>
+          <PricingCards
+            plans={plans}
+            renderCta={(plan) =>
+              isAdmin ? (
+                <Button className="w-full gap-1" variant="outline" disabled>
+                  <Check className="h-4 w-4" /> Unlimited Access
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className={`w-full ${plan.highlight ? "bg-gradient-brand text-brand-foreground" : ""}`}
+                  variant={plan.highlight ? "default" : "outline"}
+                >
+                  <Link to="/payment/checkout/$planId" params={{ planId: plan.id }}>
+                    Pay ₹{plan.price} with UPI
+                  </Link>
+                </Button>
+              )
+            }
+          />
         )}
         <p className="mt-8 text-sm text-muted-foreground">
-          Payments are made over UPI and verified by our team, usually within a few hours. You will
-          see the status of every payment on your subscription page.
+          Payments are made over UPI. Submit your UTR reference after paying — your plan is
+          activated once the payment is verified, and every payment status is shown on your
+          subscription page.
         </p>
       </main>
     </div>

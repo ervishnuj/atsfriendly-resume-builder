@@ -36,25 +36,62 @@ export async function expireStaleSubscriptions(userId?: string) {
   await q;
 }
 
-export async function getActiveSubscription(userId: string) {
+const SUBSCRIPTION_SELECT =
+  "id, plan_id, payment_id, start_date, end_date, status, credits_total, credits_used, subscription_plans(plan_name, plan_code, plan_type, price, currency, duration_days, pdf_credits)";
+
+type PlanJoin = {
+  plan_name: string;
+  plan_code: string | null;
+  plan_type: string;
+  price: number;
+  currency: string;
+  duration_days: number;
+  pdf_credits: number;
+};
+
+async function listActiveSubscriptions(userId: string) {
   await expireStaleSubscriptions(userId);
   const { data } = await supabaseAdmin
     .from("subscriptions")
-    .select(
-      "id, plan_id, payment_id, start_date, end_date, status, subscription_plans(plan_name, price, currency, duration_days)",
-    )
+    .select(SUBSCRIPTION_SELECT)
     .eq("user_id", userId)
     .eq("status", "ACTIVE")
     .gt("end_date", new Date().toISOString())
-    .order("end_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data ?? null;
+    .order("end_date", { ascending: false });
+  return data ?? [];
+}
+
+function isPass(row: { subscription_plans: unknown; credits_total: number }) {
+  const plan = row.subscription_plans as unknown as PlanJoin | null;
+  return (plan?.plan_type ?? "PASS") === "PASS" && row.credits_total === 0;
+}
+
+/** Longest-running time-based pass (7-day / 30-day), or null. */
+export async function getActivePass(userId: string) {
+  const rows = await listActiveSubscriptions(userId);
+  return rows.find(isPass) ?? null;
+}
+
+/** Unconsumed one-time PDF credit purchase, or null. */
+export async function getCreditSubscription(userId: string) {
+  const rows = await listActiveSubscriptions(userId);
+  return (
+    rows.find((r) => r.credits_total > 0 && r.credits_used < r.credits_total) ?? null
+  );
+}
+
+/** Backwards-compatible: any active entitlement, passes first. */
+export async function getActiveSubscription(userId: string) {
+  const rows = await listActiveSubscriptions(userId);
+  return rows.find(isPass) ?? rows.find((r) => r.credits_used < r.credits_total) ?? null;
 }
 
 export type PremiumAccess = {
   allowed: boolean;
   isAdmin: boolean;
+  /** "admin" = unlimited, "pass" = time-based plan, "credit" = one-time PDF purchase */
+  kind: "admin" | "pass" | "credit" | "none";
+  creditsRemaining: number | null;
   subscription: Awaited<ReturnType<typeof getActiveSubscription>>;
 };
 
@@ -65,9 +102,42 @@ export type PremiumAccess = {
  */
 export async function hasPremiumAccess(userId: string): Promise<PremiumAccess> {
   const { isAdmin } = await checkAdmin(userId);
-  if (isAdmin) return { allowed: true, isAdmin: true, subscription: null };
-  const subscription = await getActiveSubscription(userId);
-  return { allowed: !!subscription, isAdmin: false, subscription };
+  if (isAdmin)
+    return { allowed: true, isAdmin: true, kind: "admin", creditsRemaining: null, subscription: null };
+  const rows = await listActiveSubscriptions(userId);
+  const pass = rows.find(isPass) ?? null;
+  if (pass)
+    return { allowed: true, isAdmin: false, kind: "pass", creditsRemaining: null, subscription: pass };
+  const credit = rows.find((r) => r.credits_total > 0 && r.credits_used < r.credits_total) ?? null;
+  if (credit)
+    return {
+      allowed: true,
+      isAdmin: false,
+      kind: "credit",
+      creditsRemaining: credit.credits_total - credit.credits_used,
+      subscription: credit,
+    };
+  return { allowed: false, isAdmin: false, kind: "none", creditsRemaining: 0, subscription: null };
+}
+
+/**
+ * Consume one PDF credit for a one-time purchase. Admins and pass holders
+ * download without consuming anything. Returns whether the download is allowed.
+ */
+export async function consumeDownloadEntitlement(userId: string) {
+  const access = await hasPremiumAccess(userId);
+  if (access.kind === "admin" || access.kind === "pass") {
+    return { allowed: true, unlimited: true, creditsRemaining: null as number | null };
+  }
+  if (access.kind !== "credit") return { allowed: false, unlimited: false, creditsRemaining: 0 };
+  const { data, error } = await supabaseAdmin.rpc("consume_pdf_credit", { _user_id: userId });
+  if (error) throw new Error(error.message);
+  if (!data) return { allowed: false, unlimited: false, creditsRemaining: 0 };
+  return {
+    allowed: true,
+    unlimited: false,
+    creditsRemaining: Math.max(0, (access.creditsRemaining ?? 1) - 1),
+  };
 }
 
 /** Idempotently mark a payment SUCCESS and activate/extend the subscription. */
@@ -89,7 +159,7 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
 
   const { data: plan } = await supabaseAdmin
     .from("subscription_plans")
-    .select("id, plan_name, price, duration_days")
+    .select("id, plan_name, price, duration_days, plan_type, pdf_credits")
     .eq("id", payment.plan_id)
     .maybeSingle();
   if (!plan) throw new Error("Plan not found");
@@ -98,7 +168,9 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
     throw new Error("Payment amount does not match the plan price");
   }
 
-  const current = await getActiveSubscription(payment.user_id);
+  const isOneTime = plan.plan_type === "ONE_TIME" || (plan.pdf_credits ?? 0) > 0;
+  // One-time purchases always start now; passes stack on top of an active pass.
+  const current = isOneTime ? null : await getActivePass(payment.user_id);
   const start = current ? new Date(current.end_date) : new Date();
   const end = new Date(start.getTime() + plan.duration_days * 24 * 60 * 60 * 1000);
 
@@ -110,6 +182,8 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
       payment_id: payment.id,
       start_date: start.toISOString(),
       end_date: end.toISOString(),
+      credits_total: isOneTime ? (plan.pdf_credits ?? 1) : 0,
+      credits_used: 0,
       status: "ACTIVE",
     })
     .select("id")

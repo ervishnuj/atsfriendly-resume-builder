@@ -62,10 +62,10 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/auth">Login</Link>
+                <Link to="/login">Login</Link>
               </Button>
               <Button asChild size="sm" className="bg-gradient-brand text-brand-foreground hover:opacity-90">
-                <Link to="/auth">Build My Resume</Link>
+                <Link to="/login">Build My Resume</Link>
               </Button>
             </>
           )}
@@ -114,10 +114,10 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
               ) : (
                 <>
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                    <Link to="/auth">Login</Link>
+                    <Link to="/login">Login</Link>
                   </Button>
                   <Button asChild className="bg-gradient-brand text-brand-foreground" onClick={() => setOpen(false)}>
-                    <Link to="/auth">Build My Resume</Link>
+                    <Link to="/login">Build My Resume</Link>
                   </Button>
                 </>
               )}

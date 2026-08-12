@@ -20,7 +20,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
               { label: "ATS Checker", href: "#ats-checker" },
               { label: "Skill Gap Analyzer", href: "#features" },
               { label: "Resume Templates", href: "#features" },
-              { label: "Pricing", href: "#pricing" },
+              { label: "Pricing", href: "/pricing" },
             ]}
           />
           <FooterCol
@@ -69,18 +69,18 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
               ) : (
                 <>
                   <li>
-                    <Link to="/auth" className="transition-colors hover:text-foreground">
+                    <Link to="/login" className="transition-colors hover:text-foreground">
                       Login
                     </Link>
                   </li>
                   <li>
-                    <Link to="/auth" className="transition-colors hover:text-foreground">
+                    <Link to="/register" className="transition-colors hover:text-foreground">
                       Register
                     </Link>
                   </li>
                   <li>
-                    <Link to="/auth" className="transition-colors hover:text-foreground">
-                      Dashboard
+                    <Link to="/pricing" className="transition-colors hover:text-foreground">
+                      Pricing
                     </Link>
                   </li>
                 </>
