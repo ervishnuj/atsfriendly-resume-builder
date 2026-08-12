@@ -47,7 +47,7 @@ export function HeroResumeCard() {
         </Block>
       </div>
 
-      <div className="absolute -bottom-6 -left-4 w-44 rounded-xl border border-border/70 bg-card/90 p-4 shadow-soft backdrop-blur-md sm:-left-8">
+      <div className="absolute -bottom-8 -left-2 w-40 sm:-left-10 lg:-left-14 rounded-xl border border-border/70 bg-card/90 p-4 shadow-soft backdrop-blur-md sm:-left-8">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           ATS Match
         </p>
