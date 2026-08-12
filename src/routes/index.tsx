@@ -30,6 +30,7 @@ import { formatINR } from "@/lib/billing-shared";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { HeroResumeCard } from "@/components/landing/HeroResumeCard";
+import { PricingCards } from "@/components/PricingCards";
 
 const TITLE = "AI Resume Builder | ATS-Friendly Resume Generator";
 const DESCRIPTION =
@@ -68,8 +69,8 @@ function useSignedIn() {
 
 function Landing() {
   const signedIn = useSignedIn();
-  const buildTo = signedIn ? "/builder" : "/auth";
-  const pricingTo = signedIn ? "/payment" : "/auth";
+  const buildTo = signedIn ? "/builder" : "/login";
+  const pricingTo = signedIn ? "/payment" : "/login";
   const fetchPlans = useServerFn(listPlans);
   const { data: plans } = useQuery({ queryKey: ["public-plans"], queryFn: () => fetchPlans() });
 
@@ -105,7 +106,7 @@ function Landing() {
                 <Link to={buildTo}>Check My Free ATS Score</Link>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Plans starting from ₹100</p>
+            <p className="mt-4 text-sm text-muted-foreground">Starting from ₹29</p>
 
             <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {[
@@ -307,58 +308,18 @@ function Landing() {
 
       {/* PRICING */}
       <Section id="pricing" title="Simple, Transparent Pricing" subtitle="Choose the plan that works best for you.">
-        <div className="grid gap-5 md:grid-cols-3">
-          {(plans ?? []).map((plan, i) => {
-            const popular = i === 1;
-            return (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col p-6 shadow-soft transition-transform hover:-translate-y-1 ${
-                  popular ? "border-brand ring-1 ring-brand" : ""
-                }`}
-              >
-                {popular && (
-                  <span className="absolute -top-3 left-6 rounded-full bg-gradient-brand px-3 py-1 text-[11px] font-semibold text-brand-foreground">
-                    Most Popular
-                  </span>
-                )}
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  {plan.planName}
-                </h3>
-                <p className="mt-3 text-4xl font-bold tracking-tight">{formatINR(plan.price)}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {plan.durationDays} {plan.durationDays === 1 ? "Day" : "Days"}
-                </p>
-                {plan.description && (
-                  <p className="mt-3 text-sm text-muted-foreground">{plan.description}</p>
-                )}
-                <ul className="mt-5 flex-1 space-y-2 text-sm">
-                  {[
-                    "AI Resume Generation",
-                    "ATS Score",
-                    "Keyword & Skill Gap Analysis",
-                    "PDF Export",
-                    ...(plan.durationDays >= 365 ? ["Best Long-Term Value"] : []),
-                  ].map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-brand" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  asChild
-                  className={`mt-6 ${popular ? "bg-gradient-brand text-brand-foreground" : ""}`}
-                  variant={popular ? "default" : "outline"}
-                >
-                  <Link to={pricingTo}>Get Started</Link>
-                </Button>
-              </Card>
-            );
-          })}
-          {!plans && (
-            <p className="text-sm text-muted-foreground">Loading plans…</p>
+        <PricingCards
+          plans={plans}
+          renderCta={(plan) => (
+            <Button
+              asChild
+              className={`w-full ${plan.highlight ? "bg-gradient-brand text-brand-foreground" : ""}`}
+              variant={plan.highlight ? "default" : "outline"}
+            >
+              <Link to={pricingTo}>Pay ₹{plan.price} with UPI</Link>
+            </Button>
           )}
-        </div>
+        />
       </Section>
 
       {/* UPI */}
@@ -369,8 +330,8 @@ function Landing() {
               <h2 className="text-3xl font-bold tracking-tight">Pay Easily with UPI</h2>
               <p className="mt-4 max-w-lg text-muted-foreground">
                 Secure INR payments for your Resume Builder subscription. Pay to our verified UPI
-                ID or scan the QR code from any UPI app, then submit your UTR reference — access is
-                activated once the payment is verified.
+                ID or scan the QR code from any UPI app, then submit your UTR reference — access
+                is activated as soon as the payment is verified.
               </p>
               <ul className="mt-6 flex flex-wrap gap-2 text-sm">
                 {["UPI", "Google Pay", "PhonePe", "Paytm"].map((m) => (
@@ -451,7 +412,7 @@ function Landing() {
             {[
               [
                 "Is there an automatic recurring charge?",
-                "Our current plans do not automatically renew. You can purchase another plan when your current access expires. The price and validity are clearly displayed before payment.",
+                "No. Every plan is a one-time payment — ₹29 for a single resume PDF, ₹99 for 7 days of access or ₹249 for 30 days. Nothing renews automatically.",
               ],
               [
                 "Will my resume be ATS-friendly?",
