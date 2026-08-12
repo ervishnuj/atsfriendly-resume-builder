@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { listPlans } from "@/lib/billing.functions";
-import { formatINR } from "@/lib/billing-shared";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { HeroResumeCard } from "@/components/landing/HeroResumeCard";
