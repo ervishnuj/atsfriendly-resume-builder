@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { listPlans, getUpiConfig, submitUpiPayment, getCurrentSubscription } from "@/lib/billing.functions";
 import { formatINR } from "@/lib/billing-shared";
+import { planValidityLabel } from "@/components/PricingCards";
 
 export const Route = createFileRoute("/_authenticated/payment/checkout/$planId")({
   head: () => ({
@@ -107,6 +108,7 @@ function CheckoutPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Selected plan</p>
                 <p className="text-lg font-semibold">{plan.planName}</p>
+                <p className="text-xs text-muted-foreground">{planValidityLabel(plan)}</p>
               </div>
               <p className="text-2xl font-semibold">{formatINR(plan.price)}</p>
             </div>
@@ -176,7 +178,7 @@ function CheckoutPage() {
             />
             <Button onClick={handleSubmit} disabled={submitting || !plan} className="mt-4 gap-2">
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Submit payment for verification
+              {submitting ? "Processing payment..." : "Submit payment for verification"}
             </Button>
           </div>
         </Card>
