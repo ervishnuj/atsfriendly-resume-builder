@@ -71,6 +71,7 @@ function Index() {
     queryFn: () => fetchSubscription(),
   });
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
+  const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
 
   // Hydrate strictly from the signed-in account. Nothing is read from this
@@ -272,9 +273,11 @@ function Index() {
                   }
                 >
                   <Crown className="h-3.5 w-3.5" />
-                  {subscription.active
-                    ? `${subscription.planName} · ${daysRemaining(subscription.endDate)}d left`
-                    : "No active plan"}
+                  {subscription.admin
+                    ? "Admin · Unlimited access"
+                    : subscription.active
+                      ? `${subscription.planName} · ${daysRemaining(subscription.endDate)}d left`
+                      : "No active plan"}
                 </Badge>
               </Link>
             )}
