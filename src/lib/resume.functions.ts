@@ -81,10 +81,10 @@ export const generateResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }): Promise<OptimizedResume> => {
-    const { getActiveSubscription } = await import("./billing.server");
-    const subscription = await getActiveSubscription(context.userId);
-    if (!subscription) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please subscribe to continue.");
+    const { hasPremiumAccess } = await import("./billing.server");
+    const access = await hasPremiumAccess(context.userId);
+    if (!access.allowed) {
+      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
     }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");

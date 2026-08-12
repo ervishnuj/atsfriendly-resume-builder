@@ -52,6 +52,24 @@ export async function getActiveSubscription(userId: string) {
   return data ?? null;
 }
 
+export type PremiumAccess = {
+  allowed: boolean;
+  isAdmin: boolean;
+  subscription: Awaited<ReturnType<typeof getActiveSubscription>>;
+};
+
+/**
+ * Centralized entitlement check. The admin account has unlimited free access;
+ * every other account needs an active subscription. Identity always comes from
+ * the verified JWT (userId), never from client-supplied data.
+ */
+export async function hasPremiumAccess(userId: string): Promise<PremiumAccess> {
+  const { isAdmin } = await checkAdmin(userId);
+  if (isAdmin) return { allowed: true, isAdmin: true, subscription: null };
+  const subscription = await getActiveSubscription(userId);
+  return { allowed: !!subscription, isAdmin: false, subscription };
+}
+
 /** Idempotently mark a payment SUCCESS and activate/extend the subscription. */
 export async function activatePaymentSubscription(paymentId: string, adminNote?: string) {
   const { data: payment, error } = await supabaseAdmin

@@ -74,6 +74,21 @@ function SubscriptionPage() {
         <Card className="p-6">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : subscription?.admin ? (
+            <div className="space-y-3">
+              <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
+                <Crown className="h-3.5 w-3.5" /> Admin access
+              </Badge>
+              <h2 className="text-2xl font-semibold">Unlimited access</h2>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>Unlimited resume features</li>
+                <li>No subscription required</li>
+                <li>No expiry</li>
+              </ul>
+              <Button asChild variant="outline" className="mt-2">
+                <Link to="/builder">Go to builder</Link>
+              </Button>
+            </div>
           ) : subscription?.active ? (
             <div className="space-y-2">
               <Badge className="gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
