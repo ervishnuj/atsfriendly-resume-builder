@@ -18,7 +18,11 @@ import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
-import { getCurrentSubscription, amIAdmin } from "@/lib/billing.functions";
+import {
+  getCurrentSubscription,
+  amIAdmin,
+  consumeDownloadEntitlement,
+} from "@/lib/billing.functions";
 import { daysRemaining } from "@/lib/billing-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
@@ -67,6 +71,8 @@ function Index() {
   const queryClient = useQueryClient();
   const fetchSubscription = useServerFn(getCurrentSubscription);
   const fetchAdmin = useServerFn(amIAdmin);
+  const consumeDownload = useServerFn(consumeDownloadEntitlement);
+  const [downloading, setDownloading] = useState(false);
   const { data: subscription } = useQuery({
     queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
@@ -172,7 +178,7 @@ function Index() {
     setResult(null);
     setJd("");
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/login", replace: true });
   };
 
   const focusField = (path: string) => {
@@ -235,13 +241,32 @@ function Index() {
     }
   };
 
-  const handleDownload = () => {
-    if (!isSubscribed) {
-      toast.error("PDF download is a premium feature. Please subscribe.");
-      void navigate({ to: "/payment" });
-      return;
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      // The server decides — a one-time Single Resume purchase spends its PDF credit here.
+      const entitlement = await consumeDownload();
+      await queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
+      if (!entitlement.unlimited) {
+        toast.success(
+          entitlement.creditsRemaining && entitlement.creditsRemaining > 0
+            ? `PDF unlocked · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
+            : "PDF unlocked · this was the download included in your Single Resume purchase.",
+        );
+      }
+      window.print();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not start the download.";
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        toast.error("PDF download is a premium feature. Please choose a plan.");
+        void navigate({ to: "/payment" });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setDownloading(false);
     }
-    window.print();
   };
 
   return (
@@ -273,7 +298,9 @@ function Index() {
                   {subscription.admin
                     ? "Admin · Unlimited access"
                     : subscription.active
-                      ? `${subscription.planName} · ${daysRemaining(subscription.endDate)}d left`
+                      ? subscription.creditsRemaining !== null
+                        ? `${subscription.planName} · ${subscription.creditsRemaining} PDF left`
+                        : `${subscription.planName} · ${daysRemaining(subscription.endDate)}d left`
                       : "No active plan"}
                 </Badge>
               </Link>
@@ -308,11 +335,16 @@ function Index() {
             </Button>
             <Button
               variant="outline"
-              onClick={handleDownload}
-              disabled={!result}
+              onClick={() => void handleDownload()}
+              disabled={!result || downloading}
               className="gap-2"
             >
-              <Download className="h-4 w-4" /> Download PDF
+              {downloading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {downloading ? "Preparing PDF..." : "Download PDF"}
             </Button>
             <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
               <LogOut className="h-4 w-4" /> Sign out
