@@ -301,8 +301,8 @@ function Index() {
     <div className="min-h-screen bg-muted/30">
       <Toaster richColors position="top-right" />
       <header className="border-b border-border bg-background print:hidden">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-2">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
               <h1 className="sr-only">ATS Resume Builder</h1>
