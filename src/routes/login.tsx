@@ -201,7 +201,7 @@ function LoginPage() {
             disabled={googleLoading}
           >
             {googleLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Continue with Google
+            {googleLoading ? "Connecting to Google..." : "Continue with Google"}
           </Button>
         </Card>
       </section>
