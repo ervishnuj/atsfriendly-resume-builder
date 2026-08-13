@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 
 export function HeroResumeCard() {
   return (
-    <div className="relative">
+    <div className="relative isolate overflow-hidden rounded-[2rem] p-2">
       <div
         aria-hidden
         className="absolute -inset-6 rounded-[2rem] bg-gradient-brand opacity-15 blur-2xl"
