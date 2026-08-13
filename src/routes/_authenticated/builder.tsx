@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
+import { Sparkles, Download, FileText, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
 import { clearBrowserUserData } from "@/lib/profile-storage";
+import { downloadResumeDocx } from "@/lib/resume-docx";
 
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
@@ -73,6 +74,7 @@ function Index() {
   const fetchAdmin = useServerFn(amIAdmin);
   const consumeDownload = useServerFn(consumeDownloadEntitlement);
   const [downloading, setDownloading] = useState(false);
+  const [exportingDocx, setExportingDocx] = useState(false);
   const { data: subscription } = useQuery({
     queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
@@ -269,12 +271,38 @@ function Index() {
     }
   };
 
+  const handleDownloadDocx = async () => {
+    if (exportingDocx || !result) return;
+    setExportingDocx(true);
+    try {
+      // Same server-authoritative gate as the PDF export.
+      const entitlement = await consumeDownload();
+      await queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
+      await downloadResumeDocx(result);
+      toast.success(
+        entitlement.unlimited
+          ? "Word document downloaded."
+          : "Word document downloaded — this used the download included in your Single Resume purchase.",
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not export the Word document.";
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        toast.error("DOCX export is a premium feature. Please choose a plan.");
+        void navigate({ to: "/payment" });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setExportingDocx(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <Toaster richColors position="top-right" />
       <header className="border-b border-border bg-background print:hidden">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-2">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
               <h1 className="sr-only">ATS Resume Builder</h1>
@@ -345,6 +373,19 @@ function Index() {
                 <Download className="h-4 w-4" />
               )}
               {downloading ? "Preparing PDF..." : "Download PDF"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void handleDownloadDocx()}
+              disabled={!result || exportingDocx}
+              className="gap-2"
+            >
+              {exportingDocx ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              {exportingDocx ? "Preparing DOCX..." : "Download DOCX"}
             </Button>
             <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
               <LogOut className="h-4 w-4" /> Sign out

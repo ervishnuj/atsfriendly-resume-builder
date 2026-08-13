@@ -34,7 +34,7 @@ import { PricingCards } from "@/components/PricingCards";
 const TITLE = "AI Resume Builder | ATS-Friendly Resume Generator";
 const DESCRIPTION =
   "Create an ATS-friendly resume tailored to your job description with AI. Analyze your ATS score, identify skill gaps and download your professional resume.";
-const URL = "https://atsfriendly-resume-builder.lovable.app/";
+const URL = "https://theresumerocket.com/";
 
 export const Route = createFileRoute("/")({
   head: () => ({
