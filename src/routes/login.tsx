@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 const TITLE = "Login | AI Resume Builder";
 const DESCRIPTION =
@@ -81,24 +82,16 @@ function LoginPage() {
   const signInWithGoogle = async () => {
     setError(null);
     setGoogleLoading(true);
-    try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-          queryParams: { prompt: "select_account" },
-        },
-      });
-      if (oauthError) {
-        setError("Google sign-in is temporarily unavailable. Please try again later.");
-        setGoogleLoading(false);
-        return;
-      }
-      // The browser is redirecting to Google; keep the loading state.
-    } catch {
-      setError("Unable to connect. Please check your internet connection and try again.");
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError(result.error.message ?? "Unable to sign in right now. Please try again.");
       setGoogleLoading(false);
+      return;
     }
+    if (result.redirected) return;
+    navigate({ to: "/builder", replace: true });
   };
 
   return (
@@ -201,7 +194,7 @@ function LoginPage() {
             disabled={googleLoading}
           >
             {googleLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {googleLoading ? "Connecting to Google..." : "Continue with Google"}
+            Continue with Google
           </Button>
         </Card>
       </section>
