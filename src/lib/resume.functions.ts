@@ -188,10 +188,13 @@ Rules:
       additionalProperties: false,
     };
 
-    const res = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+    let res: Response;
+    try {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
@@ -211,26 +214,46 @@ Rules:
             },
           },
         }),
-      },
-    );
+      });
+    } catch {
+      throw new Error(
+        "Resume generation is temporarily unavailable. Please try again.",
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!res.ok) {
-      const body = await res.text();
+      const body = await res.text().catch(() => "");
+      console.error("AI gateway error", res.status, body);
       if (res.status === 429)
         throw new Error("Rate limit reached. Please try again in a moment.");
       if (res.status === 402)
         throw new Error(
-          "AI credits exhausted. Add credits in your Lovable workspace to continue.",
+          "Resume generation is temporarily unavailable. Please try again later.",
         );
-      throw new Error(`AI request failed [${res.status}]: ${body}`);
+      throw new Error(
+        "Resume generation is temporarily unavailable. Please try again.",
+      );
     }
 
-    const json = (await res.json()) as {
-      choices: { message: { content: string } }[];
-    };
-    const content = json.choices?.[0]?.message?.content ?? "{}";
-    const parsed = JSON.parse(content) as OptimizedResume;
+    let parsed: OptimizedResume;
+    try {
+      const json = (await res.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error("empty");
+      parsed = JSON.parse(content) as OptimizedResume;
+      if (!parsed?.optimizedProfile?.personal) throw new Error("malformed");
+    } catch {
+      throw new Error(
+        "The AI returned an unexpected response. Please try generating again.",
+      );
+    }
+    parsed.matchingKeywords = parsed.matchingKeywords ?? [];
+    parsed.missingKeywords = parsed.missingKeywords ?? [];
     // clamp score
-    parsed.atsScore = Math.max(0, Math.min(100, Math.round(parsed.atsScore)));
+    parsed.atsScore = Math.max(0, Math.min(100, Math.round(Number(parsed.atsScore) || 0)));
     return parsed;
   });
