@@ -34,7 +34,7 @@ import { PricingCards } from "@/components/PricingCards";
 const TITLE = "AI Resume Builder | ATS-Friendly Resume Generator";
 const DESCRIPTION =
   "Create an ATS-friendly resume tailored to your job description with AI. Analyze your ATS score, identify skill gaps and download your professional resume.";
-const URL = "https://atsfriendly-resume-builder.lovable.app/";
+const URL = "https://theresumerocket.com/";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,6 +50,31 @@ export const Route = createFileRoute("/")({
       { name: "twitter:description", content: DESCRIPTION },
     ],
     links: [{ rel: "canonical", href: URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebSite",
+              name: "Resume Rocket",
+              alternateName: "ATS Resume Builder",
+              url: URL,
+              description: DESCRIPTION,
+            },
+            {
+              "@type": "Organization",
+              name: "Resume Rocket",
+              url: URL,
+              logo: "https://theresumerocket.com/favicon.png",
+              description:
+                "AI-powered ATS resume optimization: tailored resumes, ATS scoring and skill-gap analysis.",
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: Landing,
 });

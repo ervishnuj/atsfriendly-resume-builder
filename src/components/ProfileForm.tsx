@@ -130,6 +130,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Delete skill group"
                   onClick={() =>
                     setProfile((prev) => ({
                       ...prev,
@@ -193,6 +194,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Delete experience entry"
                   onClick={() =>
                     setProfile((prev) => ({
                       ...prev,
@@ -303,6 +305,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Delete education entry"
                   onClick={() =>
                     setProfile((prev) => ({
                       ...prev,
