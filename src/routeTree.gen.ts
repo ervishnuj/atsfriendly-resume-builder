@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -26,6 +27,11 @@ import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
 import { Route as AuthenticatedPaymentCheckoutPlanIdRouteImport } from './routes/_authenticated/payment/checkout.$planId'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/builder'
     | '/subscription'
     | '/admin/payments'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/builder'
     | '/subscription'
     | '/admin/payments'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/_authenticated/builder'
     | '/_authenticated/subscription'
     | '/_authenticated/admin/payments'
@@ -230,10 +242,18 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -382,6 +402,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
