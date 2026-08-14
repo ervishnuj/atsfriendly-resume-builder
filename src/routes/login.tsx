@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 const TITLE = "Login | AI Resume Builder";
 const DESCRIPTION =
@@ -81,19 +82,16 @@ function LoginPage() {
   const signInWithGoogle = async () => {
     setError(null);
     setGoogleLoading(true);
-    // Uses the Google provider configured on this project's auth backend
-    // (our own Google OAuth client ID/secret). No third-party broker.
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/login`,
-        queryParams: { prompt: "select_account" },
-      },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (oauthError) {
-      setError(oauthError.message ?? "Unable to sign in right now. Please try again.");
+    if (result.error) {
+      setError(result.error.message ?? "Unable to sign in right now. Please try again.");
       setGoogleLoading(false);
+      return;
     }
+    if (result.redirected) return;
+    navigate({ to: "/builder", replace: true });
   };
 
   return (
