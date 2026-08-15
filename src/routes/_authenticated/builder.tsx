@@ -210,17 +210,15 @@ function Index() {
   };
 
   const handleGenerate = async () => {
-    if (!isSubscribed) {
-      toast.error("An active subscription is required to generate resumes.");
-      void navigate({ to: "/payment" });
-      return;
-    }
+    if (loading) return;
     if (!jd.trim()) {
-      toast.error("Please paste the target Job Description first.");
+      toast.error("Please paste a Job Description.");
       return;
     }
     if (!profile.personal.fullName.trim()) {
-      toast.error("Please add your full name.");
+      toast.error("Please complete your profile before calculating ATS Score.", {
+        action: { label: "Update Profile", onClick: () => setProfileOpen(true) },
+      });
       return;
     }
     setLoading(true);
@@ -228,14 +226,8 @@ function Index() {
       const res = await run({ data: { profile, jobDescription: jd } });
       setResult(res);
       toast.success(`Resume generated · ATS Score ${res.atsScore}/100`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
-        toast.error("Your subscription has expired. Please renew to continue.");
-        void navigate({ to: "/payment" });
-      } else {
-        toast.error(msg);
-      }
+    } catch {
+      toast.error("Unable to calculate ATS Score. Please try again.");
     } finally {
       setLoading(false);
     }
