@@ -1,0 +1,212 @@
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Gauge, Layers, FileText, Loader2, Copy } from "lucide-react";
+import { AtsScoreBadge } from "@/components/AtsScoreBadge";
+import {
+  analyzeAtsScore,
+  analyzeSkillGap,
+  generateCoverLetter,
+  type AtsAnalysis,
+  type SkillGapAnalysis,
+  type CoverLetterResult,
+} from "@/lib/resume.functions";
+import type { Profile } from "@/components/ProfileForm";
+
+type Props = {
+  profile: Profile;
+  jobDescription: string;
+  onSubscriptionRequired: () => void;
+};
+
+export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequired }: Props) {
+  const runAts = useServerFn(analyzeAtsScore);
+  const runGap = useServerFn(analyzeSkillGap);
+  const runCover = useServerFn(generateCoverLetter);
+  const [busy, setBusy] = useState<null | "ats" | "gap" | "cover">(null);
+  const [ats, setAts] = useState<AtsAnalysis | null>(null);
+  const [gap, setGap] = useState<SkillGapAnalysis | null>(null);
+  const [cover, setCover] = useState<CoverLetterResult | null>(null);
+
+  const guard = () => {
+    if (!jobDescription.trim()) {
+      toast.error("Paste the target job description first.");
+      return false;
+    }
+    if (!profile.personal.fullName.trim()) {
+      toast.error("Add your full name to your profile first.");
+      return false;
+    }
+    return true;
+  };
+
+  const handle = async (
+    kind: "ats" | "gap" | "cover",
+    fn: () => Promise<unknown>,
+    apply: (v: never) => void,
+  ) => {
+    if (!guard() || busy) return;
+    setBusy(kind);
+    try {
+      apply((await fn()) as never);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        toast.error("This is a premium feature. Please choose a plan.");
+        onSubscriptionRequired();
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const data = { data: { profile, jobDescription } };
+
+  return (
+    <Card className="p-4 print:hidden">
+      <h2 className="mb-3 text-sm font-semibold">AI Analysis</h2>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => void handle("ats", () => runAts(data), (v) => setAts(v))}
+          disabled={busy !== null}
+        >
+          {busy === "ats" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gauge className="h-4 w-4" />}
+          ATS Score
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => void handle("gap", () => runGap(data), (v) => setGap(v))}
+          disabled={busy !== null}
+        >
+          {busy === "gap" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
+          Skill Gap
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => void handle("cover", () => runCover(data), (v) => setCover(v))}
+          disabled={busy !== null}
+        >
+          {busy === "cover" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+          Cover Letter
+        </Button>
+      </div>
+
+      {ats && (
+        <div className="mt-4 space-y-3 border-t border-border pt-4">
+          <AtsScoreBadge score={ats.score} />
+          <ChipRow label="Matching keywords" items={ats.matchingKeywords} tone="good" />
+          <ChipRow label="Missing keywords" items={ats.missingKeywords} tone="bad" />
+          <ListBlock label="Strengths" items={ats.strengths} />
+          <ListBlock label="Weaknesses" items={ats.weaknesses} />
+          <ListBlock label="Suggestions" items={ats.suggestions} />
+        </div>
+      )}
+
+      {gap && (
+        <div className="mt-4 space-y-3 border-t border-border pt-4">
+          <ChipRow label="Matched skills" items={gap.matchedSkills} tone="good" />
+          <ChipRow label="Partial skills" items={gap.partialSkills} tone="warn" />
+          <ChipRow label="Missing skills" items={gap.missingSkills} tone="bad" />
+          {gap.learningPlan.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-medium text-muted-foreground">Learning plan</div>
+              <ul className="space-y-2">
+                {gap.learningPlan.map((p) => (
+                  <li key={p.skill} className="rounded-md border border-border p-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{p.skill}</span>
+                      <Badge variant="secondary" className="text-[10px] uppercase">{p.priority}</Badge>
+                    </div>
+                    <p className="mt-1 text-muted-foreground">{p.why}</p>
+                    <p className="mt-1 text-muted-foreground">{p.howToLearn}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {cover && (
+        <div className="mt-4 space-y-3 border-t border-border pt-4">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-medium text-muted-foreground">Cover letter</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                void navigator.clipboard.writeText(cover.coverLetter);
+                toast.success("Cover letter copied.");
+              }}
+            >
+              <Copy className="h-3.5 w-3.5" /> Copy
+            </Button>
+          </div>
+          <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground">
+            {cover.coverLetter}
+          </p>
+          <ListBlock label="Highlights" items={cover.highlights} />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function ChipRow({
+  label,
+  items,
+  tone,
+}: {
+  label: string;
+  items: string[];
+  tone: "good" | "bad" | "warn";
+}) {
+  if (!items?.length) return null;
+  const cls =
+    tone === "good"
+      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200"
+      : tone === "warn"
+        ? "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-100"
+        : "bg-rose-100 text-rose-800 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-200";
+  return (
+    <div>
+      <div className="mb-1 text-xs font-medium text-muted-foreground">
+        {label} ({items.length})
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {items.map((k) => (
+          <Badge key={k} variant="secondary" className={cls}>
+            {k}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ListBlock({ label, items }: { label: string; items: string[] }) {
+  if (!items?.length) return null;
+  return (
+    <div>
+      <div className="mb-1 text-xs font-medium text-muted-foreground">{label}</div>
+      <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+        {items.map((i) => (
+          <li key={i}>{i}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
