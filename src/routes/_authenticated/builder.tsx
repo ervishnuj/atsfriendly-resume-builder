@@ -210,15 +210,17 @@ function Index() {
   };
 
   const handleGenerate = async () => {
-    if (loading) return;
+    if (!isSubscribed) {
+      toast.error("An active subscription is required to generate resumes.");
+      void navigate({ to: "/payment" });
+      return;
+    }
     if (!jd.trim()) {
-      toast.error("Please paste a Job Description.");
+      toast.error("Please paste the target Job Description first.");
       return;
     }
     if (!profile.personal.fullName.trim()) {
-      toast.error("Please complete your profile before calculating ATS Score.", {
-        action: { label: "Update Profile", onClick: () => setProfileOpen(true) },
-      });
+      toast.error("Please add your full name.");
       return;
     }
     setLoading(true);
@@ -226,8 +228,14 @@ function Index() {
       const res = await run({ data: { profile, jobDescription: jd } });
       setResult(res);
       toast.success(`Resume generated · ATS Score ${res.atsScore}/100`);
-    } catch {
-      toast.error("Unable to calculate ATS Score. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        toast.error("Your subscription has expired. Please renew to continue.");
+        void navigate({ to: "/payment" });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -323,7 +331,7 @@ function Index() {
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {loading ? "Calculating ATS Score..." : "Generate ATS Resume"}
+              {loading ? "Generating..." : "Generate ATS Resume"}
             </Button>
             <Button
               variant="outline"
