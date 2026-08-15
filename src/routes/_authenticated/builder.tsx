@@ -14,6 +14,7 @@ import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileFor
 import { ResumePreview } from "@/components/ResumePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
+import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
@@ -465,6 +466,11 @@ function Index() {
               </p>
             )}
           </Card>
+          <AiInsightsPanel
+            profile={profile}
+            jobDescription={jd}
+            onSubscriptionRequired={() => void navigate({ to: "/payment" })}
+          />
         </section>
 
         <section className="space-y-4">
