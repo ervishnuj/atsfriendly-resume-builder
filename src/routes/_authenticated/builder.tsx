@@ -323,7 +323,7 @@ function Index() {
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {loading ? "Generating..." : "Generate ATS Resume"}
+              {loading ? "Calculating ATS Score..." : "Generate ATS Resume"}
             </Button>
             <Button
               variant="outline"
