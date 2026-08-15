@@ -81,11 +81,9 @@ export const generateResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }): Promise<OptimizedResume> => {
-    const { hasPremiumAccess } = await import("./billing.server");
-    const access = await hasPremiumAccess(context.userId);
-    if (!access.allowed) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
-    }
+    // ATS scoring/analysis is free for every authenticated user.
+    // Premium gating applies only to exports (see billing.functions.ts).
+    void context.userId;
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
