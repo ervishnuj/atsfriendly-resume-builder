@@ -3,7 +3,7 @@
  * The API key never leaves the server. No third-party AI gateway is used.
  */
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const DEFAULT_BASE_URL =
   process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta";
 
