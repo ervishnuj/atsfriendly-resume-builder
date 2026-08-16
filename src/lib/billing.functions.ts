@@ -168,7 +168,9 @@ export const getUpiConfig = createServerFn({ method: "GET" })
     if (!data) return null;
     let qrUrl: string | null = null;
     if (data.qr_image_path) {
-      const { data: signed } = await context.supabase.storage
+      // Bucket reads are admin-only; sign the URL server-side after auth.
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: signed } = await supabaseAdmin.storage
         .from("upi-qr")
         .createSignedUrl(data.qr_image_path, 60 * 60);
       qrUrl = signed?.signedUrl ?? null;
