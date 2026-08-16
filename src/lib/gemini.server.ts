@@ -3,9 +3,8 @@
  * The API key never leaves the server. No third-party AI gateway is used.
  */
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const DEFAULT_BASE_URL =
-  process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3-flash";
+const DEFAULT_BASE_URL = process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta";
 
 export type GeminiJsonOptions = {
   systemPrompt: string;
@@ -33,30 +32,25 @@ export async function callGeminiJson<T>({
 }: GeminiJsonOptions): Promise<T> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      "Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.",
-    );
+    throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
   }
 
-  const res = await fetch(
-    `${DEFAULT_BASE_URL}/models/${DEFAULT_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-          temperature,
-          responseMimeType: "application/json",
-          responseSchema: schema,
-        },
-      }),
+  const res = await fetch(`${DEFAULT_BASE_URL}/models/${DEFAULT_MODEL}:generateContent`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
     },
-  );
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature,
+        responseMimeType: "application/json",
+        responseSchema: schema,
+      },
+    }),
+  });
 
   if (!res.ok) {
     const body = await res.text();
@@ -72,8 +66,7 @@ export async function callGeminiJson<T>({
   const json = (await res.json()) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[];
   };
-  const text =
-    json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
   if (!text.trim()) throw new Error("Gemini returned an empty response. Please try again.");
 
   try {
@@ -107,16 +100,7 @@ export const resumeSchema = {
             portfolio: S,
             summary: S,
           },
-          required: [
-            "fullName",
-            "title",
-            "email",
-            "phone",
-            "linkedin",
-            "github",
-            "portfolio",
-            "summary",
-          ],
+          required: ["fullName", "title", "email", "phone", "linkedin", "github", "portfolio", "summary"],
         },
         skills: {
           type: "array",
