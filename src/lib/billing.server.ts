@@ -186,6 +186,11 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
   if (error) throw new Error(error.message);
   if (!payment) throw new Error("Payment not found");
 
+  // Never activate an entitlement for a payment that was rejected/reversed.
+  if (["FAILED", "CANCELLED", "REFUNDED"].includes(payment.status)) {
+    throw new Error("This payment is not in a verifiable state.");
+  }
+
   const { data: existing } = await supabaseAdmin
     .from("subscriptions")
     .select("id")
@@ -224,7 +229,19 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
     })
     .select("id")
     .single();
-  if (subError) throw new Error(subError.message);
+  if (subError) {
+    // Concurrent activation (e.g. admin verify + reconcile) — one payment,
+    // one entitlement. Return the row the other caller created.
+    if (subError.code === "23505") {
+      const { data: raced } = await supabaseAdmin
+        .from("subscriptions")
+        .select("id")
+        .eq("payment_id", paymentId)
+        .maybeSingle();
+      if (raced) return raced;
+    }
+    throw new Error(subError.message);
+  }
 
   await supabaseAdmin
     .from("payments")
