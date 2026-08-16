@@ -3,7 +3,9 @@
  * The API key never leaves the server. No third-party AI gateway is used.
  */
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Fallbacks used when the configured model is not available for this API key.
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest"];
 const DEFAULT_BASE_URL = process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta";
 
 export type GeminiJsonOptions = {
@@ -35,32 +37,36 @@ export async function callGeminiJson<T>({
     throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
   }
 
-  const res = await fetch(`${DEFAULT_BASE_URL}/models/${DEFAULT_MODEL}:generateContent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
+  const payload = JSON.stringify({
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    generationConfig: {
+      temperature,
+      responseMimeType: "application/json",
+      responseSchema: schema,
     },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        temperature,
-        responseMimeType: "application/json",
-        responseSchema: schema,
-      },
-    }),
   });
 
-  if (!res.ok) {
-    const body = await res.text();
-    if (res.status === 429) {
+  const models = [DEFAULT_MODEL, ...FALLBACK_MODELS.filter((m) => m !== DEFAULT_MODEL)];
+  let res: Response | undefined;
+  for (const model of models) {
+    res = await fetch(`${DEFAULT_BASE_URL}/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: payload,
+    });
+    if (res.status !== 404) break;
+  }
+
+  if (!res || !res.ok) {
+    const body = res ? await res.text() : "";
+    if (res?.status === 429) {
       throw new Error("Gemini rate limit reached. Please try again in a moment.");
     }
-    if (res.status === 401 || res.status === 403) {
+    if (res?.status === 401 || res?.status === 403) {
       throw new Error("Gemini rejected the configured API key. Please check GEMINI_API_KEY.");
     }
-    throw new Error(`Gemini request failed [${res.status}]: ${body.slice(0, 500)}`);
+    throw new Error(`Gemini request failed [${res?.status}]: ${body.slice(0, 500)}`);
   }
 
   const json = (await res.json()) as {
