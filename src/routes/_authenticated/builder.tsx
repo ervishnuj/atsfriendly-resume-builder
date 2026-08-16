@@ -212,9 +212,17 @@ function Index() {
 
   const handleGenerate = async () => {
     if (!isSubscribed) {
-      toast.error("An active subscription is required to generate resumes.");
-      void navigate({ to: "/payment" });
-      return;
+      // Never send a paying user back to pricing on stale client state —
+      // re-read the entitlement from the server first.
+      const fresh = await queryClient.fetchQuery({
+        queryKey: ["subscription", userId],
+        queryFn: () => fetchSubscription(),
+      });
+      if (!(fresh?.active === true)) {
+        toast.error("An active subscription is required to generate resumes.");
+        void navigate({ to: "/payment" });
+        return;
+      }
     }
     if (!jd.trim()) {
       toast.error("Please paste the target Job Description first.");

@@ -49,7 +49,43 @@ type PlanJoin = {
   pdf_credits: number;
 };
 
+/**
+ * Self-healing entitlement reconciliation.
+ *
+ * A payment that the backend has verified (status SUCCESS) must always have
+ * exactly one matching entitlement row. If activation previously failed
+ * mid-way (or a payment was flipped to SUCCESS outside the activation path),
+ * the user is left paid-but-blocked. This repairs that, idempotently: the
+ * unique index on subscriptions.payment_id guarantees one payment can never
+ * produce two entitlements.
+ */
+export async function reconcileVerifiedPayments(userId: string) {
+  const { data: paid } = await supabaseAdmin
+    .from("payments")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "SUCCESS");
+  if (!paid?.length) return;
+
+  const { data: subs } = await supabaseAdmin
+    .from("subscriptions")
+    .select("payment_id")
+    .eq("user_id", userId)
+    .not("payment_id", "is", null);
+  const activated = new Set((subs ?? []).map((s) => s.payment_id as string));
+
+  for (const payment of paid) {
+    if (activated.has(payment.id)) continue;
+    try {
+      await activatePaymentSubscription(payment.id);
+    } catch (err) {
+      console.error("[billing] reconcile failed for payment", payment.id, err);
+    }
+  }
+}
+
 async function listActiveSubscriptions(userId: string) {
+  await reconcileVerifiedPayments(userId);
   await expireStaleSubscriptions(userId);
   const { data } = await supabaseAdmin
     .from("subscriptions")
@@ -150,6 +186,11 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
   if (error) throw new Error(error.message);
   if (!payment) throw new Error("Payment not found");
 
+  // Never activate an entitlement for a payment that was rejected/reversed.
+  if (["FAILED", "CANCELLED", "REFUNDED"].includes(payment.status)) {
+    throw new Error("This payment is not in a verifiable state.");
+  }
+
   const { data: existing } = await supabaseAdmin
     .from("subscriptions")
     .select("id")
@@ -188,7 +229,19 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
     })
     .select("id")
     .single();
-  if (subError) throw new Error(subError.message);
+  if (subError) {
+    // Concurrent activation (e.g. admin verify + reconcile) — one payment,
+    // one entitlement. Return the row the other caller created.
+    if (subError.code === "23505") {
+      const { data: raced } = await supabaseAdmin
+        .from("subscriptions")
+        .select("id")
+        .eq("payment_id", paymentId)
+        .maybeSingle();
+      if (raced) return raced;
+    }
+    throw new Error(subError.message);
+  }
 
   await supabaseAdmin
     .from("payments")

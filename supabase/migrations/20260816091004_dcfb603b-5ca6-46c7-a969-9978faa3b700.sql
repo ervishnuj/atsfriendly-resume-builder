@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_payment_id_key ON public.subscriptions (payment_id) WHERE payment_id IS NOT NULL;
