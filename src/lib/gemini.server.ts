@@ -3,10 +3,12 @@
  * The API key never leaves the server. No third-party AI gateway is used.
  */
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-// Fallbacks used when the configured model is not available for this API key.
-const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest"];
-const DEFAULT_BASE_URL = process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta";
+// Use another stable, lower-demand Gemini model when the primary model is
+// temporarily unavailable. Environment values are read at request time so
+// deployed serverless environments can inject them correctly.
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-latest"];
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS_PER_MODEL = 2;
 
 export type GeminiJsonOptions = {
   systemPrompt: string;
@@ -25,6 +27,19 @@ function extractJson(text: string): string {
   return end > start ? body.slice(start, end + 1) : body.slice(start);
 }
 
+function retryDelay(response: Response, attempt: number): number {
+  const retryAfter = response.headers.get("retry-after");
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds)) return Math.min(seconds * 1_000, 3_000);
+  }
+  return 500 * 2 ** attempt + Math.floor(Math.random() * 250);
+}
+
+async function pause(milliseconds: number): Promise<void> {
+  await new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
 /** Calls Gemini and safely parses a JSON-only response. */
 export async function callGeminiJson<T>({
   systemPrompt,
@@ -37,6 +52,9 @@ export async function callGeminiJson<T>({
     throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
   }
 
+  const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const baseUrl = (process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta").replace(/\/$/, "");
+
   const payload = JSON.stringify({
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userPrompt }] }],
@@ -47,26 +65,50 @@ export async function callGeminiJson<T>({
     },
   });
 
-  const models = [DEFAULT_MODEL, ...FALLBACK_MODELS.filter((m) => m !== DEFAULT_MODEL)];
+  const models = [configuredModel, ...FALLBACK_MODELS.filter((model) => model !== configuredModel)];
   let res: Response | undefined;
   for (const model of models) {
-    res = await fetch(`${DEFAULT_BASE_URL}/models/${model}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: payload,
-    });
-    if (res.status !== 404) break;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt += 1) {
+      try {
+        res = await fetch(`${baseUrl}/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: payload,
+        });
+      } catch (error) {
+        console.warn(`Gemini network failure for ${model} (attempt ${attempt + 1}).`, error);
+        if (attempt + 1 < MAX_ATTEMPTS_PER_MODEL) {
+          await pause(500 * 2 ** attempt);
+          continue;
+        }
+        break;
+      }
+
+      if (res.ok) break;
+      if (!RETRYABLE_STATUSES.has(res.status)) break;
+
+      console.warn(`Gemini ${model} returned ${res.status} (attempt ${attempt + 1}).`);
+      if (attempt + 1 < MAX_ATTEMPTS_PER_MODEL) {
+        await pause(retryDelay(res, attempt));
+      }
+    }
+    if (res?.ok) break;
+    if (res && !RETRYABLE_STATUSES.has(res.status) && res.status !== 404) break;
   }
 
   if (!res || !res.ok) {
     const body = res ? await res.text() : "";
     if (res?.status === 429) {
-      throw new Error("Gemini rate limit reached. Please try again in a moment.");
+      throw new Error("AI demand is unusually high right now. Please wait a moment and try again.");
+    }
+    if (res && RETRYABLE_STATUSES.has(res.status)) {
+      throw new Error("AI generation is temporarily busy. Please try again in a moment.");
     }
     if (res?.status === 401 || res?.status === 403) {
       throw new Error("Gemini rejected the configured API key. Please check GEMINI_API_KEY.");
     }
-    throw new Error(`Gemini request failed [${res?.status}]: ${body.slice(0, 500)}`);
+    console.error(`Gemini request failed with status ${res?.status ?? "unknown"}.`, body.slice(0, 500));
+    throw new Error("AI generation could not be completed. Please try again.");
   }
 
   const json = (await res.json()) as {
