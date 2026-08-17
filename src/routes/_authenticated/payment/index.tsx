@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { PaymentGateStatus } from "@/lib/billing-shared";
 import { Check, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PricingCards } from "@/components/PricingCards";
+import { PaymentGateBanner } from "@/components/PaymentGateBanner";
+import { readPaymentGate, clearPaymentGate } from "@/lib/payment-gate-state";
 import { listPlans, getCurrentSubscription } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/_authenticated/payment/")({
@@ -39,6 +43,21 @@ function PlansPage() {
     queryFn: () => fetchSub(),
   });
   const isAdmin = subscription?.admin === true;
+  const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
+
+  // Keep the reason the user landed here visible across the redirect/reload.
+  useEffect(() => {
+    setGateStatus(readPaymentGate(user.id)?.status ?? null);
+  }, [user.id]);
+
+  useEffect(() => {
+    if (subscription?.active === true) {
+      clearPaymentGate(user.id);
+      setGateStatus(null);
+    } else if (subscription && subscription.active === false) {
+      setGateStatus(subscription.paymentStatus ?? "NO_PAYMENT");
+    }
+  }, [subscription, user.id]);
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -57,6 +76,9 @@ function PlansPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
+        {!isAdmin && !subscription?.active && gateStatus && (
+          <PaymentGateBanner status={gateStatus} className="mb-6" />
+        )}
         {isAdmin && (
           <Card className="mb-6 border-amber-300/60 bg-amber-50 p-6 dark:bg-amber-950/20">
             <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">

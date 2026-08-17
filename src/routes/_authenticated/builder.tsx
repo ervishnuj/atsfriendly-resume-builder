@@ -25,6 +25,12 @@ import {
   consumeDownloadEntitlement,
 } from "@/lib/billing.functions";
 import { daysRemaining, paymentGateNotice, type PaymentGateStatus } from "@/lib/billing-shared";
+import {
+  readPaymentGate,
+  savePaymentGate,
+  clearPaymentGate,
+} from "@/lib/payment-gate-state";
+import { PaymentGateBanner } from "@/components/PaymentGateBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
@@ -74,6 +80,7 @@ function Index() {
   const fetchAdmin = useServerFn(amIAdmin);
   const consumeDownload = useServerFn(consumeDownloadEntitlement);
   const [downloading, setDownloading] = useState(false);
+  const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
   const { data: subscription } = useQuery({
     queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
@@ -81,8 +88,9 @@ function Index() {
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
-  /** Explain what the user should do next instead of silently bouncing to pricing. */
-  const notifyPaymentGate = (status: PaymentGateStatus | undefined) => {
+
+  /** Show the toast at most once per tab, but keep the banner until resolved. */
+  const showGateToast = (status: PaymentGateStatus) => {
     const notice = paymentGateNotice(status);
     const show =
       notice.tone === "error" ? toast.error : notice.tone === "warning" ? toast.warning : toast.info;
@@ -95,8 +103,45 @@ function Index() {
           void navigate({ to: notice.routeToPricing ? "/payment" : "/subscription" }),
       },
     });
+  };
+
+  /** Explain what the user should do next instead of silently bouncing to pricing. */
+  const notifyPaymentGate = (status: PaymentGateStatus | undefined) => {
+    const resolved = status ?? "NO_PAYMENT";
+    const notice = paymentGateNotice(resolved);
+    setGateStatus(resolved);
+    savePaymentGate(userId, { status: resolved, toastShown: true });
+    showGateToast(resolved);
     if (notice.routeToPricing) void navigate({ to: "/payment" });
   };
+
+  // Restore the last gate the user hit so a redirect or reload doesn't wipe it.
+  useEffect(() => {
+    const stored = readPaymentGate(userId);
+    if (!stored) return;
+    setGateStatus(stored.status);
+    if (!stored.toastShown) {
+      showGateToast(stored.status);
+      savePaymentGate(userId, { status: stored.status, at: stored.at, toastShown: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // Once access is granted (or the server reports a different state) the gate clears.
+  useEffect(() => {
+    if (!subscription) return;
+    if (subscription.active === true) {
+      clearPaymentGate(userId);
+      setGateStatus(null);
+      return;
+    }
+    const fresh = subscription.paymentStatus ?? "NO_PAYMENT";
+    setGateStatus((prev) => {
+      if (prev === fresh) return prev;
+      savePaymentGate(userId, { status: fresh, toastShown: true });
+      return fresh;
+    });
+  }, [subscription, userId]);
 
   // Hydrate strictly from the signed-in account. Nothing is read from this
   // browser, so a new login always starts with an empty profile.
@@ -385,6 +430,15 @@ function Index() {
 
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
         <section className="space-y-4 print:hidden">
+          {!isSubscribed && !isAdminAccess && gateStatus && (
+            <PaymentGateBanner
+              status={gateStatus}
+              onDismiss={() => {
+                setGateStatus(null);
+                clearPaymentGate(userId);
+              }}
+            />
+          )}
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-sm font-semibold">Target Job Description</h2>
