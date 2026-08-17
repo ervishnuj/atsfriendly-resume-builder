@@ -81,9 +81,6 @@ function Index() {
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
-  const paymentStatus: PaymentGateStatus | undefined =
-    subscription && subscription.active === false ? subscription.paymentStatus : undefined;
-
   /** Explain what the user should do next instead of silently bouncing to pricing. */
   const notifyPaymentGate = (status: PaymentGateStatus | undefined) => {
     const notice = paymentGateNotice(status);
