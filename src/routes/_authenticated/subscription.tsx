@@ -114,14 +114,16 @@ function SubscriptionPage() {
           ) : (
             <div className="space-y-3">
               {(() => {
-                const notice = paymentGateNotice(subscription?.paymentStatus);
+                const inactive =
+                  subscription && subscription.active === false ? subscription : null;
+                const notice = paymentGateNotice(inactive?.paymentStatus);
                 const toneClass =
                   notice.tone === "info"
                     ? "bg-amber-100 text-amber-900 hover:bg-amber-100"
                     : notice.tone === "warning"
                       ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
                       : "bg-destructive/10 text-destructive hover:bg-destructive/10";
-                const last = subscription?.active === false ? subscription.lastPayment : null;
+                const last = inactive?.lastPayment ?? null;
                 return (
                   <>
                     <Badge className={`gap-1 ${toneClass}`}>{notice.status.replace(/_/g, " ")}</Badge>
