@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { toPaymentGateStatus, type PaymentGateStatus } from "./billing-shared";
 
 export type Plan = {
   id: string;
@@ -33,7 +34,21 @@ export type CurrentSubscription =
       endDate: string;
       daysRemaining: number;
     }
-  | { admin: false; active: false; message: string };
+  | {
+      admin: false;
+      active: false;
+      message: string;
+      paymentStatus: PaymentGateStatus;
+      lastPayment: {
+        id: string;
+        plan: string;
+        amount: number;
+        status: string;
+        upiReference: string | null;
+        date: string;
+        adminNote: string | null;
+      } | null;
+    };
 
 export type PaymentRow = {
   id: string;
@@ -98,7 +113,34 @@ export const getCurrentSubscription = createServerFn({ method: "GET" })
     const access = await hasPremiumAccess(context.userId);
     if (access.isAdmin) return { admin: true, active: true };
     const sub = access.subscription;
-    if (!sub) return { admin: false, active: false, message: "Subscription expired" };
+    if (!sub) {
+      const { data: last } = await context.supabase
+        .from("payments")
+        .select("id, amount, status, upi_reference, created_at, admin_note, subscription_plans(plan_name)")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return {
+        admin: false,
+        active: false,
+        message: "No active plan",
+        paymentStatus: toPaymentGateStatus(last?.status as string | undefined),
+        lastPayment: last
+          ? {
+              id: last.id as string,
+              plan:
+                ((last.subscription_plans as unknown as { plan_name: string } | null)?.plan_name) ??
+                "—",
+              amount: Number(last.amount),
+              status: last.status as string,
+              upiReference: (last.upi_reference as string | null) ?? null,
+              date: last.created_at as string,
+              adminNote: (last.admin_note as string | null) ?? null,
+            }
+          : null,
+      };
+    }
     const plan = sub.subscription_plans as unknown as {
       plan_name: string;
       plan_type: string;

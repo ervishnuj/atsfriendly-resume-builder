@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCurrentSubscription, getPaymentHistory } from "@/lib/billing.functions";
-import { formatINR, formatDate } from "@/lib/billing-shared";
+import { formatINR, formatDate, paymentGateNotice } from "@/lib/billing-shared";
 
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
@@ -113,13 +113,38 @@ function SubscriptionPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold">No active subscription</h2>
-              <p className="text-sm text-muted-foreground">
-                Resume generation and PDF downloads need an active plan.
-              </p>
-              <Button asChild>
-                <Link to="/payment">View plans</Link>
-              </Button>
+              {(() => {
+                const inactive =
+                  subscription && subscription.active === false ? subscription : null;
+                const notice = paymentGateNotice(inactive?.paymentStatus);
+                const toneClass =
+                  notice.tone === "info"
+                    ? "bg-amber-100 text-amber-900 hover:bg-amber-100"
+                    : notice.tone === "warning"
+                      ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                      : "bg-destructive/10 text-destructive hover:bg-destructive/10";
+                const last = inactive?.lastPayment ?? null;
+                return (
+                  <>
+                    <Badge className={`gap-1 ${toneClass}`}>{notice.status.replace(/_/g, " ")}</Badge>
+                    <h2 className="text-xl font-semibold">{notice.title}</h2>
+                    <p className="text-sm text-muted-foreground">{notice.description}</p>
+                    {last && (
+                      <p className="text-sm text-muted-foreground">
+                        Last payment: {last.plan} · {formatINR(last.amount)} ·{" "}
+                        {formatDate(last.date)}
+                        {last.upiReference ? ` · UTR ${last.upiReference}` : ""}
+                        {last.adminNote ? ` — ${last.adminNote}` : ""}
+                      </p>
+                    )}
+                    <Button asChild variant={notice.status === "PAYMENT_PENDING" ? "outline" : "default"}>
+                      <Link to="/payment">
+                        {notice.status === "PAYMENT_PENDING" ? "View plans" : notice.actionLabel}
+                      </Link>
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
           )}
         </Card>

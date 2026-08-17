@@ -24,7 +24,7 @@ import {
   amIAdmin,
   consumeDownloadEntitlement,
 } from "@/lib/billing.functions";
-import { daysRemaining } from "@/lib/billing-shared";
+import { daysRemaining, paymentGateNotice, type PaymentGateStatus } from "@/lib/billing-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
@@ -81,6 +81,22 @@ function Index() {
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
+  /** Explain what the user should do next instead of silently bouncing to pricing. */
+  const notifyPaymentGate = (status: PaymentGateStatus | undefined) => {
+    const notice = paymentGateNotice(status);
+    const show =
+      notice.tone === "error" ? toast.error : notice.tone === "warning" ? toast.warning : toast.info;
+    show(notice.title, {
+      description: notice.description,
+      duration: 8000,
+      action: {
+        label: notice.actionLabel,
+        onClick: () =>
+          void navigate({ to: notice.routeToPricing ? "/payment" : "/subscription" }),
+      },
+    });
+    if (notice.routeToPricing) void navigate({ to: "/payment" });
+  };
 
   // Hydrate strictly from the signed-in account. Nothing is read from this
   // browser, so a new login always starts with an empty profile.
@@ -219,8 +235,7 @@ function Index() {
         queryFn: () => fetchSubscription(),
       });
       if (!(fresh?.active === true)) {
-        toast.error("An active subscription is required to generate resumes.");
-        void navigate({ to: "/payment" });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
         return;
       }
     }
@@ -240,8 +255,11 @@ function Index() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       if (msg.includes("SUBSCRIPTION_REQUIRED")) {
-        toast.error("Your subscription has expired. Please renew to continue.");
-        void navigate({ to: "/payment" });
+        const fresh = await queryClient.fetchQuery({
+          queryKey: ["subscription", userId],
+          queryFn: () => fetchSubscription(),
+        });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
       } else {
         toast.error(msg);
       }
@@ -268,8 +286,11 @@ function Index() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not start the download.";
       if (msg.includes("SUBSCRIPTION_REQUIRED")) {
-        toast.error("PDF download is a premium feature. Please choose a plan.");
-        void navigate({ to: "/payment" });
+        const fresh = await queryClient.fetchQuery({
+          queryKey: ["subscription", userId],
+          queryFn: () => fetchSubscription(),
+        });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
       } else {
         toast.error(msg);
       }
