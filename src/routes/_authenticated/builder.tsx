@@ -238,8 +238,7 @@ function Index() {
         queryFn: () => fetchSubscription(),
       });
       if (!(fresh?.active === true)) {
-        toast.error("An active subscription is required to generate resumes.");
-        void navigate({ to: "/payment" });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
         return;
       }
     }
@@ -259,8 +258,11 @@ function Index() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       if (msg.includes("SUBSCRIPTION_REQUIRED")) {
-        toast.error("Your subscription has expired. Please renew to continue.");
-        void navigate({ to: "/payment" });
+        const fresh = await queryClient.fetchQuery({
+          queryKey: ["subscription", userId],
+          queryFn: () => fetchSubscription(),
+        });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
       } else {
         toast.error(msg);
       }
@@ -287,8 +289,11 @@ function Index() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not start the download.";
       if (msg.includes("SUBSCRIPTION_REQUIRED")) {
-        toast.error("PDF download is a premium feature. Please choose a plan.");
-        void navigate({ to: "/payment" });
+        const fresh = await queryClient.fetchQuery({
+          queryKey: ["subscription", userId],
+          queryFn: () => fetchSubscription(),
+        });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
       } else {
         toast.error(msg);
       }
