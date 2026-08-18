@@ -10,6 +10,10 @@ import {
 
 export type AiKind = "RESUME" | "ANALYSIS";
 
+/** The usage RPCs are newer than the generated types; call them untyped. */
+type RpcClient = { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> };
+const rpc = supabaseAdmin as unknown as RpcClient;
+
 const CONFIG: Record<AiKind, { limit: number; cooldown: number }> = {
   RESUME: { limit: DAILY_RESUME_GENERATION_LIMIT, cooldown: RESUME_GENERATION_COOLDOWN_SECONDS },
   ANALYSIS: { limit: DAILY_ANALYSIS_LIMIT, cooldown: ANALYSIS_COOLDOWN_SECONDS },
@@ -45,7 +49,7 @@ export async function reserveAiGeneration(
   kind: AiKind,
 ): Promise<{ cached?: unknown; usage: AiUsageSummary }> {
   const { limit, cooldown } = CONFIG[kind];
-  const { data, error } = await supabaseAdmin.rpc("start_ai_generation", {
+  const { data, error } = await rpc.rpc("start_ai_generation", {
     _user_id: userId,
     _request_id: requestId,
     _kind: kind,
@@ -106,17 +110,17 @@ export async function finishAiGeneration(
   success: boolean,
   result?: unknown,
 ) {
-  await supabaseAdmin.rpc("finish_ai_generation", {
+  await rpc.rpc("finish_ai_generation", {
     _user_id: userId,
     _request_id: requestId,
     _success: success,
-    _result: success ? (result as never) : null,
+    _result: success ? result : null,
   });
 }
 
 export async function getAiUsage(userId: string, kind: AiKind): Promise<AiUsageSummary> {
   const { limit } = CONFIG[kind];
-  const { data } = await supabaseAdmin.rpc("get_ai_usage", { _user_id: userId, _kind: kind });
+  const { data } = await rpc.rpc("get_ai_usage", { _user_id: userId, _kind: kind });
   const row = (data ?? {}) as { used?: number; resetAt?: string };
   const used = Number(row.used ?? 0);
   return { limit, used, remaining: Math.max(0, limit - used), resetAt: row.resetAt ?? "" };
