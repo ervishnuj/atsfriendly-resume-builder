@@ -67,9 +67,9 @@ export function HeroResumeCard() {
 function Block({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="mt-4">
-      <h3 className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <h2 className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         {label}
-      </h3>
+      </h2>
       {children}
     </section>
   );

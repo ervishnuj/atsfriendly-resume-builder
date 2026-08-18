@@ -441,11 +441,13 @@ function Index() {
           )}
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Target Job Description</h2>
+              <h2 id="jd-heading" className="text-sm font-semibold">Target Job Description</h2>
               <span className="text-xs text-muted-foreground">Primary input</span>
             </div>
             <Textarea
               ref={jdRef}
+              id="job-description"
+              aria-label="Target job description"
               rows={8}
               value={jd}
               onChange={(e) => setJd(e.target.value)}
