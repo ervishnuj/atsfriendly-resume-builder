@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ResumeInputSchema } from "./resume-schemas";
 import type {
@@ -7,6 +8,7 @@ import type {
   SkillGapAnalysis,
   CoverLetterResult,
 } from "./resume-schemas";
+import type { AiUsageSummary } from "./ai-limits";
 
 export type {
   OptimizedResume,
@@ -15,20 +17,57 @@ export type {
   CoverLetterResult,
 } from "./resume-schemas";
 
+const GuardedInputSchema = ResumeInputSchema.extend({
+  requestId: z.string().min(8).max(120),
+});
+
+export type GeneratedResumeResponse = {
+  resume: OptimizedResume;
+  usage: AiUsageSummary;
+};
+
+/**
+ * Resume generation. Order matters: identity (JWT) -> entitlement -> daily AI
+ * limit / rate limit / idempotency -> Gemini. Gemini is never called once a
+ * limit is hit, and a failed Gemini call releases the reserved slot.
+ */
 export const generateResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => ResumeInputSchema.parse(input))
-  .handler(async ({ data, context }): Promise<OptimizedResume> => {
+  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
+  .handler(async ({ data, context }): Promise<GeneratedResumeResponse> => {
     const { hasPremiumAccess } = await import("./billing.server");
     const access = await hasPremiumAccess(context.userId);
     if (!access.allowed) {
       throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
     }
-    const { generateOptimizedResume } = await import("./resume-ai.server");
-    return generateOptimizedResume(data.profile, data.jobDescription);
+
+    const { reserveAiGeneration, finishAiGeneration, getAiUsage, adminBypassEnabled } =
+      await import("./ai-usage.server");
+
+    if (access.isAdmin && adminBypassEnabled()) {
+      const { generateOptimizedResume } = await import("./resume-ai.server");
+      const resume = await generateOptimizedResume(data.profile, data.jobDescription);
+      return { resume, usage: await getAiUsage(context.userId, "RESUME") };
+    }
+
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "RESUME");
+    if (reservation.cached) {
+      return { resume: reservation.cached as OptimizedResume, usage: reservation.usage };
+    }
+
+    try {
+      const { generateOptimizedResume } = await import("./resume-ai.server");
+      const resume = await generateOptimizedResume(data.profile, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, resume);
+      return { resume, usage: reservation.usage };
+    } catch (err) {
+      // Gemini failure (429/timeout/malformed) must not consume a generation.
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
   });
 
-/** ATS score is available to any authenticated user — no subscription gate. */
+/** ATS score is available to any authenticated user — no subscription gate and no generation credit. */
 export const analyzeAtsScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ResumeInputSchema.parse(input))
@@ -37,23 +76,55 @@ export const analyzeAtsScore = createServerFn({ method: "POST" })
     return analyzeAtsMatch(data.profile, data.jobDescription);
   });
 
+/** Skill gap uses a separate, lightweight AI limit — never the resume counter. */
 export const analyzeSkillGap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => ResumeInputSchema.parse(input))
-  .handler(async ({ data }): Promise<SkillGapAnalysis> => {
-    const { analyzeSkillGaps } = await import("./resume-ai.server");
-    return analyzeSkillGaps(data.profile, data.jobDescription);
+  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
+  .handler(async ({ data, context }): Promise<SkillGapAnalysis> => {
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as SkillGapAnalysis;
+    try {
+      const { analyzeSkillGaps } = await import("./resume-ai.server");
+      const result = await analyzeSkillGaps(data.profile, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
   });
 
 export const generateCoverLetter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => ResumeInputSchema.parse(input))
+  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<CoverLetterResult> => {
     const { hasPremiumAccess } = await import("./billing.server");
     const access = await hasPremiumAccess(context.userId);
     if (!access.allowed) {
       throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
     }
-    const { writeCoverLetter } = await import("./resume-ai.server");
-    return writeCoverLetter(data.profile, data.jobDescription);
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as CoverLetterResult;
+    try {
+      const { writeCoverLetter } = await import("./resume-ai.server");
+      const result = await writeCoverLetter(data.profile, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
+  });
+
+/** Read-only usage counters for the UI. The backend remains the source of truth. */
+export const getMyAiUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ resume: AiUsageSummary; analysis: AiUsageSummary }> => {
+    const { getAiUsage } = await import("./ai-usage.server");
+    return {
+      resume: await getAiUsage(context.userId, "RESUME"),
+      analysis: await getAiUsage(context.userId, "ANALYSIS"),
+    };
   });
