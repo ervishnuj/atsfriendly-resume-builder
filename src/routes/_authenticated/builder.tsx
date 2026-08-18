@@ -415,7 +415,7 @@ function Index() {
             )}
             <Button
               onClick={handleGenerate}
-              disabled={loading}
+              disabled={loading || dailyLimitReached}
               className="gap-2"
             >
               {loading ? (
@@ -425,6 +425,11 @@ function Index() {
               )}
               {loading ? "Generating..." : "Generate ATS Resume"}
             </Button>
+            {resumeUsage && (
+              <Badge variant="secondary" className="hidden gap-1 sm:inline-flex">
+                AI today {resumeUsage.used} / {resumeUsage.limit}
+              </Badge>
+            )}
             <Button
               variant="outline"
               onClick={() => void handleDownload()}
@@ -455,6 +460,16 @@ function Index() {
                 clearPaymentGate(userId);
               }}
             />
+          )}
+          {dailyLimitReached && (
+            <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
+              <p className="text-sm font-semibold">Daily AI generation limit reached</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 10} AI resume
+                generations today. Your plan is still active — the limit resets at midnight IST.
+                You can still view, edit and download your existing resumes.
+              </p>
+            </Card>
           )}
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">
