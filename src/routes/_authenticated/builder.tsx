@@ -16,8 +16,9 @@ import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import type { ProfileImportIssue } from "@/lib/profile-io";
-import { generateResume } from "@/lib/resume.functions";
+import { generateResume, getMyAiUsage } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
+import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
 import {
   getCurrentSubscription,
@@ -71,6 +72,7 @@ function Index() {
   const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
   const jdRef = useRef<HTMLTextAreaElement>(null);
   const run = useServerFn(generateResume);
+  const fetchAiUsage = useServerFn(getMyAiUsage);
   const loadRemote = useServerFn(getMyProfile);
   const saveRemote = useServerFn(saveMyProfile);
   const clearRemote = useServerFn(clearMyProfile);
@@ -86,6 +88,12 @@ function Index() {
     queryFn: () => fetchSubscription(),
   });
   const { data: admin } = useQuery({ queryKey: ["am-i-admin", userId], queryFn: () => fetchAdmin() });
+  const { data: aiUsage } = useQuery({
+    queryKey: ["ai-usage", userId],
+    queryFn: () => fetchAiUsage(),
+  });
+  const resumeUsage = aiUsage?.resume ?? null;
+  const dailyLimitReached = resumeUsage ? resumeUsage.remaining <= 0 : false;
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
 
@@ -293,13 +301,22 @@ function Index() {
       return;
     }
     setLoading(true);
+    const requestId = newGenerationRequestId();
     try {
-      const res = await run({ data: { profile, jobDescription: jd } });
-      setResult(res);
-      toast.success(`Resume generated · ATS Score ${res.atsScore}/100`);
+      const res = await run({ data: { profile, jobDescription: jd, requestId } });
+      setResult(res.resume);
+      await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
+      toast.success(
+        `Resume generated · ATS Score ${res.resume.atsScore}/100 · ${res.usage.remaining} of ${res.usage.limit} AI generations left today`,
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
-      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+      const limit = parseAiLimitError(msg);
+      if (limit) {
+        // A usage limit is NOT a payment problem — never route the user to pricing.
+        await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
+        toast.warning(limit.message);
+      } else if (msg.includes("SUBSCRIPTION_REQUIRED")) {
         const fresh = await queryClient.fetchQuery({
           queryKey: ["subscription", userId],
           queryFn: () => fetchSubscription(),
@@ -398,7 +415,7 @@ function Index() {
             )}
             <Button
               onClick={handleGenerate}
-              disabled={loading}
+              disabled={loading || dailyLimitReached}
               className="gap-2"
             >
               {loading ? (
@@ -408,6 +425,11 @@ function Index() {
               )}
               {loading ? "Generating..." : "Generate ATS Resume"}
             </Button>
+            {resumeUsage && (
+              <Badge variant="secondary" className="hidden gap-1 sm:inline-flex">
+                AI today {resumeUsage.used} / {resumeUsage.limit}
+              </Badge>
+            )}
             <Button
               variant="outline"
               onClick={() => void handleDownload()}
@@ -438,6 +460,16 @@ function Index() {
                 clearPaymentGate(userId);
               }}
             />
+          )}
+          {dailyLimitReached && (
+            <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
+              <p className="text-sm font-semibold">Daily AI generation limit reached</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 10} AI resume
+                generations today. Your plan is still active — the limit resets at midnight IST.
+                You can still view, edit and download your existing resumes.
+              </p>
+            </Card>
           )}
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">

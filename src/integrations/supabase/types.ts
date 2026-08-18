@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generation_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          kind: string
+          request_id: string
+          result: Json | null
+          status: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          request_id: string
+          result?: Json | null
+          status?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          request_id?: string
+          result?: Json | null
+          status?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -374,7 +410,27 @@ export type Database = {
         Returns: boolean
       }
       consume_pdf_credit: { Args: { _user_id: string }; Returns: boolean }
+      finish_ai_generation: {
+        Args: {
+          _request_id: string
+          _result: Json
+          _success: boolean
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      get_ai_usage: { Args: { _kind: string; _user_id: string }; Returns: Json }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
+      start_ai_generation: {
+        Args: {
+          _cooldown_seconds: number
+          _kind: string
+          _limit: number
+          _request_id: string
+          _user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"

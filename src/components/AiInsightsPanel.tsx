@@ -15,6 +15,7 @@ import {
   type CoverLetterResult,
 } from "@/lib/resume.functions";
 import type { Profile } from "@/components/ProfileForm";
+import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 
 type Props = {
   profile: Profile;
@@ -54,7 +55,10 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
       apply((await fn()) as never);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
-      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+      const limit = parseAiLimitError(msg);
+      if (limit) {
+        toast.warning(limit.message);
+      } else if (msg.includes("SUBSCRIPTION_REQUIRED")) {
         toast.error("This is a premium feature. Please choose a plan.");
         onSubscriptionRequired();
       } else {
@@ -66,6 +70,9 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
   };
 
   const data = { data: { profile, jobDescription } };
+  const guardedData = () => ({
+    data: { profile, jobDescription, requestId: newGenerationRequestId() },
+  });
 
   return (
     <Card className="p-4 print:hidden">
@@ -85,7 +92,7 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => void handle("gap", () => runGap(data), (v) => setGap(v))}
+          onClick={() => void handle("gap", () => runGap(guardedData()), (v) => setGap(v))}
           disabled={busy !== null}
         >
           {busy === "gap" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
@@ -95,7 +102,7 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => void handle("cover", () => runCover(data), (v) => setCover(v))}
+          onClick={() => void handle("cover", () => runCover(guardedData()), (v) => setCover(v))}
           disabled={busy !== null}
         >
           {busy === "cover" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
