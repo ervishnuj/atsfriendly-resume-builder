@@ -79,12 +79,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AI Resume Builder | ATS-Friendly Resume Generator" },
-      { name: "description", content: "Create an ATS-friendly resume tailored to your job description with AI. Analyze your ATS score, identify skill gaps and download your professional resume." },
       { name: "author", content: "AI Resume Builder" },
-      { property: "og:title", content: "AI Resume Builder | ATS-Friendly Resume Generator" },
-      { property: "og:description", content: "Create an ATS-friendly resume tailored to your job description with AI." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Resume Rocket" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
