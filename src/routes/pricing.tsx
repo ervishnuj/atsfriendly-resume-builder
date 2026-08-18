@@ -12,6 +12,25 @@ import { supabase } from "@/integrations/supabase/client";
 const TITLE = "Pricing | AI Resume Builder";
 const DESCRIPTION =
   "Simple pricing for ATS-friendly resumes: ₹29 for a single resume PDF, ₹99 for a 7-Day Job Pass or ₹249 for a 30-Day Pro Pass. Pay securely over UPI.";
+const PAGE_URL = "https://theresumerocket.com/pricing";
+
+const PLAN_MARKUP = [
+  {
+    name: "Single Resume",
+    description: "One AI-generated, ATS-optimized resume with PDF download.",
+    price: "29",
+  },
+  {
+    name: "7-Day Job Pass",
+    description: "Unlimited AI resume generation and PDF downloads for 7 days.",
+    price: "99",
+  },
+  {
+    name: "30-Day Pro Pass",
+    description: "Unlimited AI resume generation and PDF downloads for 30 days.",
+    price: "249",
+  },
+];
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -21,7 +40,30 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: PAGE_URL },
       { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: PAGE_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": PLAN_MARKUP.map((plan) => ({
+            "@type": "Product",
+            name: plan.name,
+            description: plan.description,
+            brand: { "@type": "Brand", name: "Resume Rocket" },
+            offers: {
+              "@type": "Offer",
+              price: plan.price,
+              priceCurrency: "INR",
+              availability: "https://schema.org/InStock",
+              url: PAGE_URL,
+            },
+          })),
+        }),
+      },
     ],
   }),
   component: PricingPage,
