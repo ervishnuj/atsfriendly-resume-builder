@@ -75,7 +75,14 @@ export type OptimizedResume = {
   };
 };
 
-export type AtsAnalysis = {
+import type { AtsScoreResult } from "./ats-scoring";
+
+/**
+ * `score` is the overall ATS-readiness score (same as `atsScore`) and is kept
+ * for backwards compatibility with existing UI. `atsMatchScore` is the separate
+ * job-description fit score.
+ */
+export type AtsAnalysis = AtsScoreResult & {
   score: number;
   matchingKeywords: string[];
   missingKeywords: string[];
