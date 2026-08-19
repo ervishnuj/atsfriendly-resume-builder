@@ -80,6 +80,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "author", content: "AI Resume Builder" },
+      {
+        name: "google-site-verification",
+        content: "m5R5UxZ3oR7zX2RuaWYE-qzug6DXPyIVhJjL-4dT6A0",
+      },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Resume Rocket" },
       { name: "twitter:card", content: "summary_large_image" },
