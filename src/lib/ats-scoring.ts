@@ -249,7 +249,9 @@ export function computeAtsScores(
   const yearsRatio = needYears === 0 ? (haveYears > 0 ? 1 : 0.5) : Math.min(1, haveYears / needYears);
 
   const eduReqs = dedupe(raw.educationRequirements || []);
-  const eduText = normalizeText((raw.candidateEducation || []).join(" "));
+  const eduText = expandDegrees(
+    normalizeText((raw.candidateEducation || []).join(" ")) || normalizeText(resumeText),
+  );
   const eduRatio =
     eduReqs.length === 0
       ? eduText.trim().length > 0
