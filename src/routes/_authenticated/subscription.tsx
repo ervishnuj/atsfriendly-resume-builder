@@ -95,7 +95,12 @@ function SubscriptionPage() {
                 <Crown className="h-3.5 w-3.5" /> Active
               </Badge>
               <h2 className="text-2xl font-semibold">{subscription.planName}</h2>
-              {subscription.creditsRemaining !== null ? (
+              {subscription.free ? (
+                <p className="text-sm text-muted-foreground">
+                  Your account includes one free ATS resume PDF download. It is used automatically
+                  with your first successful download — no payment needed.
+                </p>
+              ) : subscription.creditsRemaining !== null ? (
                 <p className="text-sm text-muted-foreground">
                   One-time purchase · {subscription.creditsRemaining} resume PDF download remaining
                   · usable until {formatDate(subscription.endDate)}
