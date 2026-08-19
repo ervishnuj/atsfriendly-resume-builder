@@ -205,6 +205,63 @@ export const atsSchema = {
   ],
 } as const;
 
+/**
+ * Extraction-only schema. Gemini reports FACTS (what the JD asks for, and which
+ * of those are evidenced in the resume, quoting the resume verbatim). It never
+ * returns a score — every number is computed deterministically in ats-scoring.ts.
+ */
+export const atsExtractionSchema = {
+  type: "object",
+  properties: {
+    jobTitle: S,
+    requiredSkills: SARR,
+    preferredSkills: SARR,
+    technicalKeywords: SARR,
+    responsibilities: SARR,
+    minYearsExperience: { type: "number" },
+    educationRequirements: SARR,
+    candidateYearsExperience: { type: "number" },
+    candidateTitles: SARR,
+    candidateEducation: SARR,
+    skillEvidence: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { term: S, present: { type: "boolean" }, evidence: S },
+        required: ["term", "present", "evidence"],
+      },
+    },
+    responsibilityEvidence: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { responsibility: S, present: { type: "boolean" }, evidence: S },
+        required: ["responsibility", "present", "evidence"],
+      },
+    },
+    strengths: SARR,
+    weaknesses: SARR,
+    suggestions: SARR,
+  },
+  required: [
+    "jobTitle",
+    "requiredSkills",
+    "preferredSkills",
+    "technicalKeywords",
+    "responsibilities",
+    "minYearsExperience",
+    "educationRequirements",
+    "candidateYearsExperience",
+    "candidateTitles",
+    "candidateEducation",
+    "skillEvidence",
+    "responsibilityEvidence",
+    "strengths",
+    "weaknesses",
+    "suggestions",
+  ],
+} as const;
+
 export const skillGapSchema = {
   type: "object",
   properties: {

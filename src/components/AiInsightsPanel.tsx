@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Gauge, Layers, FileText, Loader2, Copy, Upload } from "lucide-react";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
+import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import {
   analyzeAtsScore,
   analyzeImportedResumeAts,
@@ -181,14 +182,34 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
               Scored from your uploaded resume: <span className="font-medium">{atsSource}</span>
             </p>
           )}
-          <AtsScoreBadge score={ats.score} />
-          <ChipRow label="Skills you have" items={ats.skillsMatched ?? []} tone="good" />
-          <ChipRow label="Skills you need" items={ats.skillsMissing ?? []} tone="warn" />
-          <ChipRow label="Matching keywords" items={ats.matchingKeywords} tone="good" />
-          <ChipRow label="Missing keywords" items={ats.missingKeywords} tone="bad" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <AtsScoreBadge
+              score={ats.atsScore ?? ats.score}
+              title="ATS Score"
+              caption="Overall ATS-readiness of your resume"
+            />
+            <AtsScoreBadge
+              score={ats.atsMatchScore ?? 0}
+              title="ATS Match Score"
+              unit="%"
+              caption="How closely your resume matches this job description"
+            />
+          </div>
+          <AtsBreakdownPanel breakdown={ats.breakdown} matchBreakdown={ats.matchBreakdown} />
+          <ChipRow label="Matched skills & keywords" items={ats.matchedKeywords ?? []} tone="good" />
+          <ChipRow
+            label="Missing required skills"
+            items={ats.missingRequiredKeywords ?? []}
+            tone="bad"
+          />
+          <ChipRow
+            label="Missing preferred skills"
+            items={ats.missingPreferredKeywords ?? []}
+            tone="warn"
+          />
           <ListBlock label="Strengths" items={ats.strengths} />
           <ListBlock label="Weaknesses" items={ats.weaknesses} />
-          <ListBlock label="Suggestions" items={ats.suggestions} />
+          <ListBlock label="Recommendations" items={ats.recommendations ?? ats.suggestions} />
         </div>
       )}
 

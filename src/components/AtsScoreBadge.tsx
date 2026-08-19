@@ -1,6 +1,17 @@
 import { cn } from "@/lib/utils";
+import { scoreBand } from "@/lib/ats-scoring";
 
-export function AtsScoreBadge({ score }: { score: number }) {
+export function AtsScoreBadge({
+  score,
+  title = "ATS Score",
+  caption = "Overall ATS-readiness of your resume",
+  unit = "/ 100",
+}: {
+  score: number;
+  title?: string;
+  caption?: string;
+  unit?: string;
+}) {
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.max(0, Math.min(100, score));
@@ -8,11 +19,10 @@ export function AtsScoreBadge({ score }: { score: number }) {
   const color =
     clamped >= 90
       ? "stroke-emerald-500"
-      : clamped >= 75
+      : clamped >= 60
         ? "stroke-amber-500"
         : "stroke-rose-500";
-  const label =
-    clamped >= 90 ? "Excellent" : clamped >= 75 ? "Good" : "Needs work";
+  const label = scoreBand(clamped);
 
   return (
     <div className="flex items-center gap-4">
@@ -38,17 +48,15 @@ export function AtsScoreBadge({ score }: { score: number }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-bold text-foreground">{clamped}</span>
-          <span className="text-xs text-muted-foreground">/ 100</span>
+          <span className="text-xs text-muted-foreground">{unit}</span>
         </div>
       </div>
       <div>
         <div className="text-sm font-medium text-muted-foreground">
-          ATS Match Score
+          {title}
         </div>
         <div className="text-lg font-semibold text-foreground">{label}</div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          Target: 90%+ for top-tier ATS parsing
-        </div>
+        <div className="mt-1 text-xs text-muted-foreground">{caption}</div>
       </div>
     </div>
   );

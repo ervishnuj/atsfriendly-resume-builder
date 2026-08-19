@@ -1,11 +1,13 @@
 import {
   callGeminiJson,
   resumeSchema,
-  atsSchema,
+  atsExtractionSchema,
   skillGapSchema,
   coverLetterSchema,
   NO_FABRICATION_RULES,
 } from "./gemini.server";
+import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
+import { profileToResumeText } from "./resume-text";
 import type {
   ProfileInput,
   OptimizedResume,
@@ -15,6 +17,41 @@ import type {
 } from "./resume-schemas";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
+
+const EXTRACTION_PROMPT = `You are an ATS parsing engine. You DO NOT score anything — you only extract facts.
+From the JOB DESCRIPTION extract: the job title, required skills (explicitly mandatory), preferred/nice-to-have
+skills, technical keywords (tools, frameworks, languages, platforms, domain terms — no generic English words),
+key responsibilities (short phrases), minimum years of experience (0 if unstated) and education requirements.
+From the RESUME TEXT extract: total years of professional experience (0 if unclear), job titles held and education.
+Then, for EVERY required skill, preferred skill and technical keyword, and for EVERY responsibility, decide whether
+the RESUME genuinely evidences it, including semantically equivalent wording.
+Critical rules:
+- "evidence" MUST be an exact verbatim substring copied from the resume text. If you cannot quote the resume, set
+  present=false and evidence="".
+- NEVER invent skills, tools, employers or experience that are absent from the resume text.
+- Do not treat a different technology as a match (JavaScript is NOT Java; MySQL is NOT SQL Server).
+Also list factual strengths, weaknesses and improvement suggestions. Return JSON only.`;
+
+/** Runs the extraction pass, then applies the deterministic scoring formula. */
+async function runAtsAnalysis(resumeText: string, jobDescription: string): Promise<AtsAnalysis> {
+  const extraction = await callGeminiJson<AtsExtraction>({
+    systemPrompt: `${EXTRACTION_PROMPT}\n${NO_FABRICATION_RULES}`,
+    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${resumeText}`,
+    schema: atsExtractionSchema as unknown as Record<string, unknown>,
+    temperature: 0,
+  });
+  const scored = computeAtsScores(resumeText, jobDescription, extraction);
+  return {
+    ...scored,
+    score: scored.atsScore,
+    matchingKeywords: scored.matchedKeywords,
+    skillsMatched: scored.matchedKeywords,
+    skillsMissing: scored.missingRequiredKeywords,
+    strengths: extraction.strengths ?? [],
+    weaknesses: extraction.weaknesses ?? [],
+    suggestions: scored.recommendations,
+  };
+}
 
 function context(profile: ProfileInput, jobDescription: string) {
   return `JOB DESCRIPTION:\n${jobDescription}\n\nCANDIDATE PROFILE (JSON):\n${JSON.stringify(profile, null, 2)}`;
@@ -38,6 +75,21 @@ Return JSON only.`,
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
   result.atsScore = clamp(result.atsScore);
+  // Score the ACTUAL generated resume, not the raw profile, using the
+  // deterministic engine — Gemini's own number is discarded.
+  try {
+    const ats = await runAtsAnalysis(
+      profileToResumeText(result.optimizedProfile as unknown as ProfileInput),
+      jobDescription,
+    );
+    result.atsScore = ats.atsScore;
+    result.atsMatchScore = ats.atsMatchScore;
+    result.ats = ats;
+    result.matchingKeywords = ats.matchedKeywords;
+    result.missingKeywords = ats.missingKeywords;
+  } catch (error) {
+    console.warn("Deterministic ATS scoring failed for the generated resume.", error);
+  }
   return result;
 }
 
@@ -45,22 +97,7 @@ export async function analyzeAtsMatch(
   profile: ProfileInput,
   jobDescription: string,
 ): Promise<AtsAnalysis> {
-  const result = await callGeminiJson<AtsAnalysis>({
-    systemPrompt: `You are an expert ATS analyzer and technical recruiter.
-Analyze the candidate's resume against the provided job description and calculate a realistic score from 0 to 100 based on:
-job title relevance, technical skills, required technologies, experience relevance, JD keywords, industry/domain keywords,
-education requirements, resume keyword coverage, relevant achievements and resume structure.
-Rules:
-- Do NOT automatically return 100. Be honest and critical.
-- Identify matching keywords, missing keywords, matched skills, missing skills, strengths, weaknesses and actionable suggestions.
-${NO_FABRICATION_RULES}
-Return JSON only.`,
-    userPrompt: context(profile, jobDescription),
-    schema: atsSchema as unknown as Record<string, unknown>,
-    temperature: 0.2,
-  });
-  result.score = clamp(result.score);
-  return result;
+  return runAtsAnalysis(profileToResumeText(profile), jobDescription);
 }
 
 export async function analyzeSkillGaps(
@@ -78,23 +115,7 @@ export async function analyzeAtsMatchFromText(
   resumeText: string,
   jobDescription: string,
 ): Promise<AtsAnalysis> {
-  const result = await callGeminiJson<AtsAnalysis>({
-    systemPrompt: `You are an expert ATS analyzer and technical recruiter.
-Analyze the candidate's EXISTING RESUME TEXT against the provided job description and calculate a realistic
-score from 0 to 100 based on: job title relevance, technical skills, required technologies, experience relevance,
-JD keywords, industry keywords, education requirements, keyword coverage, achievements and resume structure.
-Rules:
-- Do NOT automatically return 100. Be honest and critical.
-- Use ONLY skills, tools and experience that literally appear in the resume text. Never invent skills or experience.
-- Identify matching keywords, missing keywords, matched skills, missing skills, strengths, weaknesses and actionable suggestions.
-${NO_FABRICATION_RULES}
-Return JSON only.`,
-    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nEXISTING RESUME TEXT:\n${resumeText}`,
-    schema: atsSchema as unknown as Record<string, unknown>,
-    temperature: 0.2,
-  });
-  result.score = clamp(result.score);
-  return result;
+  return runAtsAnalysis(resumeText, jobDescription);
 }
 
 async function analyzeSkillGapsImpl(
