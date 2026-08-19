@@ -213,7 +213,7 @@ const DEGREE_SYNONYMS: [RegExp, string][] = [
 ];
 
 function expandDegrees(normalized: string): string {
-  let out = ` ${normalized} `;
+  let out = ` ${normalized.replace(/\./g, " ").replace(/\s+/g, " ")} `;
   for (const [re, add] of DEGREE_SYNONYMS) if (re.test(out)) out += add;
   return out.replace(/\s+/g, " ");
 }
