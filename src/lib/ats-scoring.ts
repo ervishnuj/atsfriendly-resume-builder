@@ -200,18 +200,16 @@ const SECTION_HEADINGS = [
 ];
 
 const ACTION_VERBS = [
-  "built", "developed",
-].concat([
   "built", "developed", "designed", "led", "implemented", "improved", "migrated",
   "automated", "delivered", "reduced", "increased", "created", "launched",
   "optimized", "architected", "managed", "owned", "shipped", "integrated",
-]);
+];
 
 /** Degree synonyms so "B.Tech" satisfies a "Bachelor's degree" requirement. */
 const DEGREE_SYNONYMS: [RegExp, string][] = [
-  [/\b(b tech|btech|b e|be|bsc|b sc|bs|bca|bachelors?)\b/g, " bachelor bachelors degree "],
-  [/\b(m tech|mtech|msc|m sc|ms|mca|mba|masters?)\b/g, " master masters degree "],
-  [/\b(phd|doctorate)\b/g, " phd doctorate degree "],
+  [/\b(b tech|btech|b e|bsc|b sc|bs|bca|bachelors?)\b/, " bachelor bachelors degree "],
+  [/\b(m tech|mtech|msc|m sc|ms|mca|mba|masters?)\b/, " master masters degree "],
+  [/\b(phd|doctorate)\b/, " phd doctorate degree "],
 ];
 
 function expandDegrees(normalized: string): string {
