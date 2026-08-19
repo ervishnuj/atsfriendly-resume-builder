@@ -25,6 +25,22 @@ export async function requireAdmin(userId: string) {
   return check;
 }
 
+/**
+ * Every account gets exactly one free resume PDF download, tracked in the
+ * database (never per browser/session). Granting is idempotent, so a returning
+ * or pre-existing user never receives a second free entitlement.
+ */
+export async function ensureFreeEntitlement(userId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin.rpc("grant_free_entitlement" as never, {
+    _user_id: userId,
+  } as never);
+  if (error) {
+    console.error("[billing] free entitlement grant failed", error.message);
+    return false;
+  }
+  return Boolean(data);
+}
+
 /** Flip any past-due ACTIVE subscriptions to EXPIRED. */
 export async function expireStaleSubscriptions(userId?: string) {
   let q = supabaseAdmin
