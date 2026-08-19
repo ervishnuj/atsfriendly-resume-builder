@@ -141,8 +141,8 @@ export async function getActiveSubscription(userId: string) {
 export type PremiumAccess = {
   allowed: boolean;
   isAdmin: boolean;
-  /** "admin" = unlimited, "pass" = time-based plan, "credit" = one-time PDF purchase */
-  kind: "admin" | "pass" | "credit" | "none";
+  /** "admin" = unlimited, "pass" = time-based plan, "credit" = one-time PDF purchase, "free" = one-time free PDF */
+  kind: "admin" | "pass" | "credit" | "free" | "none";
   creditsRemaining: number | null;
   subscription: Awaited<ReturnType<typeof getActiveSubscription>>;
 };
@@ -169,6 +169,10 @@ export async function hasPremiumAccess(userId: string): Promise<PremiumAccess> {
       creditsRemaining: credit.credits_total - credit.credits_used,
       subscription: credit,
     };
+  // No purchase yet — fall back to the one-time free resume entitlement.
+  if (await ensureFreeEntitlement(userId)) {
+    return { allowed: true, isAdmin: false, kind: "free", creditsRemaining: 1, subscription: null };
+  }
   return { allowed: false, isAdmin: false, kind: "none", creditsRemaining: 0, subscription: null };
 }
 
@@ -180,6 +184,15 @@ export async function consumeDownloadEntitlement(userId: string) {
   const access = await hasPremiumAccess(userId);
   if (access.kind === "admin" || access.kind === "pass") {
     return { allowed: true, unlimited: true, creditsRemaining: null as number | null };
+  }
+  if (access.kind === "free") {
+    // Single-use and atomic: only the winning call flips consumed_at.
+    const { data, error } = await supabaseAdmin.rpc("consume_free_entitlement" as never, {
+      _user_id: userId,
+    } as never);
+    if (error) throw new Error(error.message);
+    if (!data) return { allowed: false, unlimited: false, creditsRemaining: 0 };
+    return { allowed: true, unlimited: false, creditsRemaining: 0, free: true };
   }
   if (access.kind !== "credit") return { allowed: false, unlimited: false, creditsRemaining: 0 };
   const { data, error } = await supabaseAdmin.rpc("consume_pdf_credit", { _user_id: userId });
