@@ -67,6 +67,40 @@ export async function analyzeSkillGaps(
   profile: ProfileInput,
   jobDescription: string,
 ): Promise<SkillGapAnalysis> {
+  return analyzeSkillGapsImpl(profile, jobDescription);
+}
+
+/**
+ * ATS analysis for a resume the user imported (PDF/DOCX text), rather than the
+ * profile stored in the app. Nothing is invented — only the supplied text counts.
+ */
+export async function analyzeAtsMatchFromText(
+  resumeText: string,
+  jobDescription: string,
+): Promise<AtsAnalysis> {
+  const result = await callGeminiJson<AtsAnalysis>({
+    systemPrompt: `You are an expert ATS analyzer and technical recruiter.
+Analyze the candidate's EXISTING RESUME TEXT against the provided job description and calculate a realistic
+score from 0 to 100 based on: job title relevance, technical skills, required technologies, experience relevance,
+JD keywords, industry keywords, education requirements, keyword coverage, achievements and resume structure.
+Rules:
+- Do NOT automatically return 100. Be honest and critical.
+- Use ONLY skills, tools and experience that literally appear in the resume text. Never invent skills or experience.
+- Identify matching keywords, missing keywords, matched skills, missing skills, strengths, weaknesses and actionable suggestions.
+${NO_FABRICATION_RULES}
+Return JSON only.`,
+    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nEXISTING RESUME TEXT:\n${resumeText}`,
+    schema: atsSchema as unknown as Record<string, unknown>,
+    temperature: 0.2,
+  });
+  result.score = clamp(result.score);
+  return result;
+}
+
+async function analyzeSkillGapsImpl(
+  profile: ProfileInput,
+  jobDescription: string,
+): Promise<SkillGapAnalysis> {
   return callGeminiJson<SkillGapAnalysis>({
     systemPrompt: `You are a technical hiring manager performing a skill gap analysis between a candidate profile
 and a target job description. Classify each required skill as matched, partial or missing, and give a prioritised
