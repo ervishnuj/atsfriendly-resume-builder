@@ -67,13 +67,52 @@ export const generateResume = createServerFn({ method: "POST" })
     }
   });
 
-/** ATS score is available to any authenticated user — no subscription gate and no generation credit. */
+/**
+ * ATS score is available to any authenticated user — no subscription gate and
+ * no PDF/free entitlement is consumed. It is still protected by the lightweight
+ * ANALYSIS limit (daily cap + cooldown + idempotency) so Gemini can't be spammed.
+ */
 export const analyzeAtsScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => ResumeInputSchema.parse(input))
-  .handler(async ({ data }): Promise<AtsAnalysis> => {
-    const { analyzeAtsMatch } = await import("./resume-ai.server");
-    return analyzeAtsMatch(data.profile, data.jobDescription);
+  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
+  .handler(async ({ data, context }): Promise<AtsAnalysis> => {
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as AtsAnalysis;
+    try {
+      const { analyzeAtsMatch } = await import("./resume-ai.server");
+      const result = await analyzeAtsMatch(data.profile, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
+  });
+
+const ImportedAtsSchema = z.object({
+  resumeText: z.string().min(120).max(30000),
+  jobDescription: z.string().min(20).max(30000),
+  requestId: z.string().min(8).max(120),
+});
+
+/** ATS score for a resume the user imported (PDF/DOCX) — never consumes a PDF credit. */
+export const analyzeImportedResumeAts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => ImportedAtsSchema.parse(input))
+  .handler(async ({ data, context }): Promise<AtsAnalysis> => {
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as AtsAnalysis;
+    try {
+      const { analyzeAtsMatchFromText } = await import("./resume-ai.server");
+      const result = await analyzeAtsMatchFromText(data.resumeText, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
   });
 
 /** Skill gap uses a separate, lightweight AI limit — never the resume counter. */
