@@ -597,7 +597,29 @@ function Index() {
         <section className="space-y-4">
           {result && (
             <Card className="p-5 print:hidden">
-              <AtsScoreBadge score={result.atsScore} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <AtsScoreBadge
+                  score={result.atsScore}
+                  title="ATS Score"
+                  caption="Overall ATS-readiness of your resume"
+                />
+                {typeof result.atsMatchScore === "number" && (
+                  <AtsScoreBadge
+                    score={result.atsMatchScore}
+                    title="ATS Match Score"
+                    unit="%"
+                    caption="How closely this resume matches the job description"
+                  />
+                )}
+              </div>
+              {result.ats && (
+                <div className="mt-4">
+                  <AtsBreakdownPanel
+                    breakdown={result.ats.breakdown}
+                    matchBreakdown={result.ats.matchBreakdown}
+                  />
+                </div>
+              )}
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <div className="mb-1 text-xs font-medium text-muted-foreground">
