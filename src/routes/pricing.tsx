@@ -22,12 +22,12 @@ const PLAN_MARKUP = [
   },
   {
     name: "7-Day Job Pass",
-    description: "Unlimited AI resume generation and PDF downloads for 7 days.",
+    description: "Up to 10 new AI resumes per day, unlimited edits and downloads for 7 days.",
     price: "99",
   },
   {
     name: "30-Day Pro Pass",
-    description: "Unlimited AI resume generation and PDF downloads for 30 days.",
+    description: "Up to 10 new AI resumes per day, unlimited edits and downloads for 30 days.",
     price: "249",
   },
 ];
@@ -91,6 +91,12 @@ function PricingPage() {
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Pay only for what you need. No auto-renewals, no hidden charges — secure UPI payments in
           Indian Rupees.
+        </p>
+        <p className="mt-4 max-w-3xl rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+          <strong className="font-semibold text-foreground">AI Generation Limit:</strong> Each
+          account can generate up to 10 new AI resumes per day. Existing resumes can be edited and
+          downloaded according to your plan. Every new account also includes one free resume PDF
+          download.
         </p>
         <div className="mt-12">
           <PricingCards

@@ -104,6 +104,24 @@ export type Database = {
         }
         Relationships: []
       }
+      free_entitlements: {
+        Row: {
+          consumed_at: string | null
+          granted_at: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          granted_at?: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          granted_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           admin_note: string | null
@@ -409,6 +427,7 @@ export type Database = {
         Args: { _daily_limit: number; _user_id: string }
         Returns: boolean
       }
+      consume_free_entitlement: { Args: { _user_id: string }; Returns: boolean }
       consume_pdf_credit: { Args: { _user_id: string }; Returns: boolean }
       finish_ai_generation: {
         Args: {
@@ -420,6 +439,7 @@ export type Database = {
         Returns: undefined
       }
       get_ai_usage: { Args: { _kind: string; _user_id: string }; Returns: Json }
+      grant_free_entitlement: { Args: { _user_id: string }; Returns: boolean }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       start_ai_generation: {
         Args: {

@@ -25,6 +25,7 @@ export type CurrentSubscription =
   | {
       admin: false;
       active: true;
+      free?: boolean;
       planName: string;
       planType: "ONE_TIME" | "PASS";
       creditsRemaining: number | null;
@@ -112,6 +113,22 @@ export const getCurrentSubscription = createServerFn({ method: "GET" })
     const { hasPremiumAccess } = await import("./billing.server");
     const access = await hasPremiumAccess(context.userId);
     if (access.isAdmin) return { admin: true, active: true };
+    if (access.kind === "free") {
+      const now = new Date().toISOString();
+      return {
+        admin: false,
+        active: true,
+        free: true,
+        planName: "Free First Resume",
+        planType: "ONE_TIME",
+        creditsRemaining: 1,
+        price: 0,
+        currency: "INR",
+        startDate: now,
+        endDate: now,
+        daysRemaining: 0,
+      };
+    }
     const sub = access.subscription;
     if (!sub) {
       const { data: last } = await context.supabase

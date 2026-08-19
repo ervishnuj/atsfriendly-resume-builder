@@ -338,7 +338,11 @@ function Index() {
       const entitlement = await consumeDownload();
       await queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
       if (!entitlement.unlimited) {
+        const usedFree = "free" in entitlement && entitlement.free === true;
         toast.success(
+          usedFree
+            ? "PDF unlocked · this was your one free resume download. Further downloads need a plan."
+            :
           entitlement.creditsRemaining && entitlement.creditsRemaining > 0
             ? `PDF unlocked · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
             : "PDF unlocked · this was the download included in your Single Resume purchase.",
