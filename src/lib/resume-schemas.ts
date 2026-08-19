@@ -45,6 +45,8 @@ export type ProfileInput = z.infer<typeof ProfileSchema>;
 
 export type OptimizedResume = {
   atsScore: number;
+  atsMatchScore?: number;
+  ats?: AtsAnalysis;
   matchingKeywords: string[];
   missingKeywords: string[];
   optimizedProfile: {
