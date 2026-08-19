@@ -96,7 +96,13 @@ function Landing() {
   const buildTo = signedIn ? "/builder" : "/login";
   const pricingTo = signedIn ? "/payment" : "/login";
   const fetchPlans = useServerFn(listPlans);
-  const { data: plans } = useQuery({ queryKey: ["public-plans"], queryFn: () => fetchPlans() });
+  const { data: plans } = useQuery({
+    queryKey: ["public-plans"],
+    queryFn: () => fetchPlans(),
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
+    throwOnError: false,
+  });
 
   return (
     <div id="top" className="min-h-screen bg-background">

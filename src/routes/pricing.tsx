@@ -81,6 +81,9 @@ function PricingPage() {
   const { data: plans, isLoading } = useQuery({
     queryKey: ["public-plans"],
     queryFn: () => fetchPlans(),
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
+    throwOnError: false,
   });
 
   return (
