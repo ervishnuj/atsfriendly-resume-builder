@@ -77,15 +77,24 @@ export const analyzeAtsScore = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<AtsAnalysis> => {
     const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
-    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    const { fingerprint } = await import("./ats-scoring");
+    const { profileToResumeText } = await import("./resume-text");
+    // Deterministic cache key: the same profile + JD reuses the stored result
+    // instead of calling Gemini again, so the score never drifts.
+    const requestId = fingerprint(
+      profileToResumeText(data.profile),
+      data.jobDescription,
+      "ats",
+    );
+    const reservation = await reserveAiGeneration(context.userId, requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as AtsAnalysis;
     try {
       const { analyzeAtsMatch } = await import("./resume-ai.server");
       const result = await analyzeAtsMatch(data.profile, data.jobDescription);
-      await finishAiGeneration(context.userId, data.requestId, true, result);
+      await finishAiGeneration(context.userId, requestId, true, result);
       return result;
     } catch (err) {
-      await finishAiGeneration(context.userId, data.requestId, false);
+      await finishAiGeneration(context.userId, requestId, false);
       throw err;
     }
   });
@@ -102,15 +111,17 @@ export const analyzeImportedResumeAts = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ImportedAtsSchema.parse(input))
   .handler(async ({ data, context }): Promise<AtsAnalysis> => {
     const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
-    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    const { fingerprint } = await import("./ats-scoring");
+    const requestId = fingerprint(data.resumeText, data.jobDescription, "atsdoc");
+    const reservation = await reserveAiGeneration(context.userId, requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as AtsAnalysis;
     try {
       const { analyzeAtsMatchFromText } = await import("./resume-ai.server");
       const result = await analyzeAtsMatchFromText(data.resumeText, data.jobDescription);
-      await finishAiGeneration(context.userId, data.requestId, true, result);
+      await finishAiGeneration(context.userId, requestId, true, result);
       return result;
     } catch (err) {
-      await finishAiGeneration(context.userId, data.requestId, false);
+      await finishAiGeneration(context.userId, requestId, false);
       throw err;
     }
   });
