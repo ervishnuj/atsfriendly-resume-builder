@@ -182,8 +182,8 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
             </p>
           )}
           <AtsScoreBadge score={ats.score} />
-          <ChipRow label="Skills you have" items={ats.matchedSkills ?? []} tone="good" />
-          <ChipRow label="Skills you need" items={ats.missingSkills ?? []} tone="warn" />
+          <ChipRow label="Skills you have" items={ats.skillsMatched ?? []} tone="good" />
+          <ChipRow label="Skills you need" items={ats.skillsMissing ?? []} tone="warn" />
           <ChipRow label="Matching keywords" items={ats.matchingKeywords} tone="good" />
           <ChipRow label="Missing keywords" items={ats.missingKeywords} tone="bad" />
           <ListBlock label="Strengths" items={ats.strengths} />
