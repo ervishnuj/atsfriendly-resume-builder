@@ -501,6 +501,15 @@ function Index() {
               )}
               {downloading ? "Preparing PDF..." : "Download PDF"}
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => void handleExportDocx()}
+              disabled={!result || exportingDocx}
+              className="gap-2 print:hidden"
+            >
+              {exportingDocx ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+              Export DOCX
+            </Button>
             <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
               <LogOut className="h-4 w-4" /> Sign out
             </Button>
@@ -649,6 +658,12 @@ function Index() {
         </section>
 
         <section className="space-y-4">
+          <TemplateStudio
+            data={result}
+            templateId={templateId}
+            config={templateConfig}
+            onSelect={handleSelectTemplate}
+          />
           {result && (
             <Card className="p-5 print:hidden">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -713,7 +728,9 @@ function Index() {
 
           <div className="print:m-0">
             {result ? (
-              <ResumePreview data={result} />
+              <div className="overflow-x-auto print:overflow-visible">
+                <ResumePreview data={result} config={templateConfig} />
+              </div>
             ) : (
               <Card className="flex min-h-[600px] items-center justify-center p-8 text-center print:hidden">
                 <div className="max-w-sm">
