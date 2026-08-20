@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck } from "lucide-react";
+import { Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck, FileText } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
@@ -16,6 +16,9 @@ import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import { AiInsightsPanel } from "@/components/AiInsightsPanel";
+import { TemplateStudio } from "@/components/TemplateStudio";
+import { ATS_CLASSIC, BUILTIN_TEMPLATES, type TemplateConfig } from "@/lib/resume-templates";
+import { buildResumeDocx } from "@/lib/resume-docx";
 import type { ProfileImportIssue } from "@/lib/profile-io";
 import { generateResume, getMyAiUsage } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
@@ -84,6 +87,9 @@ function Index() {
   const consumeDownload = useServerFn(consumeDownloadEntitlement);
   const [downloading, setDownloading] = useState(false);
   const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
+  const [templateId, setTemplateId] = useState<string>("ats-classic");
+  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(ATS_CLASSIC);
+  const [exportingDocx, setExportingDocx] = useState(false);
   const { data: subscription } = useQuery({
     queryKey: ["subscription", userId],
     queryFn: () => fetchSubscription(),
@@ -97,6 +103,53 @@ function Index() {
   const dailyLimitReached = resumeUsage ? resumeUsage.remaining <= 0 : false;
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
+
+  /** Remember the last chosen template per account; new users get ATS Classic. */
+  useEffect(() => {
+    setTemplateId("ats-classic");
+    setTemplateConfig(ATS_CLASSIC);
+    try {
+      const raw = window.localStorage.getItem(`resume-template:${userId}`);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { id: string; config: TemplateConfig };
+      const builtin = BUILTIN_TEMPLATES.find((t) => t.id === saved.id);
+      setTemplateId(saved.id);
+      setTemplateConfig(builtin ? builtin.config : saved.config);
+    } catch {
+      /* ignore malformed storage */
+    }
+  }, [userId]);
+
+  const handleSelectTemplate = (id: string, config: TemplateConfig) => {
+    setTemplateId(id);
+    setTemplateConfig(config);
+    if (id !== "custom:draft") {
+      try {
+        window.localStorage.setItem(`resume-template:${userId}`, JSON.stringify({ id, config }));
+      } catch {
+        /* storage unavailable */
+      }
+    }
+  };
+
+  const handleExportDocx = async () => {
+    if (!result || exportingDocx) return;
+    setExportingDocx(true);
+    try {
+      const blob = await buildResumeDocx(result, templateConfig);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(result.optimizedProfile.personal.fullName || "resume").replace(/\s+/g, "_")}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("DOCX exported using your selected template.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not export DOCX.");
+    } finally {
+      setExportingDocx(false);
+    }
+  };
 
   /** Show the toast at most once per tab, but keep the banner until resolved. */
   const showGateToast = (status: PaymentGateStatus) => {
