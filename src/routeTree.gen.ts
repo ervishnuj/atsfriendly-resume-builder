@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TplcheckRouteImport } from './routes/tplcheck'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -28,11 +27,6 @@ import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
 import { Route as AuthenticatedPaymentCheckoutPlanIdRouteImport } from './routes/_authenticated/payment/checkout.$planId'
 
-const TplcheckRoute = TplcheckRouteImport.update({
-  id: '/tplcheck',
-  path: '/tplcheck',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -134,7 +128,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tplcheck': typeof TplcheckRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -153,7 +146,6 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tplcheck': typeof TplcheckRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -174,7 +166,6 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tplcheck': typeof TplcheckRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
@@ -195,7 +186,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/tplcheck'
     | '/builder'
     | '/subscription'
     | '/admin/payments'
@@ -214,7 +204,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/tplcheck'
     | '/builder'
     | '/subscription'
     | '/admin/payments'
@@ -234,7 +223,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/tplcheck'
     | '/_authenticated/builder'
     | '/_authenticated/subscription'
     | '/_authenticated/admin/payments'
@@ -255,18 +243,10 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TplcheckRoute: typeof TplcheckRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tplcheck': {
-      id: '/tplcheck'
-      path: '/tplcheck'
-      fullPath: '/tplcheck'
-      preLoaderRoute: typeof TplcheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -423,7 +403,6 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TplcheckRoute: TplcheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
