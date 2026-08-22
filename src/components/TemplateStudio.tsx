@@ -27,13 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, ArrowDown, ArrowUp, Copy, Palette, Pencil, Plus, Trash2 } from "lucide-react";
 import { ResumePreview } from "@/components/ResumePreview";
 import type { OptimizedResume } from "@/lib/resume.functions";
@@ -46,12 +40,7 @@ import {
   type SectionKey,
   type TemplateConfig,
 } from "@/lib/resume-templates";
-import {
-  deleteMyTemplate,
-  listMyTemplates,
-  saveMyTemplate,
-  type SavedTemplate,
-} from "@/lib/templates.functions";
+import { deleteMyTemplate, listMyTemplates, saveMyTemplate, type SavedTemplate } from "@/lib/templates.functions";
 
 /** Placeholder content so thumbnails render before a resume is generated. */
 const SAMPLE: OptimizedResume = {
@@ -60,12 +49,12 @@ const SAMPLE: OptimizedResume = {
   missingKeywords: [],
   optimizedProfile: {
     personal: {
-      fullName: "Alex Kumar",
+      fullName: "Bharathithasan",
       title: "Software Engineer",
-      email: "alex@example.com",
+      email: "bharathithasan2000@example.com",
       phone: "+91 90000 00000",
-      linkedin: "linkedin.com/in/alex",
-      github: "github.com/alex",
+      linkedin: "linkedin.com/in/bharathi",
+      github: "github.com/bharathi",
       portfolio: "",
       summary:
         "Backend engineer with experience building and debugging production Java services, REST APIs and SQL-backed integrations.",
@@ -76,8 +65,8 @@ const SAMPLE: OptimizedResume = {
     ],
     experience: [
       {
-        title: "Software Debug Engineer",
-        company: "Zoho Corporation",
+        title: "Software Engineer",
+        company: "Google",
         dateRange: "Jan 2023 – Present",
         bullets: [
           "Debugged and resolved production issues using Java, SQL and log analysis.",
@@ -85,9 +74,7 @@ const SAMPLE: OptimizedResume = {
         ],
       },
     ],
-    education: [
-      { degree: "B.E.", major: "Computer Science", institution: "Anna University", year: "2022", score: "" },
-    ],
+    education: [{ degree: "B.E.", major: "Computer Science", institution: "Anna University", year: "2022", score: "" }],
   },
 };
 
@@ -115,9 +102,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
   const [pendingDelete, setPendingDelete] = useState<SavedTemplate | null>(null);
   const [saving, setSaving] = useState(false);
   // Selection to restore if the user cancels/dismisses the editor.
-  const [prevSelection, setPrevSelection] = useState<{ id: string; config: TemplateConfig } | null>(
-    null,
-  );
+  const [prevSelection, setPrevSelection] = useState<{ id: string; config: TemplateConfig } | null>(null);
 
   const preview = data ?? SAMPLE;
 
@@ -128,8 +113,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
   }, [draft, editorOpen]);
 
   const warnings = useMemo(() => atsWarnings(draft), [draft]);
-  const set = <K extends keyof TemplateConfig>(k: K, v: TemplateConfig[K]) =>
-    setDraft((d) => ({ ...d, [k]: v }));
+  const set = <K extends keyof TemplateConfig>(k: K, v: TemplateConfig[K]) => setDraft((d) => ({ ...d, [k]: v }));
 
   const openNew = (base: TemplateConfig = config, id: string | null = null, label?: string) => {
     setPrevSelection({ id: templateId, config });
@@ -238,10 +222,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
                     <IconBtn label="Edit" onClick={() => openNew(t.config, t.id, t.name)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </IconBtn>
-                    <IconBtn
-                      label="Duplicate"
-                      onClick={() => openNew(t.config, null, `${t.name} copy`)}
-                    >
+                    <IconBtn label="Duplicate" onClick={() => openNew(t.config, null, `${t.name} copy`)}>
                       <Copy className="h-3.5 w-3.5" />
                     </IconBtn>
                     <IconBtn label="Delete" destructive onClick={() => setPendingDelete(t)}>
@@ -277,19 +258,61 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
               <Group title="Typography">
                 <Field label="Font family">
                   <Select value={draft.fontFamily} onValueChange={(v) => set("fontFamily", v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {FONT_CHOICES.map((f) => (
-                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        <SelectItem key={f.value} value={f.value}>
+                          {f.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </Field>
-                <Num label="Body size" unit="pt" value={draft.bodyFontSize} min={8} max={13} step={0.5} onChange={(v) => set("bodyFontSize", v)} />
-                <Num label="Name size" unit="pt" value={draft.nameFontSize} min={12} max={30} step={1} onChange={(v) => set("nameFontSize", v)} />
-                <Num label="Heading size" unit="pt" value={draft.headingFontSize} min={9} max={16} step={0.5} onChange={(v) => set("headingFontSize", v)} />
-                <Num label="Heading weight" value={draft.headingWeight} min={500} max={800} step={100} onChange={(v) => set("headingWeight", v)} />
-                <Num label="Line height" value={draft.lineHeight} min={1} max={1.8} step={0.05} onChange={(v) => set("lineHeight", v)} />
+                <Num
+                  label="Body size"
+                  unit="pt"
+                  value={draft.bodyFontSize}
+                  min={8}
+                  max={13}
+                  step={0.5}
+                  onChange={(v) => set("bodyFontSize", v)}
+                />
+                <Num
+                  label="Name size"
+                  unit="pt"
+                  value={draft.nameFontSize}
+                  min={12}
+                  max={30}
+                  step={1}
+                  onChange={(v) => set("nameFontSize", v)}
+                />
+                <Num
+                  label="Heading size"
+                  unit="pt"
+                  value={draft.headingFontSize}
+                  min={9}
+                  max={16}
+                  step={0.5}
+                  onChange={(v) => set("headingFontSize", v)}
+                />
+                <Num
+                  label="Heading weight"
+                  value={draft.headingWeight}
+                  min={500}
+                  max={800}
+                  step={100}
+                  onChange={(v) => set("headingWeight", v)}
+                />
+                <Num
+                  label="Line height"
+                  value={draft.lineHeight}
+                  min={1}
+                  max={1.8}
+                  step={0.05}
+                  onChange={(v) => set("lineHeight", v)}
+                />
               </Group>
 
               <Group title="Colors">
@@ -300,13 +323,69 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
               </Group>
 
               <Group title="Spacing">
-                <Num label="Margin top" unit="mm" value={draft.marginTop} min={5} max={30} step={1} onChange={(v) => set("marginTop", v)} />
-                <Num label="Margin bottom" unit="mm" value={draft.marginBottom} min={5} max={30} step={1} onChange={(v) => set("marginBottom", v)} />
-                <Num label="Margin left" unit="mm" value={draft.marginLeft} min={5} max={30} step={1} onChange={(v) => set("marginLeft", v)} />
-                <Num label="Margin right" unit="mm" value={draft.marginRight} min={5} max={30} step={1} onChange={(v) => set("marginRight", v)} />
-                <Num label="Section spacing" unit="px" value={draft.sectionSpacing} min={4} max={28} step={1} onChange={(v) => set("sectionSpacing", v)} />
-                <Num label="Experience spacing" unit="px" value={draft.itemSpacing} min={2} max={24} step={1} onChange={(v) => set("itemSpacing", v)} />
-                <Num label="Bullet spacing" unit="px" value={draft.bulletSpacing} min={0} max={10} step={1} onChange={(v) => set("bulletSpacing", v)} />
+                <Num
+                  label="Margin top"
+                  unit="mm"
+                  value={draft.marginTop}
+                  min={5}
+                  max={30}
+                  step={1}
+                  onChange={(v) => set("marginTop", v)}
+                />
+                <Num
+                  label="Margin bottom"
+                  unit="mm"
+                  value={draft.marginBottom}
+                  min={5}
+                  max={30}
+                  step={1}
+                  onChange={(v) => set("marginBottom", v)}
+                />
+                <Num
+                  label="Margin left"
+                  unit="mm"
+                  value={draft.marginLeft}
+                  min={5}
+                  max={30}
+                  step={1}
+                  onChange={(v) => set("marginLeft", v)}
+                />
+                <Num
+                  label="Margin right"
+                  unit="mm"
+                  value={draft.marginRight}
+                  min={5}
+                  max={30}
+                  step={1}
+                  onChange={(v) => set("marginRight", v)}
+                />
+                <Num
+                  label="Section spacing"
+                  unit="px"
+                  value={draft.sectionSpacing}
+                  min={4}
+                  max={28}
+                  step={1}
+                  onChange={(v) => set("sectionSpacing", v)}
+                />
+                <Num
+                  label="Experience spacing"
+                  unit="px"
+                  value={draft.itemSpacing}
+                  min={2}
+                  max={24}
+                  step={1}
+                  onChange={(v) => set("itemSpacing", v)}
+                />
+                <Num
+                  label="Bullet spacing"
+                  unit="px"
+                  value={draft.bulletSpacing}
+                  min={0}
+                  max={10}
+                  step={1}
+                  onChange={(v) => set("bulletSpacing", v)}
+                />
               </Group>
 
               <Group title="Header">
@@ -315,7 +394,9 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
                     value={draft.headerAlignment}
                     onValueChange={(v) => set("headerAlignment", v as TemplateConfig["headerAlignment"])}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="left">Left</SelectItem>
                       <SelectItem value="center">Center</SelectItem>
@@ -328,15 +409,25 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
                     value={draft.contactLayout}
                     onValueChange={(v) => set("contactLayout", v as TemplateConfig["contactLayout"])}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="inline">Single line (separated)</SelectItem>
                       <SelectItem value="stacked">Stacked lines</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
-                <Toggle label="Uppercase section titles" checked={draft.uppercaseHeadings} onChange={(v) => set("uppercaseHeadings", v)} />
-                <Toggle label="Show divider lines" checked={draft.showDividers} onChange={(v) => set("showDividers", v)} />
+                <Toggle
+                  label="Uppercase section titles"
+                  checked={draft.uppercaseHeadings}
+                  onChange={(v) => set("uppercaseHeadings", v)}
+                />
+                <Toggle
+                  label="Show divider lines"
+                  checked={draft.showDividers}
+                  onChange={(v) => set("showDividers", v)}
+                />
               </Group>
 
               <Group title="Sections">
@@ -346,9 +437,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={draft.sections[key]}
-                          onCheckedChange={(v) =>
-                            setDraft((d) => ({ ...d, sections: { ...d.sections, [key]: v } }))
-                          }
+                          onCheckedChange={(v) => setDraft((d) => ({ ...d, sections: { ...d.sections, [key]: v } }))}
                           aria-label={`Show ${SECTION_LABELS[key]}`}
                         />
                         <span className="text-sm">{SECTION_LABELS[key]}</span>
@@ -381,12 +470,17 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
               </Group>
 
               {warnings.length > 0 && (
-                <div role="status" className="rounded-md border border-amber-300/70 bg-amber-50 p-3 dark:bg-amber-950/20">
+                <div
+                  role="status"
+                  className="rounded-md border border-amber-300/70 bg-amber-50 p-3 dark:bg-amber-950/20"
+                >
                   <p className="flex items-center gap-1 text-sm font-semibold">
                     <AlertTriangle className="h-4 w-4" /> Warning: this customization may reduce ATS readability.
                   </p>
                   <ul className="mt-1 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-                    {warnings.map((w) => <li key={w}>{w}</li>)}
+                    {warnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -401,7 +495,9 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={cancelEditor}>Cancel</Button>
+            <Button variant="ghost" onClick={cancelEditor}>
+              Cancel
+            </Button>
             <Button onClick={() => void handleSave()} disabled={saving}>
               {saving ? "Saving..." : editingId ? "Save changes" : "Save Template"}
             </Button>
@@ -458,7 +554,11 @@ function ThumbCard({
       </button>
       <div className="mt-2 flex items-center justify-between gap-1">
         <p className="truncate text-xs font-medium">{title}</p>
-        {badge && <Badge variant="secondary" className="text-[10px]">{badge}</Badge>}
+        {badge && (
+          <Badge variant="secondary" className="text-[10px]">
+            {badge}
+          </Badge>
+        )}
       </div>
       {subtitle && <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>}
       {actions && <div className="mt-1">{actions}</div>}
@@ -531,16 +631,12 @@ function Num({
     <div className="space-y-1">
       <Label className="flex items-center justify-between text-xs">
         <span>{label}</span>
-        <span className="text-muted-foreground">{value}{unit ?? ""}</span>
+        <span className="text-muted-foreground">
+          {value}
+          {unit ?? ""}
+        </span>
       </Label>
-      <Slider
-        value={[value]}
-        min={min}
-        max={max}
-        step={step}
-        aria-label={label}
-        onValueChange={([v]) => onChange(v)}
-      />
+      <Slider value={[value]} min={min} max={max} step={step} aria-label={label} onValueChange={([v]) => onChange(v)} />
     </div>
   );
 }
