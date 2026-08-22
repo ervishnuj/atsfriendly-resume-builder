@@ -145,6 +145,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
       const saved = await persist({ data: { id: editingId, name, config: draft } });
       await queryClient.invalidateQueries({ queryKey: ["resume-templates"] });
       setEditorOpen(false);
+      setPrevSelection(null);
       setEditingId(saved.id);
       onSelect(`custom:${saved.id}`, saved.config);
       toast.success(`Template "${saved.name}" saved to My Custom Templates.`);
