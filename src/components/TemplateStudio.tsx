@@ -156,6 +156,13 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
     }
   };
 
+  /** Abandon the draft and put the previously selected template back in place. */
+  const cancelEditor = () => {
+    setEditorOpen(false);
+    if (prevSelection) onSelect(prevSelection.id, prevSelection.config);
+    setPrevSelection(null);
+  };
+
   const handleDelete = async () => {
     if (!pendingDelete) return;
     try {
