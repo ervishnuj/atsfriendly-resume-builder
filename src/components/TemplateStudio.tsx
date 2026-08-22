@@ -257,7 +257,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
         )}
       </div>
 
-      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+      <Dialog open={editorOpen} onOpenChange={(o) => (o ? setEditorOpen(true) : cancelEditor())}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
