@@ -132,6 +132,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
     setDraft((d) => ({ ...d, [k]: v }));
 
   const openNew = (base: TemplateConfig = config, id: string | null = null, label?: string) => {
+    setPrevSelection({ id: templateId, config });
     setDraft({ ...base });
     setEditingId(id);
     setName(label ?? `${base.templateName} (custom)`);
