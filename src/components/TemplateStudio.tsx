@@ -401,7 +401,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={cancelEditor}>Cancel</Button>
             <Button onClick={() => void handleSave()} disabled={saving}>
               {saving ? "Saving..." : editingId ? "Save changes" : "Save Template"}
             </Button>
