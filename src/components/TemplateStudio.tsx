@@ -114,6 +114,10 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
   const [name, setName] = useState("My Custom Template");
   const [pendingDelete, setPendingDelete] = useState<SavedTemplate | null>(null);
   const [saving, setSaving] = useState(false);
+  // Selection to restore if the user cancels/dismisses the editor.
+  const [prevSelection, setPrevSelection] = useState<{ id: string; config: TemplateConfig } | null>(
+    null,
+  );
 
   const preview = data ?? SAMPLE;
 
