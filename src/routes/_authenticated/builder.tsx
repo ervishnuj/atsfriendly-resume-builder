@@ -146,9 +146,27 @@ function Index() {
       a.download = `${(result.optimizedProfile.personal.fullName || "resume").replace(/\s+/g, "_")}.docx`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("DOCX exported using your selected template.");
+      const usedFree = "free" in entitlement && entitlement.free === true;
+      toast.success(
+        entitlement.unlimited
+          ? "DOCX exported using your selected template."
+          : usedFree
+            ? "DOCX exported · this was your one free resume download."
+            : entitlement.creditsRemaining && entitlement.creditsRemaining > 0
+              ? `DOCX exported · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
+              : "DOCX exported · this was the download included in your Single Resume purchase.",
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not export DOCX.");
+      const msg = err instanceof Error ? err.message : "Could not export DOCX.";
+      if (msg.includes("SUBSCRIPTION_REQUIRED")) {
+        const fresh = await queryClient.fetchQuery({
+          queryKey: ["subscription", userId],
+          queryFn: () => fetchSubscription(),
+        });
+        notifyPaymentGate(fresh && fresh.active === false ? fresh.paymentStatus : undefined);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setExportingDocx(false);
     }
