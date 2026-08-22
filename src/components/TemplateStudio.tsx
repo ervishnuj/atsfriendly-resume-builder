@@ -114,6 +114,10 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
   const [name, setName] = useState("My Custom Template");
   const [pendingDelete, setPendingDelete] = useState<SavedTemplate | null>(null);
   const [saving, setSaving] = useState(false);
+  // Selection to restore if the user cancels/dismisses the editor.
+  const [prevSelection, setPrevSelection] = useState<{ id: string; config: TemplateConfig } | null>(
+    null,
+  );
 
   const preview = data ?? SAMPLE;
 
@@ -128,6 +132,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
     setDraft((d) => ({ ...d, [k]: v }));
 
   const openNew = (base: TemplateConfig = config, id: string | null = null, label?: string) => {
+    setPrevSelection({ id: templateId, config });
     setDraft({ ...base });
     setEditingId(id);
     setName(label ?? `${base.templateName} (custom)`);
@@ -140,6 +145,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
       const saved = await persist({ data: { id: editingId, name, config: draft } });
       await queryClient.invalidateQueries({ queryKey: ["resume-templates"] });
       setEditorOpen(false);
+      setPrevSelection(null);
       setEditingId(saved.id);
       onSelect(`custom:${saved.id}`, saved.config);
       toast.success(`Template "${saved.name}" saved to My Custom Templates.`);
@@ -148,6 +154,13 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Abandon the draft and put the previously selected template back in place. */
+  const cancelEditor = () => {
+    setEditorOpen(false);
+    if (prevSelection) onSelect(prevSelection.id, prevSelection.config);
+    setPrevSelection(null);
   };
 
   const handleDelete = async () => {
@@ -244,7 +257,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
         )}
       </div>
 
-      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+      <Dialog open={editorOpen} onOpenChange={(o) => (o ? setEditorOpen(true) : cancelEditor())}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -388,7 +401,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={cancelEditor}>Cancel</Button>
             <Button onClick={() => void handleSave()} disabled={saving}>
               {saving ? "Saving..." : editingId ? "Save changes" : "Save Template"}
             </Button>
