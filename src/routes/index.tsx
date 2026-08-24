@@ -457,6 +457,26 @@ function Landing() {
                 "Can I identify missing skills?",
                 "Yes. The Skill Gap Analyzer compares your profile against the job description and highlights skills you already have and areas you may need to improve.",
               ],
+              [
+                "Is ATS analysis free?",
+                "Yes. Every account includes one free ATS analysis. Additional ATS analyses require an applicable paid plan.",
+              ],
+              [
+                "How many AI resumes can I generate?",
+                "Free users receive one free resume PDF. The Single Resume plan includes one AI-generated resume. The 7-Day and 30-Day plans include up to 5 new AI resume generations per day.",
+              ],
+              [
+                "How many ATS analyses are included?",
+                "Free users receive one ATS analysis. The 7-Day Job Pass includes up to 5 ATS analyses per day, while the 30-Day Pro Pass includes up to 10 ATS analyses per day.",
+              ],
+              [
+                "Does a higher ATS score guarantee an interview?",
+                "No. ATS analysis is a guidance tool that helps identify potential keyword, skill and formatting gaps. No score can guarantee an interview or job.",
+              ],
+              [
+                "Does the AI invent skills?",
+                "No. The product is designed to work from the candidate's actual profile and experience. Missing skills should be reported rather than fabricated.",
+              ],
             ].map(([q, a], i) => (
               <AccordionItem key={q} value={`item-${i}`}>
                 <AccordionTrigger className="text-left text-base font-medium">{q}</AccordionTrigger>
