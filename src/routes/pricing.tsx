@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TITLE = "Pricing | AI Resume Builder";
 const DESCRIPTION =
-  "Simple pricing for ATS-friendly resumes: ₹29 for a single resume PDF, ₹99 for a 7-Day Job Pass or ₹249 for a 30-Day Pro Pass. Pay securely over UPI.";
+  "Simple pricing for ATS-friendly resumes: ₹39 for a single resume, ₹149 for a 7-Day Job Pass or ₹399 for a 30-Day Pro Pass. Check ATS alignment, tailor your resume to the job description and download PDF or DOCX. Pay securely over UPI.";
 const PAGE_URL = "https://theresumerocket.com/pricing";
 
 const PLAN_MARKUP = [
@@ -95,9 +95,9 @@ function PricingPage() {
           Pay only for what you need. No auto-renewals, no hidden charges — secure UPI payments in Indian Rupees.
         </p>
         <p className="mt-4 max-w-3xl rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          <strong className="font-semibold text-foreground">AI Generation Limit:</strong> Each account can generate up
-          to 10 new AI resumes per day. Existing resumes can be edited and downloaded according to your plan. Every new
-          account also includes one free resume PDF download.
+          <strong className="font-semibold text-foreground">AI Usage Limits:</strong> Every account includes 1 free ATS
+          analysis and 1 free resume PDF. Paid plans include daily AI resume generation and ATS analysis limits to keep
+          the service reliable and affordable. Manual edits to existing resumes do not consume an AI generation.
         </p>
         <div className="mt-12">
           <PricingCards
