@@ -8,7 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Download, Loader2, CheckCircle2, Trash2, ChevronDown, ChevronUp, Crown, ShieldCheck, FileText } from "lucide-react";
+import {
+  Sparkles,
+  Download,
+  Loader2,
+  CheckCircle2,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  ShieldCheck,
+  FileText,
+} from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
@@ -24,17 +35,9 @@ import { generateResume, getMyAiUsage } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
 import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
-import {
-  getCurrentSubscription,
-  amIAdmin,
-  consumeDownloadEntitlement,
-} from "@/lib/billing.functions";
+import { getCurrentSubscription, amIAdmin, consumeDownloadEntitlement } from "@/lib/billing.functions";
 import { daysRemaining, paymentGateNotice, type PaymentGateStatus } from "@/lib/billing-shared";
-import {
-  readPaymentGate,
-  savePaymentGate,
-  clearPaymentGate,
-} from "@/lib/payment-gate-state";
+import { readPaymentGate, savePaymentGate, clearPaymentGate } from "@/lib/payment-gate-state";
 import { PaymentGateBanner } from "@/components/PaymentGateBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
@@ -53,8 +56,7 @@ export const Route = createFileRoute("/_authenticated/builder")({
       { property: "og:title", content: "Resume Builder — ATS Resume Builder" },
       {
         property: "og:description",
-        content:
-          "Generate ATS-optimized resumes tailored to any job description in seconds.",
+        content: "Generate ATS-optimized resumes tailored to any job description in seconds.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -175,15 +177,13 @@ function Index() {
   /** Show the toast at most once per tab, but keep the banner until resolved. */
   const showGateToast = (status: PaymentGateStatus) => {
     const notice = paymentGateNotice(status);
-    const show =
-      notice.tone === "error" ? toast.error : notice.tone === "warning" ? toast.warning : toast.info;
+    const show = notice.tone === "error" ? toast.error : notice.tone === "warning" ? toast.warning : toast.info;
     show(notice.title, {
       description: notice.description,
       duration: 8000,
       action: {
         label: notice.actionLabel,
-        onClick: () =>
-          void navigate({ to: notice.routeToPricing ? "/payment" : "/subscription" }),
+        onClick: () => void navigate({ to: notice.routeToPricing ? "/payment" : "/subscription" }),
       },
     });
   };
@@ -333,17 +333,12 @@ function Index() {
     (el as HTMLElement).focus({ preventScroll: true });
   };
 
-  const handleImportProfile = (
-    imported: Profile,
-    issues: ProfileImportIssue[] = [],
-  ) => {
+  const handleImportProfile = (imported: Profile, issues: ProfileImportIssue[] = []) => {
     setProfile(imported);
     setProfileOpen(true);
     setImportIssues(issues);
     if (issues.length > 0) {
-      toast.warning(
-        `Imported with ${issues.length} field${issues.length > 1 ? "s" : ""} to fix — highlighted below.`,
-      );
+      toast.warning(`Imported with ${issues.length} field${issues.length > 1 ? "s" : ""} to fix — highlighted below.`);
       setTimeout(() => focusField(issues[0].path), 120);
     } else {
       toast.success(
@@ -417,10 +412,9 @@ function Index() {
         toast.success(
           usedFree
             ? "PDF unlocked · this was your one free resume download. Further downloads need a plan."
-            :
-          entitlement.creditsRemaining && entitlement.creditsRemaining > 0
-            ? `PDF unlocked · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
-            : "PDF unlocked · this was the download included in your Single Resume purchase.",
+            : entitlement.creditsRemaining && entitlement.creditsRemaining > 0
+              ? `PDF unlocked · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
+              : "PDF unlocked · this was the download included in your Single Resume purchase.",
         );
       }
       window.print();
@@ -449,9 +443,7 @@ function Index() {
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
               <h1 className="sr-only">ATS Resume Builder</h1>
-              <p className="text-xs text-muted-foreground">
-                AI-tailored resumes for any job description
-              </p>
+              <p className="text-xs text-muted-foreground">AI-tailored resumes for any job description</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -492,21 +484,13 @@ function Index() {
                 Profile Saved To Account
               </Badge>
             )}
-            <Button
-              onClick={handleGenerate}
-              disabled={loading || dailyLimitReached}
-              className="gap-2"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
+            <Button onClick={handleGenerate} disabled={loading || dailyLimitReached} className="gap-2">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               {loading ? "Generating..." : "Generate ATS Resume"}
             </Button>
             {resumeUsage && (
               <Badge variant="secondary" className="hidden gap-1 sm:inline-flex">
-                AI today {resumeUsage.used} / {resumeUsage.limit}
+                AI resumes today {resumeUsage.used} / {resumeUsage.limit}
               </Badge>
             )}
             <Button
@@ -515,11 +499,7 @@ function Index() {
               disabled={!result || downloading}
               className="gap-2"
             >
-              {downloading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
+              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               {downloading ? "Preparing PDF..." : "Download PDF"}
             </Button>
             <Button
@@ -553,15 +533,17 @@ function Index() {
             <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
               <p className="text-sm font-semibold">Daily AI generation limit reached</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 10} AI resume
-                generations today. Your plan is still active — the limit resets at midnight IST.
-                You can still view, edit and download your existing resumes.
+                You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 5} AI resume generations today. Your
+                plan is still active — the limit resets at midnight IST. You can still view, edit and download your
+                existing resumes.
               </p>
             </Card>
           )}
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">
-              <h2 id="jd-heading" className="text-sm font-semibold">Target Job Description</h2>
+              <h2 id="jd-heading" className="text-sm font-semibold">
+                Target Job Description
+              </h2>
               <span className="text-xs text-muted-foreground">Primary input</span>
             </div>
             <Textarea
@@ -591,12 +573,7 @@ function Index() {
               </div>
               <div className="flex items-center gap-1">
                 <ImportProfileDialog onImport={handleImportProfile} />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setProfileOpen((v) => !v)}
-                  className="gap-1"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setProfileOpen((v) => !v)} className="gap-1">
                   {profileOpen ? (
                     <>
                       <ChevronUp className="h-4 w-4" /> Collapse
@@ -622,10 +599,7 @@ function Index() {
             {profileOpen ? (
               <>
                 {importIssues.length > 0 && (
-                  <div
-                    role="alert"
-                    className="mb-3 rounded-md border border-destructive/40 bg-destructive/5 p-3"
-                  >
+                  <div role="alert" className="mb-3 rounded-md border border-destructive/40 bg-destructive/5 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-destructive">
                         {importIssues.length} imported field
@@ -648,8 +622,7 @@ function Index() {
                             onClick={() => focusField(issue.path)}
                             className="text-left text-destructive underline-offset-2 hover:underline"
                           >
-                            <span className="font-semibold">{issue.field}:</span>{" "}
-                            {issue.message}
+                            <span className="font-semibold">{issue.field}:</span> {issue.message}
                           </button>
                         </li>
                       ))}
@@ -659,15 +632,13 @@ function Index() {
                 <ProfileForm
                   profile={profile}
                   setProfile={setProfile}
-                  fieldErrors={Object.fromEntries(
-                    importIssues.map((i) => [i.path, i.message]),
-                  )}
+                  fieldErrors={Object.fromEntries(importIssues.map((i) => [i.path, i.message]))}
                 />
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Your profile is stored privately in your account and will be used automatically.
-                Click <span className="font-medium">Edit</span> to update it.
+                Your profile is stored privately in your account and will be used automatically. Click{" "}
+                <span className="font-medium">Edit</span> to update it.
               </p>
             )}
           </Card>
@@ -704,10 +675,7 @@ function Index() {
               </div>
               {result.ats && (
                 <div className="mt-4">
-                  <AtsBreakdownPanel
-                    breakdown={result.ats.breakdown}
-                    matchBreakdown={result.ats.matchBreakdown}
-                  />
+                  <AtsBreakdownPanel breakdown={result.ats.breakdown} matchBreakdown={result.ats.matchBreakdown} />
                 </div>
               )}
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -758,13 +726,10 @@ function Index() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                     <Sparkles className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-base font-semibold">
-                    Your optimized resume will appear here
-                  </h3>
+                  <h3 className="text-base font-semibold">Your optimized resume will appear here</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Fill in your profile, paste a target job description, then
-                    click <span className="font-medium">Generate Resume</span> to
-                    see your ATS score and tailored resume.
+                    Fill in your profile, paste a target job description, then click{" "}
+                    <span className="font-medium">Generate Resume</span> to see your ATS score and tailored resume.
                   </p>
                 </div>
               </Card>
