@@ -18,12 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { listPlans } from "@/lib/billing.functions";
 import { LandingHeader } from "@/components/landing/LandingHeader";
@@ -68,8 +63,7 @@ export const Route = createFileRoute("/")({
               name: "Resume Rocket",
               url: URL,
               logo: "https://theresumerocket.com/favicon.png",
-              description:
-                "AI-powered ATS resume optimization: tailored resumes, ATS scoring and skill-gap analysis.",
+              description: "AI-powered ATS resume optimization: tailored resumes, ATS scoring and skill-gap analysis.",
             },
           ],
         }),
@@ -83,9 +77,7 @@ function useSignedIn() {
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
-    const { data } = supabase.auth.onAuthStateChange((_e, session) =>
-      setSignedIn(Boolean(session)),
-    );
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
     return () => data.subscription.unsubscribe();
   }, []);
   return signedIn;
@@ -119,8 +111,8 @@ function Landing() {
               Build an <span className="text-gradient-brand">ATS-Friendly Resume</span> in Minutes.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Create a job-ready resume tailored to the job description using AI. Optimize
-              keywords, improve your ATS match and download a professional resume in minutes.
+              Create a job-ready resume tailored to the job description using AI. Optimize keywords, improve your ATS
+              match and download a professional resume in minutes.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
@@ -136,7 +128,7 @@ function Landing() {
                 <Link to={buildTo}>Check My Free ATS Score</Link>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Starting from ₹29</p>
+            <p className="mt-4 text-sm text-muted-foreground">Starting from ₹39</p>
 
             <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {[
@@ -158,7 +150,11 @@ function Landing() {
       </section>
 
       {/* FEATURES */}
-      <Section id="features" title="Built for Better Job Applications." subtitle="Everything you need to create, optimize and improve your resume.">
+      <Section
+        id="features"
+        title="Built for Better Job Applications."
+        subtitle="Everything you need to create, optimize and improve your resume."
+      >
         <div className="grid gap-5 md:grid-cols-2">
           <FeatureCard
             icon={Sparkles}
@@ -238,16 +234,14 @@ function Landing() {
         <div className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
           <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">
-                Check Your Resume Before You Apply
-              </h2>
+              <h2 className="text-3xl font-bold tracking-tight">Check Your Resume Before You Apply</h2>
               <p className="mt-4 max-w-xl text-muted-foreground">
-                Analyze your resume against a specific job description and identify potential
-                keyword, skill and formatting gaps.
+                Analyze your resume against a specific job description and identify potential keyword, skill and
+                formatting gaps.
               </p>
               <p className="mt-3 text-sm text-muted-foreground">
-                Your saved profile and the pasted job description are analyzed together — resume
-                file upload is not supported yet.
+                Your saved profile and the pasted job description are analyzed together — resume file upload is not
+                supported yet.
               </p>
               <Button asChild size="lg" className="mt-7 bg-gradient-brand text-brand-foreground">
                 <Link to={buildTo}>Check My ATS Score</Link>
@@ -262,13 +256,11 @@ function Landing() {
                 <div className="h-full w-[92%] rounded-full bg-gradient-brand" />
               </div>
               <div className="mt-5 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                {["Keywords matched", "Skills aligned", "Experience relevance", "Clean formatting"].map(
-                  (i) => (
-                    <span key={i} className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-brand" /> {i}
-                    </span>
-                  ),
-                )}
+                {["Keywords matched", "Skills aligned", "Experience relevance", "Clean formatting"].map((i) => (
+                  <span key={i} className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-brand" /> {i}
+                  </span>
+                ))}
               </div>
             </Card>
           </div>
@@ -276,7 +268,10 @@ function Landing() {
       </section>
 
       {/* WORKFLOW */}
-      <Section title="One Job Description. One Tailored Resume." subtitle="From pasted JD to a downloadable, keyword-matched resume.">
+      <Section
+        title="One Job Description. One Tailored Resume."
+        subtitle="From pasted JD to a downloadable, keyword-matched resume."
+      >
         <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             "Paste Job Description",
@@ -359,16 +354,13 @@ function Landing() {
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Pay Easily with UPI</h2>
               <p className="mt-4 max-w-lg text-muted-foreground">
-                Secure INR payments for your Resume Builder subscription. Pay to our verified UPI
-                ID or scan the QR code from any UPI app, then submit your UTR reference — access
-                is activated as soon as the payment is verified.
+                Secure INR payments for your Resume Builder subscription. Pay to our verified UPI ID or scan the QR code
+                from any UPI app, then submit your UTR reference — access is activated as soon as the payment is
+                verified.
               </p>
               <ul className="mt-6 flex flex-wrap gap-2 text-sm">
                 {["UPI", "Google Pay", "PhonePe", "Paytm"].map((m) => (
-                  <li
-                    key={m}
-                    className="rounded-lg border border-border bg-card px-3 py-1.5 font-medium"
-                  >
+                  <li key={m} className="rounded-lg border border-border bg-card px-3 py-1.5 font-medium">
                     {m}
                   </li>
                 ))}
@@ -381,8 +373,8 @@ function Landing() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Scan & Pay</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  The active UPI QR code and instructions are shown on the checkout page. Payments
-                  stay pending until manually verified.
+                  The active UPI QR code and instructions are shown on the checkout page. Payments stay pending until
+                  manually verified.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5">
@@ -473,9 +465,7 @@ function Landing() {
       {/* FINAL CTA */}
       <section className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-brand px-8 py-14 text-center text-brand-foreground shadow-glow">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Your Next Job Application Starts Here.
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Your Next Job Application Starts Here.</h2>
           <p className="mx-auto mt-4 max-w-xl text-brand-foreground/85">
             Build a professional, ATS-friendly resume tailored to the role you're targeting.
           </p>
