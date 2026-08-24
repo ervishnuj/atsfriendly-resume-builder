@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTrackerRouteImport } from './routes/_authenticated/tracker'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
 import { Route as AuthenticatedPaymentIndexRouteImport } from './routes/_authenticated/payment/index'
@@ -81,6 +82,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTrackerRoute = AuthenticatedTrackerRouteImport.update({
+  id: '/tracker',
+  path: '/tracker',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSubscriptionRoute =
   AuthenticatedSubscriptionRouteImport.update({
     id: '/subscription',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
+  '/tracker': typeof AuthenticatedTrackerRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/payment/': typeof AuthenticatedPaymentIndexRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
+  '/tracker': typeof AuthenticatedTrackerRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/payment': typeof AuthenticatedPaymentIndexRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
+  '/_authenticated/tracker': typeof AuthenticatedTrackerRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/_authenticated/payment/': typeof AuthenticatedPaymentIndexRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/builder'
     | '/subscription'
+    | '/tracker'
     | '/admin/payments'
     | '/admin/upi-config'
     | '/payment/'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/builder'
     | '/subscription'
+    | '/tracker'
     | '/admin/payments'
     | '/admin/upi-config'
     | '/payment'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/builder'
     | '/_authenticated/subscription'
+    | '/_authenticated/tracker'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/upi-config'
     | '/_authenticated/payment/'
@@ -324,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tracker': {
+      id: '/_authenticated/tracker'
+      path: '/tracker'
+      fullPath: '/tracker'
+      preLoaderRoute: typeof AuthenticatedTrackerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/subscription': {
       id: '/_authenticated/subscription'
       path: '/subscription'
@@ -372,6 +391,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
+  AuthenticatedTrackerRoute: typeof AuthenticatedTrackerRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminUpiConfigRoute: typeof AuthenticatedAdminUpiConfigRoute
   AuthenticatedPaymentIndexRoute: typeof AuthenticatedPaymentIndexRoute
@@ -381,6 +401,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
+  AuthenticatedTrackerRoute: AuthenticatedTrackerRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminUpiConfigRoute: AuthenticatedAdminUpiConfigRoute,
   AuthenticatedPaymentIndexRoute: AuthenticatedPaymentIndexRoute,
