@@ -50,6 +50,30 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: number
+          meta: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: never
+          meta?: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: never
+          meta?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -121,6 +145,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      interview_preps: {
+        Row: {
+          application_id: string | null
+          created_at: string
+          id: string
+          job_description: string
+          job_title: string
+          prep_json: Json
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          prep_json: Json
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          prep_json?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_preps_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_applications: {
+        Row: {
+          applied_at: string | null
+          company: string
+          created_at: string
+          id: string
+          job_description: string
+          job_title: string
+          job_url: string
+          location: string
+          notes: string
+          resume_version_id: string | null
+          salary: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          company?: string
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          job_url?: string
+          location?: string
+          notes?: string
+          resume_version_id?: string | null
+          salary?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          company?: string
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          job_url?: string
+          location?: string
+          notes?: string
+          resume_version_id?: string | null
+          salary?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_resume_version_id_fkey"
+            columns: ["resume_version_id"]
+            isOneToOne: false
+            referencedRelation: "resume_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -241,6 +362,48 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      resume_versions: {
+        Row: {
+          ats_score: number | null
+          company: string
+          created_at: string
+          id: string
+          job_description: string
+          job_title: string
+          match_score: number | null
+          resume_json: Json
+          template_id: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          ats_score?: number | null
+          company?: string
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          match_score?: number | null
+          resume_json: Json
+          template_id?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          ats_score?: number | null
+          company?: string
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_title?: string
+          match_score?: number | null
+          resume_json?: Json
+          template_id?: string
+          user_id?: string
+          version?: number
         }
         Relationships: []
       }
