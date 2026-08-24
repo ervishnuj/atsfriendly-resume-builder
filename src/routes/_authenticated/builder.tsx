@@ -531,7 +531,7 @@ function Index() {
           )}
           {dailyLimitReached && (
             <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
-              <p className="text-sm font-semibold">Daily AI generation limit reached</p>
+              <p className="text-sm font-semibold">Your plan is still active — the limit resets at midnight IST.</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 5} AI resume generations today. Your
                 plan is still active — the limit resets at midnight IST. You can still view, edit and download your
