@@ -439,7 +439,7 @@ function Landing() {
             {[
               [
                 "Is there an automatic recurring charge?",
-                "No. Every plan is a one-time payment — ₹29 for a single resume PDF, ₹99 for 7 days of access or ₹249 for 30 days. Nothing renews automatically.",
+                "No. Every plan is a one-time payment — ₹39 for a Single Resume, ₹149 for 7 days of access or ₹399 for 30 days. Nothing renews automatically.",
               ],
               [
                 "Will my resume be ATS-friendly?",
