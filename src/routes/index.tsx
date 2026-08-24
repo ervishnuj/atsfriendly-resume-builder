@@ -193,7 +193,7 @@ function Landing() {
           <FeatureCard
             icon={Target}
             title="Skill Gap Analyzer"
-            description="Every generated resume lists the job description keywords you already match and the ones missing from your profile, so you know what to improve before the interview."
+            description="Compare your profile with the job description to identify skills and keywords you already have, areas that are underrepresented, and skills you may need to develop."
             cta={{ label: "See My Keyword Gaps", to: buildTo }}
           >
             <div className="grid grid-cols-2 gap-3">
