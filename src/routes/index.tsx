@@ -126,6 +126,7 @@ function Landing() {
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to={buildTo}>Check My Free ATS Score</Link>
+                <p className="mt-2 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Starting from ₹39</p>
@@ -251,6 +252,9 @@ function Landing() {
               <div className="flex items-baseline justify-between">
                 <p className="text-sm font-semibold">Match report</p>
                 <p className="text-3xl font-bold text-gradient-brand">92%</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Illustrative example — actual results vary by resume and job description.
+                </p>
               </div>
               <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div className="h-full w-[92%] rounded-full bg-gradient-brand" />
