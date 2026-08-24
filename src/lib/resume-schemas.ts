@@ -86,6 +86,7 @@ import type { AtsScoreResult } from "./ats-scoring";
  */
 export type AtsAnalysis = AtsScoreResult & {
   score: number;
+  jobTitle?: string;
   matchingKeywords: string[];
   missingKeywords: string[];
   skillsMatched: string[];
@@ -95,11 +96,48 @@ export type AtsAnalysis = AtsScoreResult & {
   suggestions: string[];
 };
 
+export type LearningResource = { name: string; url: string };
+
+export type LearningPlanItem = {
+  skill: string;
+  why: string;
+  howToLearn: string;
+  priority: string;
+  level: string;
+  effort: string;
+  resources: LearningResource[];
+};
+
 export type SkillGapAnalysis = {
   matchedSkills: string[];
   missingSkills: string[];
   partialSkills: string[];
-  learningPlan: { skill: string; why: string; howToLearn: string; priority: string }[];
+  learningPlan: LearningPlanItem[];
 };
+
+export type InterviewQuestion = {
+  question: string;
+  whatTheyTest: string;
+  howToAnswer: string;
+};
+
+export type InterviewPrep = {
+  technicalQuestions: InterviewQuestion[];
+  projectQuestions: InterviewQuestion[];
+  hrQuestions: InterviewQuestion[];
+  behavioralQuestions: InterviewQuestion[];
+  jdSpecificQuestions: InterviewQuestion[];
+  skillGapQuestions: InterviewQuestion[];
+};
+
+export type LinkedInOptimization = {
+  headline: string;
+  aboutSection: string;
+  skillsSuggestions: string[];
+  projectDescription: string;
+  experienceDescription: string;
+};
+
+export type CoverLetterTone = "short" | "professional" | "detailed";
 
 export type CoverLetterResult = { coverLetter: string; highlights: string[] };
