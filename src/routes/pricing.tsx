@@ -22,7 +22,7 @@ const PLAN_MARKUP = [
   },
   {
     name: "7-Day Job Pass",
-    description: "Up to 10 new AI resumes per day, unlimited edits and downloads for 7 days.",
+    description: "Up to 5 AI resume generations and 5 ATS analyses per day for 7 days.",
     price: "149",
   },
   {
