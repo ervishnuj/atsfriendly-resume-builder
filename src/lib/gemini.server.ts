@@ -272,12 +272,68 @@ export const skillGapSchema = {
       type: "array",
       items: {
         type: "object",
-        properties: { skill: S, why: S, howToLearn: S, priority: S },
-        required: ["skill", "why", "howToLearn", "priority"],
+        properties: {
+          skill: S,
+          why: S,
+          howToLearn: S,
+          priority: S,
+          level: S,
+          effort: S,
+          resources: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: { name: S, url: S },
+              required: ["name", "url"],
+            },
+          },
+        },
+        required: ["skill", "why", "howToLearn", "priority", "level", "effort", "resources"],
       },
     },
   },
   required: ["matchedSkills", "missingSkills", "partialSkills", "learningPlan"],
+} as const;
+
+const QLIST = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: { question: S, whatTheyTest: S, howToAnswer: S },
+    required: ["question", "whatTheyTest", "howToAnswer"],
+  },
+} as const;
+
+export const interviewPrepSchema = {
+  type: "object",
+  properties: {
+    technicalQuestions: QLIST,
+    projectQuestions: QLIST,
+    hrQuestions: QLIST,
+    behavioralQuestions: QLIST,
+    jdSpecificQuestions: QLIST,
+    skillGapQuestions: QLIST,
+  },
+  required: [
+    "technicalQuestions",
+    "projectQuestions",
+    "hrQuestions",
+    "behavioralQuestions",
+    "jdSpecificQuestions",
+    "skillGapQuestions",
+  ],
+} as const;
+
+export const linkedInSchema = {
+  type: "object",
+  properties: {
+    headline: S,
+    aboutSection: S,
+    skillsSuggestions: SARR,
+    projectDescription: S,
+    experienceDescription: S,
+  },
+  required: ["headline", "aboutSection", "skillsSuggestions", "projectDescription", "experienceDescription"],
 } as const;
 
 export const coverLetterSchema = {

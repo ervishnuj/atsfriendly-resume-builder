@@ -1,12 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { ResumeInputSchema } from "./resume-schemas";
+import { ProfileSchema, ResumeInputSchema } from "./resume-schemas";
 import type {
   OptimizedResume,
   AtsAnalysis,
   SkillGapAnalysis,
   CoverLetterResult,
+  InterviewPrep,
+  LinkedInOptimization,
 } from "./resume-schemas";
 import type { AiUsageSummary } from "./ai-limits";
 
@@ -15,6 +17,8 @@ export type {
   AtsAnalysis,
   SkillGapAnalysis,
   CoverLetterResult,
+  InterviewPrep,
+  LinkedInOptimization,
 } from "./resume-schemas";
 
 const GuardedInputSchema = ResumeInputSchema.extend({
@@ -147,7 +151,11 @@ export const analyzeSkillGap = createServerFn({ method: "POST" })
 
 export const generateCoverLetter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
+  .inputValidator((input: unknown) =>
+    GuardedInputSchema.extend({
+      tone: z.enum(["short", "professional", "detailed"]).default("professional"),
+    }).parse(input),
+  )
   .handler(async ({ data, context }): Promise<CoverLetterResult> => {
     const { hasPremiumAccess } = await import("./billing.server");
     const access = await hasPremiumAccess(context.userId);
@@ -159,7 +167,60 @@ export const generateCoverLetter = createServerFn({ method: "POST" })
     if (reservation.cached) return reservation.cached as CoverLetterResult;
     try {
       const { writeCoverLetter } = await import("./resume-ai.server");
-      const result = await writeCoverLetter(data.profile, data.jobDescription);
+      const result = await writeCoverLetter(data.profile, data.jobDescription, data.tone);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
+  });
+
+/** Interview preparation for a specific JD + profile. Premium, ANALYSIS-limited. */
+export const prepareInterview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
+  .handler(async ({ data, context }): Promise<InterviewPrep> => {
+    const { hasPremiumAccess } = await import("./billing.server");
+    const access = await hasPremiumAccess(context.userId);
+    if (!access.allowed) {
+      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
+    }
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as InterviewPrep;
+    try {
+      const { generateInterviewPrep } = await import("./resume-ai.server");
+      const result = await generateInterviewPrep(data.profile, data.jobDescription);
+      await finishAiGeneration(context.userId, data.requestId, true, result);
+      return result;
+    } catch (err) {
+      await finishAiGeneration(context.userId, data.requestId, false);
+      throw err;
+    }
+  });
+
+const LinkedInInputSchema = z.object({
+  profile: ProfileSchema,
+  requestId: z.string().min(8).max(120),
+});
+
+/** LinkedIn profile optimization from the user's real profile. Premium, ANALYSIS-limited. */
+export const optimizeLinkedInProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => LinkedInInputSchema.parse(input))
+  .handler(async ({ data, context }): Promise<LinkedInOptimization> => {
+    const { hasPremiumAccess } = await import("./billing.server");
+    const access = await hasPremiumAccess(context.userId);
+    if (!access.allowed) {
+      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
+    }
+    const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
+    const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
+    if (reservation.cached) return reservation.cached as LinkedInOptimization;
+    try {
+      const { optimizeLinkedIn } = await import("./resume-ai.server");
+      const result = await optimizeLinkedIn(data.profile);
       await finishAiGeneration(context.userId, data.requestId, true, result);
       return result;
     } catch (err) {
