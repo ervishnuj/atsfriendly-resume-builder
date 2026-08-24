@@ -75,9 +75,19 @@ UPDATE public.subscription_plans SET
 WHERE price = 39;
 
 UPDATE public.subscription_plans SET
-  description = 'Valid for 7 days',
-  features = ARRAY['Resume generation access','Up to 10 AI resume generations per day','Unlimited edits & updates','Resume downloads according to active plan','Skill Gap Analysis','Instant WhatsApp Copy']
-WHERE price = 99;
+  description = 'Flexible access for an active 7-day job search.',
+  features = ARRAY[
+    'Valid for 7 days',
+    'Up to 5 AI resume generations per day',
+    'Up to 5 ATS analyses per day',
+    'JD matching',
+    'Skill Gap Analysis',
+    'AI suggestions',
+    'Unlimited edits',
+    'PDF/DOCX export',
+    'WhatsApp copy'
+  ]
+WHERE price = 149;
 
 UPDATE public.subscription_plans SET
   description = 'Full access for a month of active job applications.',
