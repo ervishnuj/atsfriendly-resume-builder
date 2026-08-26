@@ -108,10 +108,10 @@ export const updateResumeVersion = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const patch: Record<string, any> = {};
-    if (data.company !== undefined) patch.company = data.company;
-    if (data.jobTitle !== undefined) patch.job_title = data.jobTitle;
+    const patch = {
+      ...(data.company !== undefined ? { company: data.company } : {}),
+      ...(data.jobTitle !== undefined ? { job_title: data.jobTitle } : {}),
+    };
     const { error } = await context.supabase
       .from("resume_versions")
       .update(patch)
