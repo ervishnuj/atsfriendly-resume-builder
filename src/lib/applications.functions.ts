@@ -71,17 +71,18 @@ export const updateJobApplication = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<JobApplication> => {
     const u = data.updates;
-    const patch: Record<string, unknown> = {};
-    if (u.company !== undefined) patch.company = u.company;
-    if (u.jobTitle !== undefined) patch.job_title = u.jobTitle;
-    if (u.jobDescription !== undefined) patch.job_description = u.jobDescription;
-    if (u.appliedAt !== undefined) patch.applied_at = u.appliedAt;
-    if (u.resumeVersionId !== undefined) patch.resume_version_id = u.resumeVersionId;
-    if (u.jobUrl !== undefined) patch.job_url = u.jobUrl;
-    if (u.location !== undefined) patch.location = u.location;
-    if (u.salary !== undefined) patch.salary = u.salary;
-    if (u.status !== undefined) patch.status = u.status;
-    if (u.notes !== undefined) patch.notes = u.notes;
+    const patch = {
+      ...(u.company !== undefined ? { company: u.company } : {}),
+      ...(u.jobTitle !== undefined ? { job_title: u.jobTitle } : {}),
+      ...(u.jobDescription !== undefined ? { job_description: u.jobDescription } : {}),
+      ...(u.appliedAt !== undefined ? { applied_at: u.appliedAt } : {}),
+      ...(u.resumeVersionId !== undefined ? { resume_version_id: u.resumeVersionId } : {}),
+      ...(u.jobUrl !== undefined ? { job_url: u.jobUrl } : {}),
+      ...(u.location !== undefined ? { location: u.location } : {}),
+      ...(u.salary !== undefined ? { salary: u.salary } : {}),
+      ...(u.status !== undefined ? { status: u.status } : {}),
+      ...(u.notes !== undefined ? { notes: u.notes } : {}),
+    };
     const { data: row, error } = await context.supabase
       .from("job_applications")
       .update(patch)

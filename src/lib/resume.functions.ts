@@ -219,8 +219,8 @@ export const optimizeLinkedInProfile = createServerFn({ method: "POST" })
     const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as LinkedInOptimization;
     try {
-      const { optimizeLinkedIn } = await import("./resume-ai.server");
-      const result = await optimizeLinkedIn(data.profile);
+      const { optimizeLinkedInProfile: runLinkedIn } = await import("./resume-ai.server");
+      const result = await runLinkedIn(data.profile);
       await finishAiGeneration(context.userId, data.requestId, true, result);
       return result;
     } catch (err) {
