@@ -71,7 +71,8 @@ export const updateJobApplication = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<JobApplication> => {
     const u = data.updates;
-    const patch: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const patch: Record<string, any> = {};
     if (u.company !== undefined) patch.company = u.company;
     if (u.jobTitle !== undefined) patch.job_title = u.jobTitle;
     if (u.jobDescription !== undefined) patch.job_description = u.jobDescription;

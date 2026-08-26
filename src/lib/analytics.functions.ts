@@ -20,8 +20,8 @@ export const trackEvent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ ok: boolean }> => {
     try {
       // Coarse metadata only — cap the payload so no personal content is stored.
-      const meta = JSON.parse(JSON.stringify(data.meta ?? {})) as Record<string, unknown>;
-      const safeMeta = JSON.stringify(meta).length <= 2000 ? meta : {};
+      const serialized = JSON.stringify(data.meta ?? {});
+      const safeMeta = serialized.length <= 2000 ? JSON.parse(serialized) : {};
       const { error } = await context.supabase
         .from("analytics_events")
         .insert({ user_id: context.userId, event: data.event, meta: safeMeta });
