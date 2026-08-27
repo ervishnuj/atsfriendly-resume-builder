@@ -47,7 +47,7 @@ import { clearBrowserUserData } from "@/lib/profile-storage";
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
     meta: [
-      { title: "Resume Builder — ATS Resume Builder" },
+      { title: "Resume" },
       {
         name: "description",
         content:
