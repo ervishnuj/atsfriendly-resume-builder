@@ -7,20 +7,23 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     // Read the locally stored session first: it needs no network call, so a
     // flaky/blocked request can't throw during hydration and blank the page.
+    // The auth storage can also stall inside the editor preview iframe, so the
+    // lookup is capped and falls back to the raw stored session.
     let user = null;
     try {
-      const { data } = await supabase.auth.getSession();
-      user = data.session?.user ?? null;
-      if (!user) {
-        const res = await supabase.auth.getUser();
-        user = res.data.user ?? null;
-      }
+      const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+      const session = await Promise.race([
+        supabase.auth.getSession().then((r) => r.data.session ?? null),
+        timeout,
+      ]);
+      user = session?.user ?? readStoredUser();
     } catch {
-      user = null;
+      user = readStoredUser();
     }
     if (!user) throw redirect({ to: "/login" });
     return { user };
   },
+
   pendingComponent: () => (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
