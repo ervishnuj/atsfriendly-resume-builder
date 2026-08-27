@@ -44,3 +44,22 @@ function AuthGateError() {
     </div>
   );
 }
+
+/** Last-resort read of the persisted Supabase session straight from storage. */
+function readStoredUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const key = Object.keys(window.localStorage).find(
+      (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
+    );
+    if (!key) return null;
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { user?: { id?: string }; expires_at?: number };
+    if (!parsed?.user?.id) return null;
+    if (parsed.expires_at && parsed.expires_at * 1000 < Date.now()) return null;
+    return parsed.user as NonNullable<typeof parsed.user> & { id: string };
+  } catch {
+    return null;
+  }
+}
