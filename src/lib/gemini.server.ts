@@ -47,9 +47,16 @@ export async function callGeminiJson<T>({
   schema,
   temperature = 0.4,
 }: GeminiJsonOptions): Promise<T> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
+  // const apiKey = process.env.GEMINI_API_KEY;
+  // if (!apiKey) {
+  //   throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
+  // }
+  const apiKey = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter((key): key is string =>
+    Boolean(key?.trim()),
+  );
+
+  if (apiKey.length === 0) {
+    throw new Error("Gemini is not configured. Add GEMINI_API_KEY or GEMINI_API_KEY_2.");
   }
 
   const configuredModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
