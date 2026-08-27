@@ -126,10 +126,10 @@ function Landing() {
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to={buildTo}>Check My Free ATS Score</Link>
-                <p className="mt-2 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Starting from ₹39</p>
+            <p className="mt-3 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Starting from ₹39</p>
 
             <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {[
