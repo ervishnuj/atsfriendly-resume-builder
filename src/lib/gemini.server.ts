@@ -6,7 +6,7 @@
 // Use another stable, lower-demand Gemini model when the primary model is
 // temporarily unavailable. Environment values are read at request time so
 // deployed serverless environments can inject them correctly.
-const FALLBACK_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash"]; //["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-pro-latest"];
+const FALLBACK_MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-pro-latest"]; // ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS_PER_MODEL = 3;
 
@@ -52,7 +52,7 @@ export async function callGeminiJson<T>({
     throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
   }
 
-  const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash"; //"gemini-flash-latest";
+  const configuredModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
   const baseUrl = (process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta").replace(/\/$/, "");
 
   const payload = JSON.stringify({
