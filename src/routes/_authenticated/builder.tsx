@@ -138,10 +138,11 @@ function Index() {
     if (!result || exportingDocx) return;
     setExportingDocx(true);
     try {
-      // Same paid gate as the PDF: a DOCX download spends the credit/free entitlement.
+      // Build the file FIRST so a failed export never spends a credit, then
+      // apply the same paid gate as the PDF.
+      const blob = await buildResumeDocx(result, templateConfig);
       const entitlement = await consumeDownload();
       await queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
-      const blob = await buildResumeDocx(result, templateConfig);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
