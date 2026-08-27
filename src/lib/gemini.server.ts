@@ -111,8 +111,8 @@ export async function callGeminiJson<T>({
     if (res && RETRYABLE_STATUSES.has(res.status)) {
       throw new Error("AI generation is temporarily busy. Please try again in a moment.");
     }
-    if (res?.status === 401 || res?.status === 403) {
-      throw new Error("Gemini rejected the configured API key. Please check GEMINI_API_KEY.");
+    if (res?.status === 401 || res?.status === 403 || body.includes("API_KEY_INVALID")) {
+      throw new Error("Gemini rejected the configured API key. Please add a valid GEMINI_API_KEY.");
     }
     console.error(`Gemini request failed with status ${res?.status ?? "unknown"}.`, body.slice(0, 500));
     throw new Error("AI generation could not be completed. Please try again.");
