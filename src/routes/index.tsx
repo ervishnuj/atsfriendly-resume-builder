@@ -179,8 +179,9 @@ function Landing() {
             <div className="rounded-xl border border-border bg-muted/40 p-4">
               <p className="text-sm font-semibold">
                 ATS Match: <span className="text-gradient-brand">92%</span>
-                <p className="mt-2 text-[11px] text-muted-foreground">Illustrative example</p>
               </p>
+              <p className="mt-2 text-[11px] text-muted-foreground">Illustrative example</p>
+
               <ul className="mt-2 grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
                 {["Keywords", "Skills", "Experience", "Formatting"].map((i) => (
                   <li key={i} className="flex items-center gap-1.5">
