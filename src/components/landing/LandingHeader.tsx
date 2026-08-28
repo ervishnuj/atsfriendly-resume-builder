@@ -52,6 +52,9 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/subscription">Subscription</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/tracker">Tracker</Link>
+              </Button>
               <Button size="sm" variant="outline" onClick={signOut}>
                 Logout
               </Button>
@@ -105,7 +108,7 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
                     <Link to="/subscription">Subscription</Link>
                   </Button>
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                    <Link to="/Tracker">Tracker</Link>
+                    <Link to="/tracker">Tracker</Link>
                   </Button>
                   <Button variant="ghost" onClick={signOut}>
                     Logout
