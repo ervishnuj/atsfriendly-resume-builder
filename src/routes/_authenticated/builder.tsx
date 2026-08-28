@@ -485,6 +485,9 @@ function Index() {
                 Profile Saved To Account
               </Badge>
             )}
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/">Home</Link>
+            </Button>
             <Button onClick={handleGenerate} disabled={loading || dailyLimitReached} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               {loading ? "Generating..." : "Generate ATS Resume"}
@@ -494,6 +497,9 @@ function Index() {
                 AI resumes today {resumeUsage.used} / {resumeUsage.limit}
               </Badge>
             )}
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/tracker">Tracker</Link>
+            </Button>
             <Button
               variant="outline"
               onClick={() => void handleDownload()}
@@ -511,13 +517,6 @@ function Index() {
             >
               {exportingDocx ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
               Export DOCX
-            </Button>
-
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/tracker">Tracker</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/top">Home</Link>
             </Button>
 
             <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
