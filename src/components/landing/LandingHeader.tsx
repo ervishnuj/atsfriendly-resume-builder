@@ -104,6 +104,9 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
                     <Link to="/subscription">Subscription</Link>
                   </Button>
+                  <Button asChild variant="outline" onClick={() => setOpen(false)}>
+                    <Link to="/Tracker">Tracker</Link>
+                  </Button>
                   <Button variant="ghost" onClick={signOut}>
                     Logout
                   </Button>
