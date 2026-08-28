@@ -100,9 +100,9 @@ function LoginPage() {
         <Link to="/">
           <BrandLogo className="h-11" />
         </Link>
-        <h1 className="mt-10 max-w-md text-4xl font-bold leading-tight tracking-tight">
+        <p className="mt-10 max-w-md text-4xl font-bold leading-tight tracking-tight">
           Build a Resume That Gets Noticed.
-        </h1>
+        </p>
         <p className="mt-4 max-w-md text-muted-foreground">
           Create an ATS-friendly resume tailored to your next opportunity.
         </p>
@@ -115,7 +115,7 @@ function LoginPage() {
               <BrandLogo className="mx-auto h-10" />
             </Link>
           </div>
-          <h2 className="mt-6 text-2xl font-semibold tracking-tight lg:mt-0">Sign in</h2>
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight lg:mt-0">Sign in</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Welcome back. Enter your details to continue.
           </p>

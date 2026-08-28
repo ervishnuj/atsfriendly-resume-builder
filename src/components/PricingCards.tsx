@@ -36,9 +36,9 @@ export function PricingCards({
               Most Popular
             </span>
           )}
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             {plan.planName}
-          </h3>
+          </h2>
           <p className="mt-3 text-4xl font-bold tracking-tight">{formatINR(plan.price)}</p>
           <p className="mt-1 text-sm text-muted-foreground">{planValidityLabel(plan)}</p>
           <ul className="mt-5 flex-1 space-y-2.5 text-sm">
