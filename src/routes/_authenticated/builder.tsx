@@ -512,6 +512,14 @@ function Index() {
               {exportingDocx ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
               Export DOCX
             </Button>
+
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/tracker">Tracker</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/top">Home</Link>
+            </Button>
+
             <Button variant="ghost" onClick={handleSignOut} className="gap-2 print:hidden">
               <LogOut className="h-4 w-4" /> Sign out
             </Button>
