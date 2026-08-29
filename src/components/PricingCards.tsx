@@ -5,7 +5,7 @@ import { formatINR } from "@/lib/billing-shared";
 import type { Plan } from "@/lib/billing.functions";
 
 export function planValidityLabel(plan: Plan) {
-  if (plan.planType === "ONE_TIME") return "Pay once per PDF";
+  if (plan.planType === "ONE_TIME") return "One-time payment for one job-specific resume";
   return `Valid for ${plan.durationDays} day${plan.durationDays === 1 ? "" : "s"}`;
 }
 
@@ -36,9 +36,7 @@ export function PricingCards({
               Most Popular
             </span>
           )}
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            {plan.planName}
-          </h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{plan.planName}</h2>
           <p className="mt-3 text-4xl font-bold tracking-tight">{formatINR(plan.price)}</p>
           <p className="mt-1 text-sm text-muted-foreground">{planValidityLabel(plan)}</p>
           <ul className="mt-5 flex-1 space-y-2.5 text-sm">
