@@ -15,16 +15,17 @@ import { listPlans, getCurrentSubscription } from "@/lib/billing.functions";
 export const Route = createFileRoute("/_authenticated/payment/")({
   head: () => ({
     meta: [
-      { title: "Plans & Pricing — ATS Resume Builder" },
+      { title: "Resume Pricing Plans | AI Resume & JD Match Analysis | TheResumeRocket" },
       {
         name: "description",
         content:
-          "Choose the ₹39 Single Resume, ₹149 7-Day Job Pass or ₹399 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
+          "Explore affordable AI resume plans starting at ₹39. Match your resume with a Job Description, identify skill gaps, optimize experience content, improve ATS compatibility, and create job-specific resumes.",
       },
-      { property: "og:title", content: "Plans & Pricing — ATS Resume Builder" },
+      { property: "og:title", content: "Affordable AI Resume Plans | TheResumeRocket" },
       {
         property: "og:description",
-        content: "One-time and time-based plans for the ATS Resume Builder, paid over UPI.",
+        content:
+          "Analyze your resume against any Job Description, identify missing skills, optimize relevant experience, and create a job-specific resume with AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
