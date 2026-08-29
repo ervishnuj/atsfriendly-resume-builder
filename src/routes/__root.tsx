@@ -79,6 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Resume Rocket — ATS Resume Builder" },
+      {
+        name: "description",
+        content:
+          "Build an ATS-friendly resume in minutes. AI-tailored to any job description with match scores, skill-gap analysis and instant PDF download.",
+      },
+      { property: "og:title", content: "Resume Rocket — ATS Resume Builder" },
+      {
+        property: "og:description",
+        content:
+          "Build an ATS-friendly resume in minutes. AI-tailored to any job description with match scores, skill-gap analysis and instant PDF download.",
+      },
       { name: "author", content: "AI Resume Builder" },
       {
         name: "google-site-verification",
