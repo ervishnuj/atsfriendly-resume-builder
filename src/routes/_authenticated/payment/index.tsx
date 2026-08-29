@@ -15,17 +15,16 @@ import { listPlans, getCurrentSubscription } from "@/lib/billing.functions";
 export const Route = createFileRoute("/_authenticated/payment/")({
   head: () => ({
     meta: [
-      { title: "Resume Pricing Plans | AI Resume & JD Match Analysis | TheResumeRocket" },
+      { title: "Plans & Pricing — ATS Resume Builder" },
       {
         name: "description",
         content:
-          "Explore affordable AI resume plans starting at ₹39. Match your resume with a Job Description, identify skill gaps, optimize experience content, improve ATS compatibility, and create job-specific resumes.",
+          "Choose the ₹29 Single Resume, ₹99 7-Day Job Pass or ₹249 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
       },
-      { property: "og:title", content: "Affordable AI Resume Plans | TheResumeRocket" },
+      { property: "og:title", content: "Plans & Pricing — ATS Resume Builder" },
       {
         property: "og:description",
-        content:
-          "Analyze your resume against any Job Description, identify missing skills, optimize relevant experience, and create a job-specific resume with AI.",
+        content: "One-time and time-based plans for the ATS Resume Builder, paid over UPI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -77,7 +76,9 @@ function PlansPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {!isAdmin && !subscription?.active && gateStatus && <PaymentGateBanner status={gateStatus} className="mb-6" />}
+        {!isAdmin && !subscription?.active && gateStatus && (
+          <PaymentGateBanner status={gateStatus} className="mb-6" />
+        )}
         {isAdmin && (
           <Card className="mb-6 border-amber-300/60 bg-amber-50 p-6 dark:bg-amber-950/20">
             <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
@@ -102,7 +103,9 @@ function PlansPage() {
               : `expires in ${subscription.daysRemaining} days`}
           </Badge>
         )}
-        {isAdmin && <p className="mb-4 text-sm font-medium text-muted-foreground">Plans for regular users</p>}
+        {isAdmin && (
+          <p className="mb-4 text-sm font-medium text-muted-foreground">Plans for regular users</p>
+        )}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -130,8 +133,9 @@ function PlansPage() {
           />
         )}
         <p className="mt-8 text-sm text-muted-foreground">
-          Payments are made over UPI. Submit your UTR reference after paying — your plan is activated once the payment
-          is verified, and every payment status is shown on your subscription page.
+          Payments are made over UPI. Submit your UTR reference after paying — your plan is
+          activated once the payment is verified, and every payment status is shown on your
+          subscription page.
         </p>
       </main>
     </div>

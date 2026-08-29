@@ -439,49 +439,46 @@ function Landing() {
           <Accordion type="single" collapsible className="mt-8">
             {[
               [
-    "Is there an automatic recurring charge?",
-    "No. Every plan is a one-time payment — ₹39 for one Job-Specific Resume, ₹149 for 7 days of access, or ₹399 for 30 days. Nothing renews automatically.",
-  ],
-  [
-    "Will my resume be ATS-friendly?",
-    "Our templates use clean, structured formatting designed for ATS readability. The platform also analyzes your resume against a specific job description to identify potential keyword, skill, and content gaps. Results can vary depending on the employer's ATS and job requirements.",
-  ],
-  [
-    "Can I edit my resume after generating it?",
-    "Yes. You can update your profile, resume content, and experience details. Paid plans allow you to create and tailor resumes for additional job opportunities based on your plan limits.",
-  ],
-  [
-    "Can I download my resume as PDF?",
-    "Yes. Your generated resumes can be exported as professionally formatted PDF files.",
-  ],
-  [
-    "Can I identify missing skills?",
-    "Yes. The Skill Gap Analyzer compares your profile against a specific Job Description and highlights relevant skills you already have, potential skill gaps, and areas that may need improvement.",
-  ],
-  [
-    "Is Resume-to-JD analysis free?",
-    "Yes. Every account includes one free Resume-to-JD analysis so you can understand how your profile matches a specific job. Additional analyses require an applicable paid plan.",
-  ],
-  [
-    "What does the ₹39 Job-Specific Resume include?",
-    "It allows you to analyze, optimize, and tailor your resume for one specific job opportunity based on the Job Description, including AI-powered skill, experience, and resume content analysis.",
-  ],
-  [
-    "How many AI resume generations can I use?",
-    "Free users receive one free resume download. The Job-Specific Resume plan includes one job-specific AI resume. The 7-Day and 30-Day plans include up to 5 new AI resume generations per day.",
-  ],
-  [
-    "How many Resume-to-JD analyses are included?",
-    "Free users receive one analysis. The 7-Day Job Pass includes up to 5 analyses per day, while the 30-Day Pro Pass includes up to 10 analyses per day.",
-  ],
-  [
-    "Does a higher match score guarantee an interview?",
-    "No. Resume-to-JD analysis is a guidance tool that helps identify potential skill, keyword, experience, and content gaps. No score can guarantee an interview or job offer.",
-  ],
-  [
-    "Does the AI invent skills or experience?",
-    "No. The product is designed to work from the candidate's actual profile and experience. Missing skills or experience should be identified as gaps rather than added or fabricated.",
-  ],.map(([q, a], i) => (
+                "Is there an automatic recurring charge?",
+                "No. Every plan is a one-time payment — ₹39 for a Single Resume, ₹149 for 7 days of access or ₹399 for 30 days. Nothing renews automatically.",
+              ],
+              [
+                "Will my resume be ATS-friendly?",
+                "Our templates use clean, structured formatting designed for ATS readability. ATS results can vary depending on the employer's system and the specific job description.",
+              ],
+              [
+                "Can I edit my resume after generating it?",
+                "Yes. You can update your profile and generate a new resume for another job description.",
+              ],
+              [
+                "Can I download my resume as PDF?",
+                "Yes. Generated resumes can be exported as professionally formatted PDF files.",
+              ],
+              [
+                "Can I identify missing skills?",
+                "Yes. The Skill Gap Analyzer compares your profile against the job description and highlights skills you already have and areas you may need to improve.",
+              ],
+              [
+                "Is ATS analysis free?",
+                "Yes. Every account includes one free ATS analysis. Additional ATS analyses require an applicable paid plan.",
+              ],
+              [
+                "How many AI resumes can I generate?",
+                "Free users receive one free resume PDF. The Single Resume plan includes one AI-generated resume. The 7-Day and 30-Day plans include up to 5 new AI resume generations per day.",
+              ],
+              [
+                "How many ATS analyses are included?",
+                "Free users receive one ATS analysis. The 7-Day Job Pass includes up to 5 ATS analyses per day, while the 30-Day Pro Pass includes up to 10 ATS analyses per day.",
+              ],
+              [
+                "Does a higher ATS score guarantee an interview?",
+                "No. ATS analysis is a guidance tool that helps identify potential keyword, skill and formatting gaps. No score can guarantee an interview or job.",
+              ],
+              [
+                "Does the AI invent skills?",
+                "No. The product is designed to work from the candidate's actual profile and experience. Missing skills should be reported rather than fabricated.",
+              ],
+            ].map(([q, a], i) => (
               <AccordionItem key={q} value={`item-${i}`}>
                 <AccordionTrigger className="text-left text-base font-medium">{q}</AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground">{a}</AccordionContent>

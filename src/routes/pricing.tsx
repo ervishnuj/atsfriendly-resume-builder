@@ -11,24 +11,23 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TITLE = "Pricing | AI Resume Builder";
 const DESCRIPTION =
-  "Simple, one-time pricing for job-specific resume optimization: ₹39 to analyze, optimize and tailor your resume for one job, ₹149 for a 7-Day Job Pass, or ₹399 for a 30-Day Pro Pass. Match your resume with a Job Description, identify skill gaps, and download your tailored resume as PDF or DOCX.";
+  "Simple pricing for ATS-friendly resumes: ₹39 for a single resume, ₹149 for a 7-Day Job Pass or ₹399 for a 30-Day Pro Pass. Check ATS alignment, tailor your resume to the job description and download PDF or DOCX. Pay securely over UPI.";
 const PAGE_URL = "https://theresumerocket.com/pricing";
 
 const PLAN_MARKUP = [
   {
-    name: "Job-Specific Resume",
-    description: "Analyze, optimize, and tailor your resume for one specific job opportunity.",
+    name: "Single Resume",
+    description: "One AI-generated, ATS-optimized resume with PDF download..",
     price: "39",
   },
   {
     name: "7-Day Job Pass",
-    description: "Tailor your resume for multiple jobs with AI analysis and up to 5 generations per day.",
+    description: "Up to 5 AI resume generations and 5 ATS analyses per day for 7 days.",
     price: "149",
   },
   {
     name: "30-Day Pro Pass",
-    description:
-      "Everything you need for an active job search with AI resume optimization, unlimited edits, and downloads.",
+    description: "Up to 5 new AI resumes per day, unlimited edits and downloads for 30 days.",
     price: "399",
   },
 ];
@@ -91,7 +90,7 @@ function PricingPage() {
     <div className="min-h-screen bg-background">
       <LandingHeader signedIn={signedIn} />
       <main className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, Transparent Pricing</h1>
+<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, Transparent Pricing</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Pay only for what you need. No auto-renewals, no hidden charges — secure UPI payments in Indian Rupees.
         </p>
