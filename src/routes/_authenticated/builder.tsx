@@ -156,8 +156,8 @@ function Index() {
           : usedFree
             ? "DOCX exported · this was your one free resume download."
             : entitlement.creditsRemaining && entitlement.creditsRemaining > 0
-              ? `DOCX exported · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
-              : "DOCX exported · this was the download included in your Single Resume purchase.",
+              ? `DOCX exported · ${entitlement.creditsRemaining} download ${entitlement.creditsRemaining > 1 ? "s" : ""} left on your Job-Specific Resume purchase.`
+              : "DOCX exported · This was the download included with your Job-Specific Resume purchase.",
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not export DOCX.";
@@ -443,7 +443,7 @@ function Index() {
           <div className="flex items-center gap-2">
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
-<h1 className="sr-only">Create Your ATS-Friendly Resume</h1>
+              <h1 className="sr-only">Create Your ATS-Friendly Resume</h1>
               <p className="text-xs text-muted-foreground">AI-tailored resumes for any job description</p>
             </div>
           </div>
