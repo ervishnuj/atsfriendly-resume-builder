@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TITLE = "Pricing | AI Resume Builder";
 const DESCRIPTION =
-  "Simple pricing for ATS-friendly resumes: ₹39 for a single resume, ₹149 for a 7-Day Job Pass or ₹399 for a 30-Day Pro Pass. Check ATS alignment, tailor your resume to the job description and download PDF or DOCX. Pay securely over UPI.";
+  "Simple, one-time pricing for job-specific resume optimization: ₹39 to analyze, optimize and tailor your resume for one job, ₹149 for a 7-Day Job Pass, or ₹399 for a 30-Day Pro Pass. Match your resume with a Job Description, identify skill gaps, and download your tailored resume as PDF or DOCX.";
 const PAGE_URL = "https://theresumerocket.com/pricing";
 
 const PLAN_MARKUP = [
