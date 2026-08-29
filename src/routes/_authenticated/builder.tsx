@@ -443,7 +443,7 @@ function Index() {
           <div className="flex items-center gap-2">
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
-              <h1 className="sr-only">ATS Resume Builder</h1>
+<h1 className="sr-only">Create Your ATS-Friendly Resume</h1>
               <p className="text-xs text-muted-foreground">AI-tailored resumes for any job description</p>
             </div>
           </div>
