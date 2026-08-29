@@ -414,8 +414,8 @@ function Index() {
           usedFree
             ? "PDF unlocked · this was your one free resume download. Further downloads need a plan."
             : entitlement.creditsRemaining && entitlement.creditsRemaining > 0
-              ? `PDF unlocked · ${entitlement.creditsRemaining} download left on your Single Resume purchase.`
-              : "PDF unlocked · this was the download included in your Single Resume purchase.",
+              ? `PDF unlocked ·  ${entitlement.creditsRemaining} download${entitlement.creditsRemaining > 1 ? "s" : ""} left on your Job-Specific Resume purchase.`
+              : "PDF unlocked · this was the download included with your Job-Specific Resume purchase.",
         );
       }
       window.print();
