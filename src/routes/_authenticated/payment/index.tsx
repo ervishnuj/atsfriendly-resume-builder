@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/payment/")({
       {
         name: "description",
         content:
-          "Choose the ₹29 Single Resume, ₹99 7-Day Job Pass or ₹249 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
+          "Choose the ₹39 Single Resume, ₹149 7-Day Job Pass or ₹399 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
       },
       { property: "og:title", content: "Plans & Pricing — ATS Resume Builder" },
       {
@@ -76,9 +76,7 @@ function PlansPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {!isAdmin && !subscription?.active && gateStatus && (
-          <PaymentGateBanner status={gateStatus} className="mb-6" />
-        )}
+        {!isAdmin && !subscription?.active && gateStatus && <PaymentGateBanner status={gateStatus} className="mb-6" />}
         {isAdmin && (
           <Card className="mb-6 border-amber-300/60 bg-amber-50 p-6 dark:bg-amber-950/20">
             <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
@@ -103,9 +101,7 @@ function PlansPage() {
               : `expires in ${subscription.daysRemaining} days`}
           </Badge>
         )}
-        {isAdmin && (
-          <p className="mb-4 text-sm font-medium text-muted-foreground">Plans for regular users</p>
-        )}
+        {isAdmin && <p className="mb-4 text-sm font-medium text-muted-foreground">Plans for regular users</p>}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -133,9 +129,8 @@ function PlansPage() {
           />
         )}
         <p className="mt-8 text-sm text-muted-foreground">
-          Payments are made over UPI. Submit your UTR reference after paying — your plan is
-          activated once the payment is verified, and every payment status is shown on your
-          subscription page.
+          Payments are made over UPI. Submit your UTR reference after paying — your plan is activated once the payment
+          is verified, and every payment status is shown on your subscription page.
         </p>
       </main>
     </div>
