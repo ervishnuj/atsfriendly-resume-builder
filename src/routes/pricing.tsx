@@ -16,18 +16,19 @@ const PAGE_URL = "https://theresumerocket.com/pricing";
 
 const PLAN_MARKUP = [
   {
-    name: "Single Resume",
-    description: "One AI-generated, ATS-optimized resume with PDF download..",
+    name: "Job-Specific Resume",
+    description: "Analyze, optimize, and tailor your resume for one specific job opportunity.",
     price: "39",
   },
   {
     name: "7-Day Job Pass",
-    description: "Up to 5 AI resume generations and 5 ATS analyses per day for 7 days.",
+    description: "Tailor your resume for multiple jobs with AI analysis and up to 5 generations per day.",
     price: "149",
   },
   {
     name: "30-Day Pro Pass",
-    description: "Up to 5 new AI resumes per day, unlimited edits and downloads for 30 days.",
+    description:
+      "Everything you need for an active job search with AI resume optimization, unlimited edits, and downloads.",
     price: "399",
   },
 ];
@@ -90,7 +91,7 @@ function PricingPage() {
     <div className="min-h-screen bg-background">
       <LandingHeader signedIn={signedIn} />
       <main className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, Transparent Pricing</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, Transparent Pricing</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Pay only for what you need. No auto-renewals, no hidden charges — secure UPI payments in Indian Rupees.
         </p>
