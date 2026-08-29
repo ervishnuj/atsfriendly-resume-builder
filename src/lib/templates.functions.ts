@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { normalizeConfig, type TemplateConfig } from "./resume-templates";
+import { DeleteTemplateSchema, SaveTemplateSchema } from "./save-schemas";
 
 export type SavedTemplate = {
   id: string;
@@ -29,7 +30,7 @@ export const listMyTemplates = createServerFn({ method: "GET" })
 
 export const saveMyTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string | null; name: string; config: TemplateConfig }) => d)
+  .inputValidator((d: unknown) => SaveTemplateSchema.parse(d))
   .handler(async ({ data, context }): Promise<SavedTemplate> => {
     const name = data.name.trim().slice(0, 80);
     if (!name) throw new Error("Please enter a template name.");
@@ -56,7 +57,7 @@ export const saveMyTemplate = createServerFn({ method: "POST" })
 
 export const deleteMyTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((d: unknown) => DeleteTemplateSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("resume_templates")

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Profile } from "@/components/ProfileForm";
+import { SaveProfileSchema } from "./save-schemas";
 
 export const getMyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -23,7 +24,7 @@ export const getMyProfile = createServerFn({ method: "GET" })
 
 export const saveMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { profile: Profile }) => data)
+  .inputValidator((data: unknown) => SaveProfileSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { encryptJson } = await import("./profile-crypto.server");
     const { profile } = data;
