@@ -11,13 +11,16 @@ type Props = {
   config?: TemplateConfig;
   /** Renders a scaled-down, non-printable thumbnail (used by the gallery). */
   scale?: number;
+  /** When false, the copy is decorative (preview/measuring) and carries no print id/styles. */
+  printable?: boolean;
 };
 
 /**
  * Template-driven A4 resume renderer. Everything is real HTML text — no
  * images, tables, skill bars or graphics — so the export stays ATS-readable.
  */
-export function ResumePreview({ data, config = ATS_CLASSIC, scale }: Props) {
+export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true }: Props) {
+  const isPrintTarget = printable && !scale;
   const c = config;
   const p = data.optimizedProfile.personal;
   const contacts = [p.phone, p.email, p.linkedin, p.github, p.portfolio].filter(Boolean);
@@ -203,11 +206,11 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale }: Props) {
 
   const doc = (
     <article
-      id={scale ? undefined : "resume-print-area"}
+      id={isPrintTarget ? "resume-print-area" : undefined}
       style={page}
       className={scale ? "" : "mx-auto shadow-sm print:shadow-none"}
     >
-      {!scale && <style dangerouslySetInnerHTML={{ __html: printCss }} />}
+      {isPrintTarget && <style dangerouslySetInnerHTML={{ __html: printCss }} />}
 
       <header style={{ textAlign: c.headerAlignment }}>
         <h1
