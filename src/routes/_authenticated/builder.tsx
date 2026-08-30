@@ -23,6 +23,7 @@ import {
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
+import { PdfPagePreview } from "@/components/PdfPagePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
