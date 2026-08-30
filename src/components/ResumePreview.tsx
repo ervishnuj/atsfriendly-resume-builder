@@ -92,6 +92,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale }: Props) {
           {prof.experience.map((e, i) => (
             <div
               key={i}
+              data-resume-item
               style={{ marginBottom: i === prof.experience.length - 1 ? 0 : c.itemSpacing, breakInside: "avoid" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
@@ -123,6 +124,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale }: Props) {
         {prof.education.map((ed, i) => (
           <div
             key={i}
+            data-resume-item
             style={{
               display: "flex",
               justifyContent: "space-between",
