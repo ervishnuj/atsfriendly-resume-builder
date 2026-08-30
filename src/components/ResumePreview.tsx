@@ -147,12 +147,66 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale }: Props) {
     );
   };
 
+  /**
+   * Print rules are emitted per-template so the exported PDF uses real A4 page
+   * margins (applied to every page, not just the first) and identical
+   * typography on any device/browser.
+   */
+  const printCss = `
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: ${c.marginTop}mm ${c.marginRight}mm ${c.marginBottom}mm ${c.marginLeft}mm;
+  }
+  #resume-print-area {
+    width: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-family: ${c.fontFamily};
+    font-size: ${c.bodyFontSize}pt !important;
+    line-height: ${c.lineHeight} !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #resume-print-area * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #resume-print-area p,
+  #resume-print-area li,
+  #resume-print-area div {
+    orphans: 2;
+    widows: 2;
+  }
+  #resume-print-area h1,
+  #resume-print-area h2 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+  #resume-print-area section,
+  #resume-print-area li,
+  #resume-print-area [data-resume-item] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  #resume-print-area section {
+    margin-top: ${c.sectionSpacing}px;
+  }
+  #resume-print-area footer {
+    break-inside: avoid;
+  }
+}`;
+
   const doc = (
     <article
       id={scale ? undefined : "resume-print-area"}
       style={page}
       className={scale ? "" : "mx-auto shadow-sm print:shadow-none"}
     >
+      {!scale && <style dangerouslySetInnerHTML={{ __html: printCss }} />}
+
       <header style={{ textAlign: c.headerAlignment }}>
         <h1
           style={{
