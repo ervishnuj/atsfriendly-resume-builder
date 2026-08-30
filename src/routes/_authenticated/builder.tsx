@@ -23,6 +23,7 @@ import {
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileForm, emptyProfile, type Profile } from "@/components/ProfileForm";
 import { ResumePreview } from "@/components/ResumePreview";
+import { PdfPagePreview } from "@/components/PdfPagePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
@@ -725,10 +726,51 @@ function Index() {
 
           <div className="print:m-0">
             {result ? (
-              <div className="overflow-x-auto print:overflow-visible">
-                <ResumePreview data={result} config={templateConfig} />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2 print:hidden">
+                  <div className="text-xs text-muted-foreground">
+                    {pdfMode
+                      ? "PDF preview · exact A4 pages, margins and page breaks"
+                      : "Continuous preview"}
+                  </div>
+                  <div className="inline-flex rounded-md border border-border p-0.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={pdfMode ? "ghost" : "secondary"}
+                      className="h-7 px-3 text-xs"
+                      onClick={() => setPdfMode(false)}
+                    >
+                      Continuous
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={pdfMode ? "secondary" : "ghost"}
+                      className="h-7 gap-1 px-3 text-xs"
+                      onClick={() => setPdfMode(true)}
+                    >
+                      <FileText className="h-3.5 w-3.5" /> PDF preview
+                    </Button>
+                  </div>
+                </div>
+                {pdfMode && (
+                  <div className="overflow-x-auto rounded-lg bg-muted/40 p-4">
+                    <PdfPagePreview data={result} config={templateConfig} />
+                  </div>
+                )}
+                <div
+                  className={
+                    pdfMode
+                      ? "hidden print:block"
+                      : "overflow-x-auto print:overflow-visible"
+                  }
+                >
+                  <ResumePreview data={result} config={templateConfig} />
+                </div>
               </div>
             ) : (
+
               <Card className="flex min-h-[600px] items-center justify-center p-8 text-center print:hidden">
                 <div className="max-w-sm">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
