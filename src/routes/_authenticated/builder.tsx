@@ -89,6 +89,7 @@ function Index() {
   const fetchAdmin = useServerFn(amIAdmin);
   const consumeDownload = useServerFn(consumeDownloadEntitlement);
   const [downloading, setDownloading] = useState(false);
+  const [pdfMode, setPdfMode] = useState(false);
   const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
   const [templateId, setTemplateId] = useState<string>("ats-classic");
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(ATS_CLASSIC);
