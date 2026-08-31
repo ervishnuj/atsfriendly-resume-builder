@@ -17,7 +17,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
             title="Product"
             items={[
               { label: "Resume Builder", href: "#top" },
-              { label: "ATS Checker", href: "#ats-checker" },
+              { label: "ATS Checker", href: "/ats-checker" },
               { label: "Skill Gap Analyzer", href: "#features" },
               { label: "Resume Templates", href: "#features" },
               { label: "Pricing", href: "/pricing" },
@@ -27,7 +27,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
             title="Resources"
             items={[
               { label: "Resume Tips", href: "#how-it-works" },
-              { label: "ATS Guide", href: "#ats-checker" },
+              { label: "ATS Guide", href: "/ats-checker" },
               { label: "Career Resources", href: "#features" },
               { label: "FAQ", href: "#faq" },
             ]}
