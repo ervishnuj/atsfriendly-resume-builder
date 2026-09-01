@@ -135,24 +135,37 @@ function AtsCheckerPage() {
           <section className="mt-10" aria-live="polite">
             <h2 className="text-xl font-semibold tracking-tight">Your ATS results</h2>
             <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
-              <Card className="flex flex-col items-center justify-center p-6 text-center">
-                <div className={`text-5xl font-bold ${scoreColor}`}>{result.score}</div>
-                <div className="mt-1 text-sm font-medium">{result.band}</div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {result.matched.length} of {result.totalKeywords} job keywords found ·{" "}
-                  {result.wordCount} words
-                </p>
-              </Card>
+              <div className="space-y-4">
+                <Card className="flex flex-col items-center justify-center p-6 text-center">
+                  <div className={`text-5xl font-bold ${scoreColor}`}>{result.atsMatchScore}</div>
+                  <div className="mt-1 text-sm font-medium">{result.band}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">Job match score /100</p>
+                </Card>
+                <Card className="flex flex-col items-center justify-center p-6 text-center">
+                  <div className="text-3xl font-bold">{result.atsScore}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    ATS readiness score /100
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {result.matchedKeywords.length} of {result.keywordsChecked} job keywords found ·{" "}
+                    {result.wordCount} words
+                  </p>
+                </Card>
+              </div>
 
               <Card className="space-y-4 p-5">
+                <AtsBreakdownPanel
+                  breakdown={result.breakdown}
+                  matchBreakdown={result.matchBreakdown}
+                />
                 <div>
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Matched keywords (
-                    {result.matched.length})
+                    {result.matchedKeywords.length})
                   </h3>
                   <div className="flex flex-wrap gap-1">
-                    {result.matched.length ? (
-                      result.matched.map((k) => (
+                    {result.matchedKeywords.length ? (
+                      result.matchedKeywords.map((k) => (
                         <Badge
                           key={k}
                           variant="secondary"
@@ -169,15 +182,19 @@ function AtsCheckerPage() {
                 <div>
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
                     <XCircle className="h-4 w-4 text-rose-600" /> Missing keywords (
-                    {result.missing.length})
+                    {result.missingKeywords.length})
                   </h3>
                   <div className="flex flex-wrap gap-1">
-                    {result.missing.length ? (
-                      result.missing.map((k) => (
+                    {result.missingKeywords.length ? (
+                      result.missingKeywords.map((k) => (
                         <Badge
                           key={k}
                           variant="secondary"
-                          className="bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200"
+                          className={
+                            result.missingRequiredKeywords.includes(k)
+                              ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200"
+                              : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                          }
                         >
                           {k}
                         </Badge>
@@ -188,12 +205,17 @@ function AtsCheckerPage() {
                       </span>
                     )}
                   </div>
+                  {result.missingRequiredKeywords.length > 0 && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Red = required by the posting, amber = preferred/technical.
+                    </p>
+                  )}
                 </div>
-                {result.notes.length > 0 && (
+                {result.recommendations.length > 0 && (
                   <div>
                     <h3 className="mb-2 text-sm font-semibold">How to improve</h3>
                     <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                      {result.notes.map((n, i) => (
+                      {result.recommendations.map((n, i) => (
                         <li key={i}>{n}</li>
                       ))}
                     </ul>
@@ -201,6 +223,7 @@ function AtsCheckerPage() {
                 )}
               </Card>
             </div>
+
 
             <Card className="mt-4 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
