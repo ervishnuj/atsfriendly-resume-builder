@@ -154,7 +154,7 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     .filter(Boolean);
 
   return {
-    jobTitle: jdLines[0] && jdLines[0].length <= 80 ? jdLines[0] : (jobDescription.match(TITLE_WORDS)?.input?.slice(0, 0) ?? ""),
+    jobTitle: jdTitle,
     requiredSkills,
     preferredSkills,
     technicalKeywords: keywords,
