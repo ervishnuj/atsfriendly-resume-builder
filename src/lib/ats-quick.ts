@@ -46,7 +46,17 @@ function lines(text: string): string[] {
 
 /** Frequency + phrase ranked keywords from the job description. */
 function extractKeywords(jd: string, limit = 30): string[] {
-  const tokens = normalizeText(jd).split(/\s+/).filter(Boolean);
+  // Tokenize per clause so bigrams never straddle a sentence boundary
+  // ("graphql. bachelor") and trailing punctuation never leaks into a keyword.
+  const clauses = jd
+    .split(/[.;:!?\n\r,()/]+/)
+    .map((c) =>
+      normalizeText(c)
+        .split(/\s+/)
+        .map((t) => t.replace(/^[.\-]+|[.\-]+$/g, ""))
+        .filter(Boolean),
+    )
+    .filter((c) => c.length);
   const counts = new Map<string, number>();
   const bump = (term: string, weight = 1) => {
     const key = normalizeTerm(term);
@@ -54,17 +64,20 @@ function extractKeywords(jd: string, limit = 30): string[] {
     counts.set(key, (counts.get(key) || 0) + weight);
   };
 
-  tokens.forEach((t) => {
-    if (STOPWORDS.has(t) || /^\d+$/.test(t)) return;
-    bump(t);
-  });
-  for (let i = 0; i < tokens.length - 1; i++) {
-    const a = tokens[i];
-    const b = tokens[i + 1];
-    if (STOPWORDS.has(a) || STOPWORDS.has(b)) continue;
-    if (a.length < 3 || b.length < 3) continue;
-    bump(`${a} ${b}`, 1.5);
+  for (const tokens of clauses) {
+    tokens.forEach((t) => {
+      if (STOPWORDS.has(t) || /^\d+$/.test(t)) return;
+      bump(t);
+    });
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const a = tokens[i];
+      const b = tokens[i + 1];
+      if (STOPWORDS.has(a) || STOPWORDS.has(b)) continue;
+      if (a.length < 3 || b.length < 3) continue;
+      bump(`${a} ${b}`, 1.5);
+    }
   }
+
 
   const ranked = [...counts.entries()]
     .sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))
