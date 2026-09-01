@@ -66,10 +66,17 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
       }
     });
 
-    const totalHeight = root.getBoundingClientRect().height - config.marginTop * PX_PER_MM;
+    // Real content height: bottom of the last rendered block (the article uses
+    // min-height: 297mm + bottom padding, so its own box is never a valid measure).
+    const totalHeight = blocks.length
+      ? Math.max(
+          ...blocks.map((el) => el.getBoundingClientRect().bottom - contentTop),
+        )
+      : 0;
     while (totalHeight - breaks[breaks.length - 1] > contentHeight + 1) {
       breaks.push(breaks[breaks.length - 1] + contentHeight);
     }
+
 
     setOffsets((prev) =>
       prev.length === breaks.length && prev.every((v, i) => Math.abs(v - breaks[i]) < 1)
