@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { quickAtsCheck, type QuickAtsResult } from "@/lib/ats-quick";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, ShieldCheck, Sparkles, XCircle } from "lucide-react";
@@ -62,8 +63,8 @@ function AtsCheckerPage() {
   const ready = resumeText.trim().length > 80 && jobDescription.trim().length > 80;
   const scoreColor = useMemo(() => {
     if (!result) return "";
-    if (result.score >= 75) return "text-emerald-600";
-    if (result.score >= 50) return "text-amber-600";
+    if (result.atsMatchScore >= 75) return "text-emerald-600";
+    if (result.atsMatchScore >= 50) return "text-amber-600";
     return "text-rose-600";
   }, [result]);
 
