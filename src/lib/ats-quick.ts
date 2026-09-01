@@ -119,10 +119,13 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
   // keywords as the required set so the sub-score stays meaningful.
   if (requiredSkills.length === 0) requiredSkills.push(...keywords.slice(0, 10));
 
-  const responsibilities = jdLines
-    .filter((l) => l.split(/\s+/).length >= 4 && l.split(/\s+/).length <= 30)
-    .filter((l, i, arr) => RESP_HINT.test(l) || arr.length <= 30)
-    .slice(0, 8);
+  const sentenceLike = jdLines.filter((l) => {
+    const n = l.split(/\s+/).length;
+    return n >= 4 && n <= 30;
+  });
+  const flagged = sentenceLike.filter((l) => RESP_HINT.test(l));
+  const responsibilities = (flagged.length >= 3 ? flagged : sentenceLike).slice(0, 8);
+
 
   // Responsibility "evidence" must be a real resume line, so a responsibility
   // only counts when a resume bullet actually shares most of its key terms.
