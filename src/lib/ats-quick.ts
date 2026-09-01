@@ -153,6 +153,11 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     .map((l) => (DEGREE_WORDS.exec(l)?.[0] ?? "").trim())
     .filter(Boolean);
 
+  const jdTitle =
+    jdLines.find((l) => l.length <= 80 && TITLE_WORDS.test(l)) ??
+    (jdLines[0] && jdLines[0].length <= 80 ? jdLines[0] : "");
+
+
   return {
     jobTitle: jdTitle,
     requiredSkills,
