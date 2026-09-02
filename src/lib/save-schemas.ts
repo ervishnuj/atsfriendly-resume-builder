@@ -63,7 +63,12 @@ export const SaveTemplateSchema = z.object({
   name: z.string().trim().min(1, "Please enter a template name.").max(80),
   config: z.object({
     templateName: short(80).default(""),
-    fontFamily: short(120).default(""),
+    fontFamily: z
+      .string()
+      .trim()
+      .max(120)
+      .regex(/^[A-Za-z0-9 ,'"-]*$/, "Invalid font family value.")
+      .default(""),
     bodyFontSize: fontSize(7, 16),
     nameFontSize: fontSize(12, 40),
     headingFontSize: fontSize(8, 20),
