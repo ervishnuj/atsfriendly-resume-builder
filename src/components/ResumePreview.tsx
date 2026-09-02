@@ -2,6 +2,7 @@ import type { OptimizedResume } from "@/lib/resume.functions";
 import {
   ATS_CLASSIC,
   SECTION_LABELS,
+  safeFontFamily,
   type SectionKey,
   type TemplateConfig,
 } from "@/lib/resume-templates";
@@ -23,10 +24,11 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
   const isPrintTarget = printable && !scale;
   const c = config;
   const p = data.optimizedProfile.personal;
+  const fontFamily = safeFontFamily(c.fontFamily);
   const contacts = [p.phone, p.email, p.linkedin, p.github, p.portfolio].filter(Boolean);
 
   const page: React.CSSProperties = {
-    fontFamily: c.fontFamily,
+    fontFamily,
     fontSize: `${c.bodyFontSize}pt`,
     lineHeight: c.lineHeight,
     color: c.textColor,
@@ -168,7 +170,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
     min-height: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
-    font-family: ${c.fontFamily};
+    font-family: ${fontFamily};
     font-size: ${c.bodyFontSize}pt !important;
     line-height: ${c.lineHeight} !important;
     -webkit-print-color-adjust: exact;
