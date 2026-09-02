@@ -237,3 +237,13 @@ export function normalizeConfig(raw: unknown): TemplateConfig {
     sectionOrder: [...order, ...missing],
   };
 }
+
+/**
+ * Defense-in-depth: only allow plain font-stack characters before a font value
+ * is interpolated into CSS. Anything else falls back to an ATS-safe stack.
+ */
+export function safeFontFamily(value: string | undefined | null): string {
+  const v = (value ?? "").trim();
+  if (!v || !/^[A-Za-z0-9 ,'"-]+$/.test(v)) return "Arial, Helvetica, sans-serif";
+  return v;
+}
