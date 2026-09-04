@@ -6,13 +6,13 @@ export function HeroResumeCard() {
       <div aria-hidden className="absolute -inset-6 rounded-[2rem] bg-gradient-brand opacity-15 blur-2xl" />
       <div className="relative animate-float rounded-2xl border border-border/70 bg-card p-6 shadow-soft">
         <div className="border-b border-border pb-4">
-          <p className="text-lg font-semibold tracking-tight">Vishnu Alex Kumar A B C</p>
+          <p className="text-lg font-semibold tracking-tight">Ananya Sharma</p>
           <p className="text-sm text-muted-foreground">Full Stack Engineer · Bengaluru</p>
         </div>
 
         <Block label="Professional Summary">
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Backend engineer with 5+ years building Java and Spring Boot services, delivering reliable APIs and
+            Backend engineer with 3+ years building Java and Spring Boot services, delivering reliable APIs and
             measurable latency improvements.
           </p>
         </Block>
@@ -28,7 +28,7 @@ export function HeroResumeCard() {
         </Block>
 
         <Block label="Experience">
-          <p className="text-xs font-semibold">Software Engineer · ABCDE Labs</p>
+          <p className="text-xs font-semibold">Software Engineer · Fintech Labs</p>
           <p className="text-[11px] text-muted-foreground">2023 — Present</p>
           <ul className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
             <li>• Reduced API response time by 38% by tuning query plans and caching.</li>
@@ -37,7 +37,7 @@ export function HeroResumeCard() {
         </Block>
 
         <Block label="Education">
-          <p className="text-xs">B.E. Computer Science · ABCDE college · 2021</p>
+          <p className="text-xs">B.E. Computer Science · Visvesvaraya Technological University · 2022</p>
         </Block>
       </div>
 
