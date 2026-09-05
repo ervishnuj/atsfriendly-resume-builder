@@ -85,7 +85,7 @@ function useSignedIn() {
 
 function Landing() {
   const signedIn = useSignedIn();
-  const buildTo = signedIn ? "/builder" : "/login";
+  const buildTo = signedIn ? "/ats-checker" : "/login";
   const pricingTo = signedIn ? "/payment" : "/login";
   const fetchPlans = useServerFn(listPlans);
   const { data: plans } = useQuery({
