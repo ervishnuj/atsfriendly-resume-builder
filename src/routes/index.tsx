@@ -85,7 +85,7 @@ function useSignedIn() {
 
 function Landing() {
   const signedIn = useSignedIn();
-  const buildTo = signedIn ? "/ats-checker" : "/login";
+  const buildTo = signedIn ? "/builder" : "/login";
   const pricingTo = signedIn ? "/payment" : "/login";
   const fetchPlans = useServerFn(listPlans);
   const { data: plans } = useQuery({
@@ -125,7 +125,7 @@ function Landing() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to={buildTo}>Check My Free ATS Score </Link>
+                <Link to="/ats-checker">Check My Free ATS Score </Link>
               </Button>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
@@ -247,7 +247,7 @@ function Landing() {
                 supported yet.
               </p>
               <Button asChild size="lg" className="mt-7 bg-gradient-brand text-brand-foreground">
-                <Link to={buildTo}>Check My ATS Score</Link>
+                <Link to="/ats-checker">Check My ATS Score</Link>
               </Button>
             </div>
             <Card className="p-6 shadow-soft">
@@ -505,7 +505,7 @@ function Landing() {
               variant="outline"
               className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground"
             >
-              <Link to={buildTo}>Check ATS Score</Link>
+              <Link to="/ats-checker">Check ATS Score</Link>
             </Button>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-brand-foreground/80">
