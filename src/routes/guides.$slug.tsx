@@ -12,6 +12,10 @@ const BASE = "https://theresumerocket.com";
 
 export const Route = createFileRoute("/guides/$slug")({
   loader: ({ params }) => {
+    const canonical = resolveGuideSlug(params.slug);
+    if (canonical !== params.slug) {
+      throw redirect({ to: "/guides/$slug", params: { slug: canonical }, statusCode: 301 });
+    }
     const guide = getGuide(params.slug);
     if (!guide) throw notFound();
     return { guide };
