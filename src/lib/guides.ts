@@ -194,6 +194,18 @@ export const GUIDES: Guide[] = [
   },
 ];
 
+/** Older/alternate URLs that should resolve to a canonical guide slug. */
+export const GUIDE_SLUG_ALIASES: Record<string, string> = {
+  "keyword-matching": "ats-keywords",
+  "ats-keyword-matching": "ats-keywords",
+  "resume-format": "ats-resume-format",
+};
+
+export function resolveGuideSlug(slug: string): string {
+  return GUIDE_SLUG_ALIASES[slug] ?? slug;
+}
+
 export function getGuide(slug: string): Guide | undefined {
-  return GUIDES.find((g) => g.slug === slug);
+  const resolved = resolveGuideSlug(slug);
+  return GUIDES.find((g) => g.slug === resolved);
 }

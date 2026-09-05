@@ -1,10 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { GUIDES, getGuide } from "@/lib/guides";
+import { GUIDES, getGuide, resolveGuideSlug } from "@/lib/guides";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock } from "lucide-react";
 
@@ -12,6 +12,10 @@ const BASE = "https://theresumerocket.com";
 
 export const Route = createFileRoute("/guides/$slug")({
   loader: ({ params }) => {
+    const canonical = resolveGuideSlug(params.slug);
+    if (canonical !== params.slug) {
+      throw redirect({ to: "/guides/$slug", params: { slug: canonical }, statusCode: 301 });
+    }
     const guide = getGuide(params.slug);
     if (!guide) throw notFound();
     return { guide };
