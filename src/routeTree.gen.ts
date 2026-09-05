@@ -24,6 +24,8 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedTrackerRouteImport } from './routes/_authenticated/tracker'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
@@ -106,6 +108,16 @@ const AuthenticatedTrackerRoute = AuthenticatedTrackerRouteImport.update({
   path: '/tracker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuidesIndexRoute = GuidesIndexRouteImport.update({
   id: '/guides/',
   path: '/guides/',
@@ -156,7 +168,9 @@ export interface FileRoutesByFullPath {
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tracker': typeof AuthenticatedTrackerRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
@@ -178,7 +192,9 @@ export interface FileRoutesByTo {
   '/builder': typeof AuthenticatedBuilderRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tracker': typeof AuthenticatedTrackerRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/blog': typeof BlogIndexRoute
   '/guides': typeof GuidesIndexRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
@@ -202,7 +218,9 @@ export interface FileRoutesById {
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/tracker': typeof AuthenticatedTrackerRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
@@ -226,7 +244,9 @@ export interface FileRouteTypes {
     | '/builder'
     | '/subscription'
     | '/tracker'
+    | '/blog/$slug'
     | '/guides/$slug'
+    | '/blog/'
     | '/guides/'
     | '/admin/payments'
     | '/admin/upi-config'
@@ -248,7 +268,9 @@ export interface FileRouteTypes {
     | '/builder'
     | '/subscription'
     | '/tracker'
+    | '/blog/$slug'
     | '/guides/$slug'
+    | '/blog'
     | '/guides'
     | '/admin/payments'
     | '/admin/upi-config'
@@ -271,7 +293,9 @@ export interface FileRouteTypes {
     | '/_authenticated/builder'
     | '/_authenticated/subscription'
     | '/_authenticated/tracker'
+    | '/blog/$slug'
     | '/guides/$slug'
+    | '/blog/'
     | '/guides/'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/upi-config'
@@ -292,7 +316,9 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
 }
 
@@ -403,6 +429,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrackerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/guides/': {
       id: '/guides/'
       path: '/guides'
@@ -485,7 +525,9 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  BlogSlugRoute: BlogSlugRoute,
   GuidesSlugRoute: GuidesSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
 }
 export const routeTree = rootRouteImport
