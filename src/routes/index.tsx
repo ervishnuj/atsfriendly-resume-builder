@@ -125,7 +125,7 @@ function Landing() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to={buildTo}>Check My Free ATS Score</Link>
+                <Link to={buildTo}>Check My Free ATS Score </Link>
               </Button>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
