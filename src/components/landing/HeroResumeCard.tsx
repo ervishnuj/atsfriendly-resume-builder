@@ -6,7 +6,7 @@ export function HeroResumeCard() {
       <div aria-hidden className="absolute -inset-6 rounded-[2rem] bg-gradient-brand opacity-15 blur-2xl" />
       <div className="relative animate-float rounded-2xl border border-border/70 bg-card p-6 shadow-soft">
         <div className="border-b border-border pb-4">
-          <p className="text-lg font-semibold tracking-tight">Ananya Sharma</p>
+          <p className="text-lg font-semibold tracking-tight">Vigneshprabu</p>
           <p className="text-sm text-muted-foreground">Full Stack Engineer · Bengaluru</p>
         </div>
 
@@ -28,7 +28,7 @@ export function HeroResumeCard() {
         </Block>
 
         <Block label="Experience">
-          <p className="text-xs font-semibold">Software Engineer · Fintech Labs</p>
+          <p className="text-xs font-semibold">Software Engineer · Google</p>
           <p className="text-[11px] text-muted-foreground">2023 — Present</p>
           <ul className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
             <li>• Reduced API response time by 38% by tuning query plans and caching.</li>
