@@ -26,9 +26,10 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
           <FooterCol
             title="Resources"
             items={[
+              { label: "Blog", href: "/blog" },
               { label: "Resume Tips", href: "/guides" },
               { label: "ATS Guide", href: "/guides/ats-resume-format" },
-              { label: "Career Resources", href: "/guides" },
+              { label: "Why ATS rejects resumes", href: "/blog/why-ats-rejects-resumes" },
               { label: "FAQ", href: "#faq" },
             ]}
           />
