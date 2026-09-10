@@ -86,8 +86,6 @@ function AtsCheckerPage() {
             ones you are missing. The check runs entirely in your browser — nothing is uploaded or
             stored.
           </p>
-        </div>
-
           <p className="mt-3 text-sm">
             <Link
               to="/how-it-works"
