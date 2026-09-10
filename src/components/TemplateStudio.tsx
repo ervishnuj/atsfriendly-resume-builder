@@ -40,6 +40,7 @@ import {
   type SectionKey,
   type TemplateConfig,
 } from "@/lib/resume-templates";
+import { Link } from "@tanstack/react-router";
 import { deleteMyTemplate, listMyTemplates, saveMyTemplate, type SavedTemplate } from "@/lib/templates.functions";
 
 /** Placeholder content so thumbnails render before a resume is generated. */
