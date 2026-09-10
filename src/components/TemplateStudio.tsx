@@ -179,6 +179,11 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
           <p className="text-xs text-muted-foreground">
             The selected template controls the preview and the exported PDF.
           </p>
+          <p className="mt-1 text-xs">
+            <Link to="/how-it-works" hash="templates" className="text-muted-foreground hover:text-foreground hover:underline">
+              How should I choose a template? →
+            </Link>
+          </p>
         </div>
         <Button size="sm" variant="outline" className="gap-1" onClick={() => openNew()}>
           <Plus className="h-4 w-4" /> Create Custom Template
