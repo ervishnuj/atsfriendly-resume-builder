@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 const NAV = [
   { label: "Home", href: "/#top" },
   { label: "Features", href: "/#features" },
-  { label: "How It Works", href: "/#how-it-works" },
+  { label: "How It Works", href: "/how-it-works" },
   { label: "ATS Checker", href: "/ats-checker" },
   { label: "Guides", href: "/guides" },
   { label: "Blog", href: "/blog" },
