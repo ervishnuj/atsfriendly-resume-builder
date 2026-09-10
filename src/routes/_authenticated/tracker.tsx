@@ -234,6 +234,13 @@ function TrackerPage() {
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
             <h1 className="text-lg font-semibold tracking-tight">Job Application Tracker</h1>
+            <Link
+              to="/how-it-works"
+              hash="tracker"
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+            >
+              Learn how to track applications →
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-1">

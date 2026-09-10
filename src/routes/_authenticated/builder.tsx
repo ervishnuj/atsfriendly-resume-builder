@@ -556,6 +556,11 @@ function Index() {
               </h2>
               <span className="text-xs text-muted-foreground">Primary input</span>
             </div>
+            <p className="mb-2 text-xs">
+              <Link to="/how-it-works" hash="build" className="text-muted-foreground hover:text-foreground hover:underline">
+                New here? View the Resume Builder Guide →
+              </Link>
+            </p>
             <Textarea
               ref={jdRef}
               id="job-description"

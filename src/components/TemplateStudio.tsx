@@ -40,6 +40,7 @@ import {
   type SectionKey,
   type TemplateConfig,
 } from "@/lib/resume-templates";
+import { Link } from "@tanstack/react-router";
 import { deleteMyTemplate, listMyTemplates, saveMyTemplate, type SavedTemplate } from "@/lib/templates.functions";
 
 /** Placeholder content so thumbnails render before a resume is generated. */
@@ -178,6 +179,11 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
           <h2 className="text-sm font-semibold">Resume Templates</h2>
           <p className="text-xs text-muted-foreground">
             The selected template controls the preview and the exported PDF.
+          </p>
+          <p className="mt-1 text-xs">
+            <Link to="/how-it-works" hash="templates" className="text-muted-foreground hover:text-foreground hover:underline">
+              How should I choose a template? →
+            </Link>
           </p>
         </div>
         <Button size="sm" variant="outline" className="gap-1" onClick={() => openNew()}>

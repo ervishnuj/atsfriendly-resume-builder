@@ -73,6 +73,19 @@ function GuidesIndex() {
           </p>
         </div>
 
+        <Card className="mt-8 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold">New here? Start with the product walkthrough</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              How to Use TheResumeRocket — check your ATS score, check an existing resume against a
+              job description, build a tailored resume, download it and track applications.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/how-it-works">Read the walkthrough</Link>
+          </Button>
+        </Card>
+
         <h2 className="mt-12 text-xl font-semibold tracking-tight">All guides</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {GUIDES.map((g) => (
