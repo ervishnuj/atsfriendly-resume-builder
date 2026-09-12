@@ -16,6 +16,7 @@ import { Route as AtsCheckerRouteImport } from './routes/ats-checker'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
@@ -25,6 +26,8 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ResumeTemplatesRouteImport } from './routes/resume-templates'
+import { Route as ResumeTipsRouteImport } from './routes/resume-tips'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
@@ -73,6 +76,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -116,6 +124,16 @@ const RegisterRoute = RegisterRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumeTemplatesRoute = ResumeTemplatesRouteImport.update({
+  id: '/resume-templates',
+  path: '/resume-templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumeTipsRoute = ResumeTipsRouteImport.update({
+  id: '/resume-tips',
+  path: '/resume-tips',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -196,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -205,6 +224,8 @@ export interface FileRoutesByFullPath {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resume-templates': typeof ResumeTemplatesRoute
+  '/resume-tips': typeof ResumeTipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/builder': typeof AuthenticatedBuilderRoute
@@ -226,6 +247,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -235,6 +257,8 @@ export interface FileRoutesByTo {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resume-templates': typeof ResumeTemplatesRoute
+  '/resume-tips': typeof ResumeTipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/builder': typeof AuthenticatedBuilderRoute
@@ -258,6 +282,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -267,6 +292,8 @@ export interface FileRoutesById {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resume-templates': typeof ResumeTemplatesRoute
+  '/resume-tips': typeof ResumeTipsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
@@ -290,6 +317,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/faq'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -299,6 +327,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/reset-password'
+    | '/resume-templates'
+    | '/resume-tips'
     | '/sitemap.xml'
     | '/terms'
     | '/builder'
@@ -320,6 +350,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/faq'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -329,6 +360,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/reset-password'
+    | '/resume-templates'
+    | '/resume-tips'
     | '/sitemap.xml'
     | '/terms'
     | '/builder'
@@ -351,6 +384,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/faq'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -360,6 +394,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/reset-password'
+    | '/resume-templates'
+    | '/resume-tips'
     | '/sitemap.xml'
     | '/terms'
     | '/_authenticated/builder'
@@ -383,6 +419,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
@@ -392,6 +429,8 @@ export interface RootRouteChildren {
   RefundPolicyRoute: typeof RefundPolicyRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ResumeTemplatesRoute: typeof ResumeTemplatesRoute
+  ResumeTipsRoute: typeof ResumeTipsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -449,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -512,6 +558,20 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume-templates': {
+      id: '/resume-templates'
+      path: '/resume-templates'
+      fullPath: '/resume-templates'
+      preLoaderRoute: typeof ResumeTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume-tips': {
+      id: '/resume-tips'
+      path: '/resume-tips'
+      fullPath: '/resume-tips'
+      preLoaderRoute: typeof ResumeTipsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -640,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
@@ -649,6 +710,8 @@ const rootRouteChildren: RootRouteChildren = {
   RefundPolicyRoute: RefundPolicyRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ResumeTemplatesRoute: ResumeTemplatesRoute,
+  ResumeTipsRoute: ResumeTipsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
