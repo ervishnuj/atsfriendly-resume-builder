@@ -111,7 +111,7 @@ export function AiInsightsPanel({ profile, jobDescription, onSubscriptionRequire
   };
 
   return (
-    <Card className="p-4 print:hidden">
+    <Card id="skill-gap-analyzer" className="scroll-mt-24 p-4 print:hidden">
       <h2 className="text-sm font-semibold">AI Analysis</h2>
       <p className="mb-3 mt-1 text-xs">
         <Link to="/how-it-works" hash="ai-analysis" className="text-muted-foreground hover:text-foreground hover:underline">

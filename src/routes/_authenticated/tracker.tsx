@@ -49,6 +49,7 @@ import {
 import { listResumeVersions, type ResumeVersion } from "@/lib/versions.functions";
 import { track } from "@/lib/analytics-events";
 import { formatDate } from "@/lib/billing-shared";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export const Route = createFileRoute("/_authenticated/tracker")({
   head: () => ({
@@ -516,6 +517,7 @@ function TrackerPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <LandingFooter signedIn />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { getCurrentSubscription, getPaymentHistory } from "@/lib/billing.functions";
 import { formatINR, formatDate, paymentGateNotice } from "@/lib/billing-shared";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
@@ -195,6 +196,7 @@ function SubscriptionPage() {
           </div>
         </Card>
       </main>
+      <LandingFooter signedIn />
     </div>
   );
 }

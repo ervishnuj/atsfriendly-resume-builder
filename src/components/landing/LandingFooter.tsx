@@ -16,32 +16,32 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
           <FooterCol
             title="Product"
             items={[
-              { label: "Resume Builder", href: "#top" },
-              { label: "ATS Checker", href: "/ats-checker" },
-              { label: "Skill Gap Analyzer", href: "#features" },
-              { label: "Resume Templates", href: "#features" },
-              { label: "Pricing", href: "/pricing" },
+              { label: "Resume Builder", to: signedIn ? "/builder" : "/login" },
+              { label: "ATS Checker", to: "/ats-checker" },
+              { label: "Skill Gap Analyzer", to: signedIn ? "/builder" : "/login", hash: "skill-gap-analyzer" },
+              { label: "Resume Templates", to: "/resume-templates" },
+              { label: "Pricing", to: "/pricing" },
             ]}
           />
           <FooterCol
             title="Resources"
             items={[
-              { label: "How to Use TheResumeRocket", href: "/how-it-works" },
-              { label: "Blog", href: "/blog" },
-              { label: "Resume Tips", href: "/guides" },
-              { label: "ATS Guide", href: "/guides/ats-resume-format" },
-              { label: "Why ATS rejects resumes", href: "/blog/why-ats-rejects-resumes" },
-              { label: "FAQ", href: "#faq" },
+              { label: "How to Use TheResumeRocket", to: "/how-it-works" },
+              { label: "Blog", to: "/blog" },
+              { label: "Resume Tips", to: "/resume-tips" },
+              { label: "ATS Guide", to: "/guides/$slug", params: { slug: "ats-resume-format" } },
+              { label: "Why ATS rejects resumes", to: "/blog/$slug", params: { slug: "why-ats-rejects-resumes" } },
+              { label: "FAQ", to: "/faq" },
             ]}
           />
           <FooterCol
             title="Company"
             items={[
-              { label: "About", href: "#top" },
-              { label: "Contact", href: "#faq" },
-              { label: "Privacy Policy", href: "#faq" },
-              { label: "Terms", href: "#faq" },
-              { label: "Refund Policy", href: "#faq" },
+              { label: "About", to: "/about" },
+              { label: "Contact", to: "/contact" },
+              { label: "Privacy Policy", to: "/privacy" },
+              { label: "Terms", to: "/terms" },
+              { label: "Refund Policy", to: "/refund-policy" },
             ]}
           />
 
@@ -92,7 +92,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
         </div>
 
         <p className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
-          © 2026 AI Resume Builder. All rights reserved.
+          © 2026 TheResumeRocket. All rights reserved.
         </p>
       </div>
     </footer>
@@ -104,7 +104,12 @@ function FooterCol({
   items,
 }: {
   title: string;
-  items: { label: string; href: string }[];
+  items: Array<{
+    label: string;
+    to: string;
+    hash?: string;
+    params?: Record<string, string>;
+  }>;
 }) {
   return (
     <div>
@@ -112,9 +117,14 @@ function FooterCol({
       <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
         {items.map((i) => (
           <li key={i.label}>
-            <a href={i.href} className="transition-colors hover:text-foreground">
+            <Link
+              to={i.to}
+              hash={i.hash}
+              params={i.params}
+              className="transition-colors hover:text-foreground"
+            >
               {i.label}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
