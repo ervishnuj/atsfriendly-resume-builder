@@ -14,6 +14,41 @@ const TITLE = "Contact TheResumeRocket";
 const DESCRIPTION =
   "Questions about your ATS score, resume generation, billing or a bug? Send the TheResumeRocket team a message and we'll get back to you.";
 const PAGE_URL = "https://theresumerocket.com/contact";
+const EMAILJS_SERVICE_ID = "service_dio2t6k";
+const EMAILJS_TEMPLATE_ID = "template_b9pp5sg";
+const EMAILJS_PUBLIC_KEY = "j3MfrQ4vDm57Ojeb0";
+
+async function sendContactNotification(form: {
+  name: string;
+  email: string;
+  category: string;
+  subject: string;
+  message: string;
+}) {
+  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      service_id: EMAILJS_SERVICE_ID,
+      template_id: EMAILJS_TEMPLATE_ID,
+      user_id: EMAILJS_PUBLIC_KEY,
+      template_params: {
+        from_name: form.name,
+        from_email: form.email,
+        reply_to: form.email,
+        name: form.name,
+        email: form.email,
+        category: form.category,
+        subject: form.subject,
+        message: form.message,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -42,6 +77,7 @@ function ContactPage() {
   });
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [notificationSent, setNotificationSent] = useState(true);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +85,13 @@ function ContactPage() {
     setStatus("sending");
     try {
       await send({ data: form as never });
+      try {
+        await sendContactNotification(form);
+        setNotificationSent(true);
+      } catch (notificationError) {
+        console.error("EmailJS notification failed", notificationError);
+        setNotificationSent(false);
+      }
       setStatus("sent");
       setForm({ name: "", email: "", category: CONTACT_CATEGORIES[0], subject: "", message: "" });
     } catch (err) {
@@ -83,8 +126,9 @@ function ContactPage() {
               <div>
                 <h2 className="text-lg font-semibold">Message received</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Thanks — your message has been saved and the team will review it. We'll reply to
-                  the email address you provided.
+                  {notificationSent
+                    ? "Thanks — your message has been saved and the team has been notified. We'll reply to the email address you provided."
+                    : "Thanks — your message has been saved and the team can review it. The email notification could not be delivered, but you do not need to submit again."}
                 </p>
               </div>
             </div>
