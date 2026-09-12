@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import emailjs from "@emailjs/browser";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,9 @@ const TITLE = "Contact TheResumeRocket";
 const DESCRIPTION =
   "Questions about your ATS score, resume generation, billing or a bug? Send the TheResumeRocket team a message and we'll get back to you.";
 const PAGE_URL = "https://theresumerocket.com/contact";
-const EMAILJS_SERVICE_ID = "service_dio2t6k";
-const EMAILJS_TEMPLATE_ID = "template_b9pp5sg";
-const EMAILJS_PUBLIC_KEY = "j3MfrQ4vDm57Ojeb0";
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 async function sendContactNotification(form: {
   name: string;
@@ -25,29 +26,26 @@ async function sendContactNotification(form: {
   subject: string;
   message: string;
 }) {
-  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      service_id: EMAILJS_SERVICE_ID,
-      template_id: EMAILJS_TEMPLATE_ID,
-      user_id: EMAILJS_PUBLIC_KEY,
-      template_params: {
-        from_name: form.name,
-        from_email: form.email,
-        reply_to: form.email,
-        name: form.name,
-        email: form.email,
-        category: form.category,
-        subject: form.subject,
-        message: form.message,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(await response.text());
+  if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+    console.error("Email service is not configured. Please check the EmailJS environment variables.");
+    throw new Error("Email service is not configured.");
   }
+
+  await emailjs.send(
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    {
+      from_name: form.name,
+      from_email: form.email,
+      reply_to: form.email,
+      name: form.name,
+      email: form.email,
+      category: form.category,
+      subject: form.subject,
+      message: form.message,
+    },
+    EMAILJS_PUBLIC_KEY,
+  );
 }
 
 export const Route = createFileRoute("/contact")({
