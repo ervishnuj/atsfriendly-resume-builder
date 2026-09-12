@@ -40,6 +40,7 @@ import { getCurrentSubscription, amIAdmin, consumeDownloadEntitlement } from "@/
 import { daysRemaining, paymentGateNotice, type PaymentGateStatus } from "@/lib/billing-shared";
 import { readPaymentGate, savePaymentGate, clearPaymentGate } from "@/lib/payment-gate-state";
 import { PaymentGateBanner } from "@/components/PaymentGateBanner";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
@@ -793,6 +794,9 @@ function Index() {
           </div>
         </section>
       </main>
+      <div className="print:hidden">
+        <LandingFooter signedIn />
+      </div>
     </div>
   );
 }
