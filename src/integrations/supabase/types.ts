@@ -22,6 +22,8 @@ export type Database = {
           kind: string
           request_id: string
           result: Json | null
+          result_deleted_at: string | null
+          result_expires_at: string | null
           status: string
           usage_date: string
           user_id: string
@@ -33,6 +35,8 @@ export type Database = {
           kind?: string
           request_id: string
           result?: Json | null
+          result_deleted_at?: string | null
+          result_expires_at?: string | null
           status?: string
           usage_date?: string
           user_id: string
@@ -44,6 +48,8 @@ export type Database = {
           kind?: string
           request_id?: string
           result?: Json | null
+          result_deleted_at?: string | null
+          result_expires_at?: string | null
           status?: string
           usage_date?: string
           user_id?: string
@@ -161,6 +167,33 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submission_limits: {
+        Row: {
+          day_count: number
+          day_started_on: string
+          key_hash: string
+          updated_at: string
+          window_count: number
+          window_started_at: string
+        }
+        Insert: {
+          day_count?: number
+          day_started_on?: string
+          key_hash: string
+          updated_at?: string
+          window_count?: number
+          window_started_at?: string
+        }
+        Update: {
+          day_count?: number
+          day_started_on?: string
+          key_hash?: string
+          updated_at?: string
+          window_count?: number
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       free_entitlements: {
         Row: {
           consumed_at: string | null
@@ -183,6 +216,7 @@ export type Database = {
         Row: {
           application_id: string | null
           created_at: string
+          encrypted_job_description: string | null
           id: string
           job_description: string
           job_title: string
@@ -192,6 +226,7 @@ export type Database = {
         Insert: {
           application_id?: string | null
           created_at?: string
+          encrypted_job_description?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -201,6 +236,7 @@ export type Database = {
         Update: {
           application_id?: string | null
           created_at?: string
+          encrypted_job_description?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -222,6 +258,7 @@ export type Database = {
           applied_at: string | null
           company: string
           created_at: string
+          encrypted_job_description: string | null
           id: string
           job_description: string
           job_title: string
@@ -238,6 +275,7 @@ export type Database = {
           applied_at?: string | null
           company?: string
           created_at?: string
+          encrypted_job_description?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -254,6 +292,7 @@ export type Database = {
           applied_at?: string | null
           company?: string
           created_at?: string
+          encrypted_job_description?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -292,7 +331,7 @@ export type Database = {
           status: string
           updated_at: string
           upi_reference: string | null
-          user_id: string
+          user_id: string | null
           verified_at: string | null
         }
         Insert: {
@@ -310,7 +349,7 @@ export type Database = {
           status?: string
           updated_at?: string
           upi_reference?: string | null
-          user_id: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -328,7 +367,7 @@ export type Database = {
           status?: string
           updated_at?: string
           upi_reference?: string | null
-          user_id?: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Relationships: [
@@ -403,6 +442,8 @@ export type Database = {
           ats_score: number | null
           company: string
           created_at: string
+          encrypted_job_description: string | null
+          encrypted_resume_payload: string | null
           id: string
           job_description: string
           job_title: string
@@ -416,6 +457,8 @@ export type Database = {
           ats_score?: number | null
           company?: string
           created_at?: string
+          encrypted_job_description?: string | null
+          encrypted_resume_payload?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -429,6 +472,8 @@ export type Database = {
           ats_score?: number | null
           company?: string
           created_at?: string
+          encrypted_job_description?: string | null
+          encrypted_resume_payload?: string | null
           id?: string
           job_description?: string
           job_title?: string
@@ -506,7 +551,7 @@ export type Database = {
           start_date: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -519,7 +564,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -532,7 +577,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -559,7 +604,7 @@ export type Database = {
           id: string
           payment_id: string | null
           status: string
-          user_id: string
+          user_id: string | null
           validity_end: string | null
           validity_start: string | null
         }
@@ -570,7 +615,7 @@ export type Database = {
           id?: string
           payment_id?: string | null
           status?: string
-          user_id: string
+          user_id?: string | null
           validity_end?: string | null
           validity_start?: string | null
         }
@@ -581,7 +626,7 @@ export type Database = {
           id?: string
           payment_id?: string | null
           status?: string
-          user_id?: string
+          user_id?: string | null
           validity_end?: string | null
           validity_start?: string | null
         }
@@ -646,12 +691,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clear_expired_ai_results: {
+        Args: { _retention_days: number }
+        Returns: number
+      }
+      consume_contact_submission: {
+        Args: {
+          _daily_limit: number
+          _key_hash: string
+          _window_limit: number
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       consume_daily_quota: {
         Args: { _daily_limit: number; _user_id: string }
         Returns: boolean
       }
       consume_free_entitlement: { Args: { _user_id: string }; Returns: boolean }
       consume_pdf_credit: { Args: { _user_id: string }; Returns: boolean }
+      delete_user_account: { Args: { _user_id: string }; Returns: undefined }
       finish_ai_generation: {
         Args: {
           _request_id: string
