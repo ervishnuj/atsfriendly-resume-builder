@@ -10,6 +10,14 @@ import {
 } from "./gemini.server";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
+import {
+  buildAtsPayload,
+  buildCoverLetterPayload,
+  buildInterviewPayload,
+  buildLinkedInPayload,
+  buildResumeGenerationPayload,
+  buildSkillGapPayload,
+} from "./ai-payloads";
 import type {
   ProfileInput,
   OptimizedResume,
@@ -77,7 +85,7 @@ profile), education, JD-specific keywords and ATS-friendly bullet points.
 - Keep bullets under ~30 words, starting with a strong action verb.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: context(profile, jobDescription),
+    userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
   result.atsScore = clamp(result.atsScore);
@@ -103,7 +111,7 @@ export async function analyzeAtsMatch(
   profile: ProfileInput,
   jobDescription: string,
 ): Promise<AtsAnalysis> {
-  return runAtsAnalysis(profileToResumeText(profile), jobDescription);
+  return runAtsAnalysis(profileToResumeText(buildAtsPayload(profile)), jobDescription);
 }
 
 export async function analyzeSkillGaps(
@@ -142,7 +150,7 @@ learning plan for the missing ones. For every learning plan item include:
 - howToLearn should include a concrete practice/project suggestion.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: context(profile, jobDescription),
+    userPrompt: context(buildSkillGapPayload(profile), jobDescription),
     schema: skillGapSchema as unknown as Record<string, unknown>,
     temperature: 0.3,
   });
@@ -165,7 +173,7 @@ description, using only the candidate's real background. ${COVER_LETTER_TONES[to
 Also return 3-5 highlight bullet points summarising why the candidate fits.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: context(profile, jobDescription),
+    userPrompt: context(buildCoverLetterPayload(profile), jobDescription),
     schema: coverLetterSchema as unknown as Record<string, unknown>,
     temperature: 0.6,
   });
@@ -192,7 +200,7 @@ For each question include "whatTheyTest" (one short sentence) and "howToAnswer" 
 grounded in the candidate's real background — never invent experience for them).
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: context(profile, jobDescription),
+    userPrompt: context(buildInterviewPayload(profile), jobDescription),
     schema: interviewPrepSchema as unknown as Record<string, unknown>,
     temperature: 0.5,
   });
@@ -211,7 +219,7 @@ export async function optimizeLinkedInProfile(
 - experienceDescription: a concise achievement-focused description of their most recent real role
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: `CANDIDATE PROFILE (JSON):\n${JSON.stringify(profile, null, 2)}`,
+    userPrompt: `CANDIDATE PROFILE (JSON):\n${JSON.stringify(buildLinkedInPayload(profile), null, 2)}`,
     schema: linkedInSchema as unknown as Record<string, unknown>,
     temperature: 0.5,
   });
