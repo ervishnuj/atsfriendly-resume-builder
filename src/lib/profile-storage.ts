@@ -61,6 +61,9 @@ export function clearAllLocalProfiles() {
 export function clearBrowserUserData() {
   clearAllLocalProfiles();
   try {
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("rr:payment-gate:")) localStorage.removeItem(key);
+    }
     sessionStorage.clear();
   } catch {
     // ignore unavailable storage

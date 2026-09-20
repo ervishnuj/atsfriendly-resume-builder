@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 export const CONTACT_CATEGORIES = [
@@ -23,8 +24,14 @@ export type ContactInput = z.infer<typeof contactSchema>;
 export const submitContactMessage = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => contactSchema.parse(data))
   .handler(async ({ data }) => {
+    const request = getRequest();
+    const { enforceContactRateLimit } = await import("./contact-security.server");
+    await enforceContactRateLimit(request, data.email);
+    const { getOptionalVerifiedUserId } = await import("./optional-auth.server");
+    const userId = await getOptionalVerifiedUserId(request);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("contact_messages").insert({
+      user_id: userId,
       name: data.name,
       email: data.email,
       category: data.category,

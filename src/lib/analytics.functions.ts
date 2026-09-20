@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { ANALYTICS_EVENTS } from "./analytics-events";
+import { AnalyticsPayloadSchema } from "./analytics-schemas";
 
 /**
  * Analytics ingestion. Best-effort by design: failures are swallowed so a
@@ -9,22 +8,12 @@ import { ANALYTICS_EVENTS } from "./analytics-events";
  */
 export const trackEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        event: z.enum(ANALYTICS_EVENTS),
-        meta: z.record(z.string(), z.unknown()).optional(),
-      })
-      .parse(input),
-  )
+  .inputValidator((input: unknown) => AnalyticsPayloadSchema.parse(input))
   .handler(async ({ data, context }): Promise<{ ok: boolean }> => {
     try {
-      // Coarse metadata only — cap the payload so no personal content is stored.
-      const serialized = JSON.stringify(data.meta ?? {});
-      const safeMeta = serialized.length <= 2000 ? JSON.parse(serialized) : {};
       const { error } = await context.supabase
         .from("analytics_events")
-        .insert({ user_id: context.userId, event: data.event, meta: safeMeta });
+        .insert({ user_id: context.userId, event: data.event, meta: data.meta ?? {} });
       return { ok: !error };
     } catch {
       return { ok: false };

@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { clearBrowserUserData } from "@/lib/profile-storage";
 
 const NAV = [
   { label: "Home", href: "/#top" },
@@ -22,6 +23,7 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
 
   async function signOut() {
     await supabase.auth.signOut();
+    clearBrowserUserData();
     setOpen(false);
     navigate({ to: "/", replace: true });
   }
