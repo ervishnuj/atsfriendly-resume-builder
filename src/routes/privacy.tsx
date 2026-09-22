@@ -20,7 +20,7 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <PublicPage title="Privacy Policy" intro="This policy explains what TheResumeRocket handles when you use the free ATS Checker, create an account, build a resume, or make a payment. Last updated: 10 September 2026.">
+    <PublicPage title="Privacy Policy" intro="This policy explains what TheResumeRocket handles when you use the free ATS Checker, create an account, build a resume, or make a payment. Last updated: 21 September 2026.">
       <PolicySection heading="1. Information We Collect">
         <Bullets items={[
           "Account information: your email address and authentication records when you register or sign in.",
@@ -36,10 +36,10 @@ function PrivacyPage() {
       </PolicySection>
       <PolicySection heading="3. Resume and Profile Data">
         <p>The public Free ATS Checker processes pasted text and uploaded PDF or DOCX files in your browser. That checker does not send the resume or job description to our database or AI service.</p>
-        <p>The signed-in Resume Builder is different. Profile information saved to your account is encrypted before database storage. Generated resume versions, target job descriptions, template settings and application-tracker entries may be stored so the authenticated features work across sessions. Some unsaved form state may also be held in your browser's local storage for convenience.</p>
+        <p>The signed-in Resume Builder is different. Profile information, saved resume payloads and stored job descriptions are encrypted before database storage. Template settings and application-tracker entries may be stored so authenticated features work across sessions. Existing saved records are converted to protected storage when they are next loaded. Some unsaved form state may also be held in your browser's local storage for convenience.</p>
       </PolicySection>
       <PolicySection heading="4. AI Processing">
-        <p>When you use AI analysis or resume generation, the profile and job-description content required for that request is sent through our server to Google Gemini. It is used to produce the requested analysis or resume. The deterministic ATS score itself is calculated by TheResumeRocket's rule-based scoring logic.</p>
+        <p>When you use AI analysis or resume generation, the profile and job-description content required for that request is sent through our server to Google Gemini. Matching, skill-gap, interview and LinkedIn requests exclude contact details that are not needed. Resume generation receives the contact fields needed for the final resume, and cover letters receive the name needed for the letter. The deterministic ATS score itself is calculated by TheResumeRocket's rule-based scoring logic.</p>
       </PolicySection>
       <PolicySection heading="5. Payments">
         <p>Current purchases use UPI. We store the transaction reference you submit, the selected plan, amount, currency, verification status and related timestamps. The UPI provider and your bank process the payment itself under their own terms.</p>
@@ -52,6 +52,7 @@ function PrivacyPage() {
           "Lovable Cloud provides authentication, database, storage and server infrastructure.",
           "Google Gemini processes content submitted to authenticated AI features.",
           "UPI providers and banks process payments outside TheResumeRocket.",
+          "EmailJS receives the name, email, category, subject and message entered on the Contact page so the team can be notified.",
           "Google Search Console helps monitor how public pages appear in search; it does not receive your resume content from us.",
         ]} />
       </PolicySection>
@@ -59,7 +60,7 @@ function PrivacyPage() {
         <p>Account data is stored in the application's managed backend with access controls that separate each user's records. Sensitive profile fields are encrypted before storage. Administrative payment and support views require server-verified administrator access. No system is completely risk-free, so users should avoid entering information that is not needed for a resume.</p>
       </PolicySection>
       <PolicySection heading="9. Data Retention">
-        <p>Account, profile, generated resume, application and payment records are retained while needed to provide the service, document purchases, prevent abuse and meet operational obligations. The current product does not offer an automated retention schedule or self-service account-deletion control. Contact us to request review or deletion of eligible account data.</p>
+        <p>Account, profile, generated resume and application records are retained while needed to provide the service. Signed-in users can delete individual saved resumes, templates and applications, delete stored AI result bodies, or permanently delete their account. AI result deletion does not reset usage records. Payment, security and audit records may be retained after account deletion without a live account link where needed to document purchases, prevent abuse or meet operational obligations.</p>
       </PolicySection>
       <PolicySection heading="10. Your Choices and Rights">
         <p>You can choose what profile and job information to provide, edit saved information, use the browser-only ATS Checker without an account, clear local browser storage, and contact us to request access, correction or deletion where applicable. Some transaction or security records may need to be retained.</p>

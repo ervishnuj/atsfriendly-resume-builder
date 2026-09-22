@@ -5,6 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +100,7 @@ function Index() {
   const fetchAdmin = useServerFn(amIAdmin);
   const consumeDownload = useServerFn(consumeDownloadEntitlement);
   const [downloading, setDownloading] = useState(false);
+  const [pdfConfirmationOpen, setPdfConfirmationOpen] = useState(false);
   const [pdfMode, setPdfMode] = useState(false);
   const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
   const [templateId, setTemplateId] = useState<string>("ats-classic");
@@ -406,6 +417,7 @@ function Index() {
 
   const handleDownload = async () => {
     if (downloading) return;
+    setPdfConfirmationOpen(false);
     setDownloading(true);
     try {
       // The server decides — a one-time Single Resume purchase spends its PDF credit here.
@@ -505,13 +517,31 @@ function Index() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => void handleDownload()}
+              onClick={() => setPdfConfirmationOpen(true)}
               disabled={!result || downloading}
               className="gap-2"
             >
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               {downloading ? "Preparing PDF..." : "Download PDF"}
             </Button>
+            <AlertDialog open={pdfConfirmationOpen} onOpenChange={setPdfConfirmationOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Open the PDF print dialog?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Continue only when you are ready to save the PDF. Your included download is used
+                    when the print dialog opens because browsers do not report whether Save or Cancel
+                    was selected.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Not yet</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => void handleDownload()}>
+                    Continue to PDF
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
               variant="outline"
               onClick={() => void handleExportDocx()}

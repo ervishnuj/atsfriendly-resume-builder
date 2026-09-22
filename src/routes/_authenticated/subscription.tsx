@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { Crown, Loader2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Crown, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +18,20 @@ import {
 import { getCurrentSubscription, getPaymentHistory } from "@/lib/billing.functions";
 import { formatINR, formatDate, paymentGateNotice } from "@/lib/billing-shared";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { clearMyAiResultHistory, deleteMyAccount } from "@/lib/account.functions";
+import { clearBrowserUserData } from "@/lib/profile-storage";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
@@ -46,6 +62,12 @@ function SubscriptionPage() {
   const { user } = Route.useRouteContext();
   const fetchSub = useServerFn(getCurrentSubscription);
   const fetchPayments = useServerFn(getPaymentHistory);
+  const clearAiHistory = useServerFn(clearMyAiResultHistory);
+  const removeAccount = useServerFn(deleteMyAccount);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [clearingHistory, setClearingHistory] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const { data: subscription, isLoading } = useQuery({
     queryKey: ["subscription", user.id],
     queryFn: () => fetchSub(),
@@ -54,6 +76,32 @@ function SubscriptionPage() {
     queryKey: ["payments", user.id],
     queryFn: () => fetchPayments(),
   });
+
+  async function handleClearAiHistory() {
+    setClearingHistory(true);
+    try {
+      await clearAiHistory();
+      toast.success("Stored AI result history deleted. Daily usage counts were preserved.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete AI result history.");
+    } finally {
+      setClearingHistory(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeletingAccount(true);
+    try {
+      await removeAccount();
+      await supabase.auth.signOut();
+      clearBrowserUserData();
+      queryClient.clear();
+      navigate({ to: "/", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Your account could not be deleted.");
+      setDeletingAccount(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -193,6 +241,65 @@ function SubscriptionPage() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-sm font-semibold">Your data</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Delete stored AI result bodies without changing daily usage records, or permanently delete
+            your account and saved work. Payment records may be retained without a live account link.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={clearingHistory}>
+                  {clearingHistory && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Delete AI result history
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete stored AI results?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Generated result bodies will be removed. Daily usage counts and limits will not reset.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => void handleClearAiHistory()}>
+                    Delete history
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={deletingAccount}>
+                  {deletingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Delete account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Permanently delete your account?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This removes your profile, saved resumes, templates, applications, and AI history.
+                    Payment and audit records may be retained without a live account link. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep account</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => void handleDeleteAccount()}
+                  >
+                    Permanently delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </Card>
       </main>
