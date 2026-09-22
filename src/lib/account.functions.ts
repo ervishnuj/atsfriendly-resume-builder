@@ -13,6 +13,17 @@ export const clearMyAiResultHistory = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteMySavedResumeVersions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ ok: true }> => {
+    const { error } = await context.supabase
+      .from("resume_versions")
+      .delete()
+      .eq("user_id", context.userId);
+    if (error) throw new Error("Could not delete your saved resume versions.");
+    return { ok: true };
+  });
+
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ ok: true }> => {

@@ -29,7 +29,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { clearMyAiResultHistory, deleteMyAccount } from "@/lib/account.functions";
+import {
+  clearMyAiResultHistory,
+  deleteMyAccount,
+  deleteMySavedResumeVersions,
+} from "@/lib/account.functions";
 import { clearBrowserUserData } from "@/lib/profile-storage";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -63,10 +67,12 @@ function SubscriptionPage() {
   const fetchSub = useServerFn(getCurrentSubscription);
   const fetchPayments = useServerFn(getPaymentHistory);
   const clearAiHistory = useServerFn(clearMyAiResultHistory);
+  const removeSavedResumes = useServerFn(deleteMySavedResumeVersions);
   const removeAccount = useServerFn(deleteMyAccount);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [clearingHistory, setClearingHistory] = useState(false);
+  const [deletingResumes, setDeletingResumes] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const { data: subscription, isLoading } = useQuery({
     queryKey: ["subscription", user.id],
@@ -100,6 +106,19 @@ function SubscriptionPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Your account could not be deleted.");
       setDeletingAccount(false);
+    }
+  }
+
+  async function handleDeleteSavedResumes() {
+    setDeletingResumes(true);
+    try {
+      await removeSavedResumes();
+      await queryClient.invalidateQueries({ queryKey: ["resume-versions"] });
+      toast.success("Saved resume versions deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete saved resume versions.");
+    } finally {
+      setDeletingResumes(false);
     }
   }
 
@@ -251,6 +270,30 @@ function SubscriptionPage() {
             your account and saved work. Payment records may be retained without a live account link.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={deletingResumes}>
+                  {deletingResumes && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Delete saved resumes
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete all saved resume versions?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This removes your saved resume versions and their stored job descriptions. Your profile,
+                    templates, applications, and current browser draft remain available.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => void handleDeleteSavedResumes()}>
+                    Delete saved resumes
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" disabled={clearingHistory}>
