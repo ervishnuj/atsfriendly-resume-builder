@@ -240,6 +240,7 @@ export async function activatePaymentSubscription(paymentId: string, adminNote?:
 
   const isOneTime = plan.plan_type === "ONE_TIME" || (plan.pdf_credits ?? 0) > 0;
   // One-time purchases always start now; passes stack on top of an active pass.
+  if (!payment.user_id) throw new Error("Payment is no longer linked to an active account");
   const current = isOneTime ? null : await getActivePass(payment.user_id);
   const start = current ? new Date(current.end_date) : new Date();
   const end = new Date(start.getTime() + plan.duration_days * 24 * 60 * 60 * 1000);
