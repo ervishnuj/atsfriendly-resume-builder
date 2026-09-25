@@ -12,13 +12,21 @@ export type ResumeFileKind = "pdf" | "docx";
 
 export function detectResumeFileKind(file: File): ResumeFileKind | null {
   const name = file.name.toLowerCase();
-  if (name.endsWith(".pdf") || file.type === "application/pdf") return "pdf";
-  if (
-    name.endsWith(".docx") ||
-    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  )
-    return "docx";
+  const pdfName = name.endsWith(".pdf");
+  const docxName = name.endsWith(".docx");
+  const pdfMime = file.type === "application/pdf";
+  const docxMime = file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  const genericMime = !file.type || file.type === "application/octet-stream";
+  if (pdfName && (pdfMime || genericMime)) return "pdf";
+  if (docxName && (docxMime || genericMime)) return "docx";
   return null;
+}
+
+async function hasExpectedSignature(file: File, kind: ResumeFileKind): Promise<boolean> {
+  const bytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  return kind === "pdf"
+    ? bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46
+    : bytes[0] === 0x50 && bytes[1] === 0x4b;
 }
 
 async function extractPdfText(file: File): Promise<string> {
@@ -31,12 +39,14 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= doc.numPages; i += 1) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
-    pages.push(
-      content.items
-        .map((item) => ("str" in item ? item.str : ""))
-        .join(" ")
-        .replace(/\s+/g, " "),
-    );
+    const lines = new Map<number, string[]>();
+    for (const item of content.items) {
+      if (!("str" in item)) continue;
+      const transform = "transform" in item ? item.transform : undefined;
+      const y = Array.isArray(transform) && typeof transform[5] === "number" ? Math.round(transform[5] / 3) * 3 : 0;
+      lines.set(y, [...(lines.get(y) ?? []), item.str]);
+    }
+    pages.push([...lines.entries()].sort((a, b) => b[0] - a[0]).map(([, values]) => values.join(" ").replace(/\s+/g, " ").trim()).filter(Boolean).join("\n"));
   }
   return pages.join("\n").trim();
 }
@@ -58,6 +68,9 @@ export async function extractResumeText(file: File): Promise<string> {
   if (file.size > MAX_RESUME_BYTES) throw new Error("Resume files must be 5 MB or smaller.");
   const kind = detectResumeFileKind(file);
   if (!kind) throw new Error("Only PDF and DOCX resumes are supported.");
+  if (!(await hasExpectedSignature(file, kind))) {
+    throw new Error(`That file does not appear to be a valid ${kind.toUpperCase()} resume.`);
+  }
 
   let text = "";
   try {

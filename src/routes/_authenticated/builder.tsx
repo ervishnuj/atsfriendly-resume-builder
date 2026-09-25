@@ -37,6 +37,7 @@ import { PdfPagePreview } from "@/components/PdfPagePreview";
 import { AtsScoreBadge } from "@/components/AtsScoreBadge";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
+import { UploadResumeDialog } from "@/components/UploadResumeDialog";
 import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import { TemplateStudio } from "@/components/TemplateStudio";
 import { ATS_CLASSIC, BUILTIN_TEMPLATES, type TemplateConfig } from "@/lib/resume-templates";
@@ -641,6 +642,20 @@ function Index() {
                   </Button>
                 )}
               </div>
+            </div>
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+              <UploadResumeDialog currentProfile={profile} onApply={handleImportProfile} />
+              <Button
+                variant="outline"
+                className="h-auto min-h-20 flex-1 items-start justify-start gap-3 whitespace-normal p-3 text-left"
+                onClick={() => setProfileOpen(true)}
+              >
+                <FileText className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-semibold">Create Resume Manually</span>
+                  <span className="mt-1 block text-xs font-normal text-muted-foreground">Enter your profile details manually.</span>
+                </span>
+              </Button>
             </div>
             {profileOpen ? (
               <>
