@@ -20,20 +20,21 @@ export type ResumeParseResult = {
 };
 
 const HEADINGS: Array<[RegExp, Section]> = [
-  [/^(professional\s+)?summary|profile|objective|about( me)?$/i, "summary"],
-  [/^(technical\s+|core\s+|key\s+)?skills|technologies|competencies$/i, "skills"],
-  [/^(work\s+|professional\s+)?experience|employment( history)?|work history$/i, "experience"],
-  [/^education|academic(s| background| qualifications)?$/i, "education"],
+  [/^((professional\s+)?summary|profile|objective|about( me)?)$/i, "summary"],
+  [/^((technical\s+|core\s+|key\s+)?skills|technologies|competencies)$/i, "skills"],
+  [/^((work\s+|professional\s+)?experience|employment( history)?|work history)$/i, "experience"],
+  [/^(education|academics?|academic background|academic qualifications)$/i, "education"],
   [/^(selected\s+|personal\s+)?projects$/i, "projects"],
-  [/^certifications?|licenses?( and certifications)?$/i, "certifications"],
-  [/^achievements?|awards?( and honors)?|honors?$/i, "achievements"],
+  [/^(certifications?|licenses?( and certifications)?)$/i, "certifications"],
+  [/^(achievements?|awards?( and honors)?|honors?)$/i, "achievements"],
   [/^languages?$/i, "languages"],
-  [/^publications?|volunteering|interests?|additional information$/i, "other"],
+  [/^(publications?|volunteering|interests?|additional information)$/i, "other"],
 ];
 
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE = /(?:\+?\d[\d ().-]{7,}\d)/;
 const URL = /(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,]*)?/i;
+const WEB_URL = /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,]*)?/gi;
 const DATE_RANGE = /\b(?:19|20)\d{2}\b.*(?:\b(?:19|20)\d{2}\b|present|current|now)/i;
 
 function clean(line: string): string {
@@ -50,7 +51,7 @@ function sectionsFrom(text: string): Map<Section, string[]> {
   const sections = new Map<Section, string[]>([["header", []]]);
   let current: Section = "header";
   for (const raw of text.replace(/\r/g, "").split("\n")) {
-    const line = clean(raw);
+    const line = raw.trim().replace(/\s+/g, " ");
     if (!line) continue;
     const heading = headingFor(line);
     if (heading) {
@@ -67,7 +68,7 @@ function sectionsFrom(text: string): Map<Section, string[]> {
 
 function findUrl(lines: string[], host: string): string {
   for (const line of lines) {
-    const candidates = line.match(new RegExp(URL.source, "gi")) ?? [];
+    const candidates = line.match(WEB_URL) ?? [];
     const found = candidates.find((value) => value.toLowerCase().includes(host));
     if (found) return found;
   }
@@ -142,7 +143,7 @@ function parseEducation(lines: string[]): Profile["education"] {
 
 function labeledEntry(label: string, lines: string[]): Profile["experience"][number] | null {
   if (!lines.length) return null;
-  return { title: label, company: "Additional Resume Section", dateRange: "", bullets: lines.map(clean).filter(Boolean) };
+  return { title: label, company: "", dateRange: "", bullets: lines.map(clean).filter(Boolean) };
 }
 
 export function hasProfileContent(profile: Profile): boolean {
@@ -179,10 +180,10 @@ export function parseResumeText(text: string): ResumeParseResult {
   const phone = allLines.map((line) => line.match(PHONE)?.[0]).find(Boolean) ?? "";
   const linkedIn = findUrl(allLines, "linkedin");
   const github = findUrl(allLines, "github");
-  const urls = allLines.flatMap((line) => line.match(new RegExp(URL.source, "gi")) ?? []);
+  const urls = allLines.flatMap((line) => line.match(WEB_URL) ?? []);
   const portfolio = urls.find((url) => !/linkedin|github/i.test(url) && !url.includes("@")) ?? "";
-  const name = header.find((line) => !EMAIL.test(line) && !PHONE.test(line) && !URL.test(line) && line.length <= 80) ?? "";
-  const title = header.find((line) => line !== name && !EMAIL.test(line) && !PHONE.test(line) && !URL.test(line) && line.length <= 120) ?? "";
+  const name = header.find((line) => !EMAIL.test(line) && !PHONE.test(line) && !WEB_URL.test(line) && line.length <= 80) ?? "";
+  const title = header.find((line) => line !== name && !EMAIL.test(line) && !PHONE.test(line) && !WEB_URL.test(line) && line.length <= 120) ?? "";
   const experience = [
     ...parseExperience(sections.get("experience") ?? []),
     ...parseExperience(sections.get("projects") ?? [], "Project"),
@@ -194,11 +195,12 @@ export function parseResumeText(text: string): ResumeParseResult {
   const skills = parseSkills(sections.get("skills") ?? []);
   const languages = sections.get("languages") ?? [];
   if (languages.length) skills.push({ category: "Languages", items: languages.flatMap((line) => line.split(/[,;|]/).map(clean)).filter(Boolean) });
+  const education = parseEducation(sections.get("education") ?? []);
   const profile: Profile = {
     personal: { fullName: name, title, email, phone, linkedin: linkedIn, github, portfolio, summary: (sections.get("summary") ?? []).join(" ") },
     skills: skills.length ? skills : structuredClone(emptyProfile.skills),
     experience: experience.length ? experience : structuredClone(emptyProfile.experience),
-    education: parseEducation(sections.get("education") ?? []).length ? parseEducation(sections.get("education") ?? []) : structuredClone(emptyProfile.education),
+    education: education.length ? education : structuredClone(emptyProfile.education),
   };
   const issues: ProfileImportIssue[] = [];
   if (!profile.personal.fullName) issues.push({ field: "Full name", path: "personal.fullName", message: "Not confidently detected. Please enter it." });
