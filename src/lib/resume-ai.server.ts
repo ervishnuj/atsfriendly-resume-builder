@@ -10,6 +10,7 @@ import {
 } from "./gemini.server";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
+import { withoutResumeContactDetails } from "./resume-text-privacy";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -47,13 +48,14 @@ Also list factual strengths, weaknesses and improvement suggestions. Return JSON
 
 /** Runs the extraction pass, then applies the deterministic scoring formula. */
 async function runAtsAnalysis(resumeText: string, jobDescription: string): Promise<AtsAnalysis> {
+  const safeResumeText = withoutResumeContactDetails(resumeText);
   const extraction = await callGeminiJson<AtsExtraction>({
     systemPrompt: `${EXTRACTION_PROMPT}\n${NO_FABRICATION_RULES}`,
-    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${resumeText}`,
+    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${safeResumeText}`,
     schema: atsExtractionSchema as unknown as Record<string, unknown>,
     temperature: 0,
   });
-  const scored = computeAtsScores(resumeText, jobDescription, extraction);
+  const scored = computeAtsScores(safeResumeText, jobDescription, extraction);
   return {
     ...scored,
     score: scored.atsScore,
