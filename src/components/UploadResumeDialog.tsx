@@ -76,6 +76,22 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
   };
 
   const differences = draft ? profileDifferences(currentProfile, draft) : [];
+  const compareDetails = (label: string, profile: Profile) => {
+    const fields: Record<string, string> = {
+      "Full name": profile.personal.fullName,
+      "Professional title": profile.personal.title,
+      Email: profile.personal.email,
+      Phone: profile.personal.phone,
+      LinkedIn: profile.personal.linkedin,
+      GitHub: profile.personal.github,
+      Portfolio: profile.personal.portfolio,
+      Summary: profile.personal.summary,
+      Skills: profile.skills.map((group) => `${group.category}: ${group.items.join(", ")}`).filter((value) => !value.startsWith("Technical Skills: ")).join("; "),
+      "Experience and projects": profile.experience.map((entry) => [entry.title, entry.company].filter(Boolean).join(" · ")).filter(Boolean).join("; "),
+      Education: profile.education.map((entry) => [entry.degree, entry.institution].filter(Boolean).join(" · ")).filter(Boolean).join("; "),
+    };
+    return fields[label] || "Not provided";
+  };
 
   return (
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset(); }}>
@@ -99,7 +115,7 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
         {stage === "extracting" && <div role="status" className="py-12 text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /><p className="mt-4 font-semibold">Analyzing your resume…</p><p className="mt-1 text-sm text-muted-foreground">Extracting your experience, skills and education…</p></div>}
         {stage === "error" && <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-5 text-center"><p className="font-semibold text-destructive">Resume processing failed</p><p className="mt-2 text-sm text-muted-foreground">{error}</p><Button variant="outline" className="mt-4 gap-2" onClick={reset}><RotateCcw className="h-4 w-4" />Try Again</Button></div>}
         {stage === "review" && draft && <div><div className="mb-4 rounded-md border border-border bg-muted/40 p-3 text-sm"><span className="font-medium">{fileName}</span><span className="text-muted-foreground"> · extraction uses deterministic text matching and may need corrections.</span>{issues.length > 0 && <p role="alert" className="mt-1 text-destructive">{issues.length} field{issues.length === 1 ? "" : "s"} need review: {issues.map((issue) => `${issue.field} (${issue.message})`).join("; ")}</p>}</div><ProfileForm profile={draft} setProfile={updateDraft} fieldErrors={Object.fromEntries(issues.map((issue) => [issue.path, issue.message]))} /></div>}
-        {stage === "compare" && draft && <div className="space-y-4"><div className="rounded-md border border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20"><p className="font-semibold">Your existing profile will not be changed automatically.</p><p className="mt-1 text-sm text-muted-foreground">Review the differences, then keep your current information or replace it with the reviewed extraction.</p></div><div><p className="text-sm font-medium">Extracted differences</p>{differences.length ? <ul className="mt-2 grid gap-2 sm:grid-cols-2">{differences.map((item) => <li key={item} className="rounded-md border border-border px-3 py-2 text-sm">{item}</li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">No meaningful differences were detected.</p>}</div></div>}
+        {stage === "compare" && draft && <div className="space-y-4"><div className="rounded-md border border-border bg-muted/40 p-4"><p className="font-semibold">Your existing profile will not be changed automatically.</p><p className="mt-1 text-sm text-muted-foreground">Review the differences, then keep your current information or replace it with the reviewed extraction.</p></div><div><p className="text-sm font-medium">Extracted differences</p>{differences.length ? <ul className="mt-2 space-y-2">{differences.map((item) => <li key={item} className="rounded-md border border-border px-3 py-2 text-sm"><p className="font-medium">{item}</p><div className="mt-2 grid gap-3 sm:grid-cols-2"><p className="min-w-0 break-words text-muted-foreground"><span className="block text-xs font-medium">Current</span>{compareDetails(item, currentProfile)}</p><p className="min-w-0 break-words"><span className="block text-xs font-medium">Extracted</span>{compareDetails(item, draft)}</p></div></li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">No meaningful differences were detected.</p>}</div></div>}
 
         {(stage === "review" || stage === "compare") && <DialogFooter>
           {stage === "review" ? <><Button variant="ghost" onClick={reset}>Choose another file</Button><Button onClick={continueAfterReview}>Continue</Button></> : <><Button variant="outline" onClick={() => { setOpen(false); reset(); }}>Keep existing information</Button><Button onClick={apply}>Replace with extracted information</Button></>}
