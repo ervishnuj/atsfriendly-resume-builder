@@ -32,6 +32,9 @@ describe("local resume parsing", () => {
     expect(profile.skills[0].items).toEqual(["TypeScript", "SQL", "Python"]);
     expect(profile.skills[1].category).toBe("Languages");
     expect(profile.experience[0].bullets).toHaveLength(2);
+    expect(profile.experience[0].title).toBe("Software Engineer");
+    expect(profile.experience[0].company).toBe("Example Studio");
+    expect(profile.experience[0].dateRange).toBe("2021–2024");
     expect(profile.experience[1].title).toBe("Certifications");
     expect(profile.education[0].institution).toBe("Sample University");
     expect(recognizedSections).toContain("experience");
@@ -41,6 +44,13 @@ describe("local resume parsing", () => {
     expect(result.profile.personal.fullName).toBe("");
     expect(result.profile.personal.email).toBe("");
     expect(result.issues.some((issue) => issue.path === "personal.fullName")).toBe(true);
+  });
+  it("reads PDF-style hyphen-delimited role and school lines", () => {
+    const sample = synthetic.replaceAll("—", "-").replaceAll("•", "-");
+    const profile = parseResumeText(sample).profile;
+    expect(profile.experience[0].title).toBe("Software Engineer");
+    expect(profile.experience[0].company).toBe("Example Studio");
+    expect(profile.education[0].institution).toBe("Sample University");
   });
   it("rejects empty or unreadable text", () => {
     expect(() => parseResumeText("\n \n")).toThrow(/readable text/);

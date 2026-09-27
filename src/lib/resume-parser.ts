@@ -37,6 +37,7 @@ const URL = /(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,
 const WEB_URL = /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,]*)?/gi;
 const IS_WEB_URL = /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}/i;
 const DATE_RANGE = /\b(?:19|20)\d{2}\b.*(?:\b(?:19|20)\d{2}\b|present|current|now)/i;
+const DATE_SPAN = /\b(?:19|20)\d{2}\s*(?:-|–|—|to)\s*(?:(?:19|20)\d{2}|present|current|now)\b/i;
 
 function clean(line: string): string {
   return line.replace(/^\s*[•●▪◦‣*-]\s*/, "").replace(/\s+/g, " ").trim();
@@ -94,11 +95,11 @@ function parseExperience(lines: string[], fallbackCompany = ""): Profile["experi
   let current: Profile["experience"][number] | null = null;
   for (const line of lines) {
     const isBullet = /^[•●▪◦‣*-]/.test(line);
-    if (!current || (!isBullet && (DATE_RANGE.test(line) || /\s(?:—|–|\||@)\s/.test(line)))) {
+    if (!current || (!isBullet && (DATE_SPAN.test(line) || /\s(?:—|–|\||@)\s/.test(line)))) {
       if (current) entries.push(current);
-      const pieces = clean(line).split(/\s+(?:—|–|\||@)\s+/).map(clean);
-      const date = pieces.find((part) => DATE_RANGE.test(part)) ?? "";
-      const main = pieces.filter((part) => part !== date);
+      const date = line.match(DATE_SPAN)?.[0] ?? "";
+      const remaining = clean(line.replace(date, "")).replace(/[\s(\[\-|–—|@]+$/, "").trim();
+      const main = remaining.split(/\s+(?:—|–|\||@|-)\s+/).map(clean).filter(Boolean);
       current = {
         title: main[0] ?? "",
         company: main[1] ?? fallbackCompany,
@@ -128,7 +129,7 @@ function parseEducation(lines: string[]): Profile["education"] {
     const degreeLike = /bachelor|master|degree|diploma|ph\.?d|b\.?tech|m\.?tech|b\.?e\.?|m\.?b\.?a|b\.?sc|m\.?sc/i.test(line);
     if (!current || degreeLike) {
       if (current) entries.push(current);
-      const parts = line.split(/\s+(?:—|–|\|)\s+/).map(clean);
+      const parts = line.replace(/\s+(?:—|–|\||-)\s*\b(?:19|20)\d{2}\b\s*$/, "").split(/\s+(?:—|–|\||-)\s+/).map(clean);
       current = { degree: parts[0] ?? "", major: "", institution: parts[1] ?? "", year, score: "" };
     } else if (!current.institution) {
       current.institution = clean(line.replace(year, ""));
