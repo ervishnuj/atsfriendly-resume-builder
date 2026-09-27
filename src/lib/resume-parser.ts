@@ -35,6 +35,7 @@ const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE = /(?:\+?\d[\d ().-]{7,}\d)/;
 const URL = /(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,]*)?/i;
 const WEB_URL = /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s|,]*)?/gi;
+const IS_WEB_URL = /(?:https?:\/\/|www\.)[a-z0-9.-]+\.[a-z]{2,}/i;
 const DATE_RANGE = /\b(?:19|20)\d{2}\b.*(?:\b(?:19|20)\d{2}\b|present|current|now)/i;
 
 function clean(line: string): string {
@@ -182,8 +183,8 @@ export function parseResumeText(text: string): ResumeParseResult {
   const github = findUrl(allLines, "github");
   const urls = allLines.flatMap((line) => line.match(WEB_URL) ?? []);
   const portfolio = urls.find((url) => !/linkedin|github/i.test(url) && !url.includes("@")) ?? "";
-  const name = header.find((line) => !EMAIL.test(line) && !PHONE.test(line) && !WEB_URL.test(line) && line.length <= 80) ?? "";
-  const title = header.find((line) => line !== name && !EMAIL.test(line) && !PHONE.test(line) && !WEB_URL.test(line) && line.length <= 120) ?? "";
+  const name = header.find((line) => !EMAIL.test(line) && !PHONE.test(line) && !IS_WEB_URL.test(line) && line.length <= 80) ?? "";
+  const title = header.find((line) => line !== name && !EMAIL.test(line) && !PHONE.test(line) && !IS_WEB_URL.test(line) && line.length <= 120) ?? "";
   const experience = [
     ...parseExperience(sections.get("experience") ?? []),
     ...parseExperience(sections.get("projects") ?? [], "Project"),
