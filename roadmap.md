@@ -13,9 +13,9 @@
 
 # Upload existing resume
 
-- [ ] Add deterministic PDF/DOCX-to-profile parsing with no AI calls
-- [ ] Add upload, progress, error, review, and edit experience
-- [ ] Require explicit keep/replace/difference choice for existing profiles
-- [ ] Connect reviewed data to the existing builder without changing manual flow
-- [ ] Add synthetic parser/security regression tests
-- [ ] Verify build, non-AI flows, security, limits, and diagnostics
+- [x] Add deterministic PDF/DOCX-to-profile parsing with no AI calls
+- [x] Add upload, progress, error, review, and edit experience
+- [x] Require explicit keep/replace/difference choice for existing profiles
+- [x] Connect reviewed data to the existing builder without changing manual flow
+- [x] Add synthetic parser/security regression tests
+- [x] Verify build, non-AI flows, security, limits, and diagnostics
