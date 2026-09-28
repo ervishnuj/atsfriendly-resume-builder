@@ -76,6 +76,7 @@ describe("privacy and unchanged usage contracts", () => {
     expect(safe).not.toContain("Jordan Example");
     expect(safe).toContain("TypeScript");
     expect(safe).toContain("Example Studio");
+    expect(withoutResumeContactDetails("https://portfolio.example.test/work\nTypeScript work")).not.toContain("portfolio.example.test");
   });
   it("rejects unexpected analytics metadata and permits tracker status fields", () => {
     expect(AnalyticsPayloadSchema.safeParse({ event: "JD_ANALYZED", meta: { job_description: synthetic } }).success).toBe(false);
