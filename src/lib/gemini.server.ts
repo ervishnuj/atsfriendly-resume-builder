@@ -49,7 +49,7 @@ export async function callGeminiJson<T>({
 }: GeminiJsonOptions): Promise<T> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("Gemini is not configured. Add the GEMINI_API_KEY backend environment variable.");
+    throw new Error("API Key is not configured. Add the API_KEY backend environment variable.");
   }
   // const apiKey = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter((key): key is string =>
   //   Boolean(key?.trim()),
@@ -83,7 +83,7 @@ export async function callGeminiJson<T>({
           body: payload,
         });
       } catch (error) {
-        console.warn(`Gemini network failure for ${model} (attempt ${attempt + 1}).`, error);
+        console.warn(`AI network failure for ${model} (attempt ${attempt + 1}).`, error);
         if (attempt + 1 < MAX_ATTEMPTS_PER_MODEL) {
           await pause(500 * 2 ** attempt);
           continue;
@@ -94,7 +94,7 @@ export async function callGeminiJson<T>({
       if (res.ok) break;
       if (!RETRYABLE_STATUSES.has(res.status)) break;
 
-      console.warn(`Gemini ${model} returned ${res.status} (attempt ${attempt + 1}).`);
+      console.warn(`AI ${model} returned ${res.status} (attempt ${attempt + 1}).`);
       if (attempt + 1 < MAX_ATTEMPTS_PER_MODEL) {
         await pause(retryDelay(res, attempt));
       }
@@ -112,7 +112,7 @@ export async function callGeminiJson<T>({
       throw new Error("AI generation is temporarily busy. Please try again in a moment.");
     }
     if (res?.status === 401 || res?.status === 403 || body.includes("API_KEY_INVALID")) {
-      throw new Error("Gemini rejected the configured API key. Please add a valid GEMINI_API_KEY.");
+      throw new Error("AI rejected the configured API key. Please add a valid API_KEY.");
     }
     console.error(`Gemini request failed with status ${res?.status ?? "unknown"}.`, body.slice(0, 500));
     throw new Error("AI generation could not be completed. Please try again.");
@@ -122,12 +122,12 @@ export async function callGeminiJson<T>({
     candidates?: { content?: { parts?: { text?: string }[] } }[];
   };
   const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  if (!text.trim()) throw new Error("Gemini returned an empty response. Please try again.");
+  if (!text.trim()) throw new Error("AI returned an empty response. Please try again.");
 
   try {
     return JSON.parse(extractJson(text)) as T;
   } catch {
-    throw new Error("Gemini returned a response that could not be parsed. Please try again.");
+    throw new Error("AI returned a response that could not be parsed. Please try again.");
   }
 }
 
