@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+Resume imports are parsed locally in the browser into existing profile fields, and ATS analysis strips contact identifiers before calling AI; this avoids uploading raw files or introducing a second profile storage path.
