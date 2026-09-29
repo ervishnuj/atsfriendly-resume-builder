@@ -55,7 +55,9 @@ async function runAtsAnalysis(resumeText: string, jobDescription: string): Promi
     schema: atsExtractionSchema as unknown as Record<string, unknown>,
     temperature: 0,
   });
-  const scored = computeAtsScores(safeResumeText, jobDescription, extraction);
+  // Score the original text locally: contact details count toward ATS readiness,
+  // but only the redacted text is sent to Gemini for extraction.
+  const scored = computeAtsScores(resumeText, jobDescription, extraction);
   return {
     ...scored,
     score: scored.atsScore,
@@ -113,7 +115,7 @@ export async function analyzeAtsMatch(
   profile: ProfileInput,
   jobDescription: string,
 ): Promise<AtsAnalysis> {
-  return runAtsAnalysis(profileToResumeText(buildAtsPayload(profile)), jobDescription);
+  return runAtsAnalysis(profileToResumeText(profile), jobDescription);
 }
 
 export async function analyzeSkillGaps(
