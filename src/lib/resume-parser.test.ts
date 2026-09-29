@@ -5,6 +5,7 @@ import { AnalyticsPayloadSchema } from "./analytics-schemas";
 import { buildAtsPayload, buildCoverLetterPayload, buildResumeGenerationPayload, buildSkillGapPayload, buildInterviewPayload, buildLinkedInPayload } from "./ai-payloads";
 import { DAILY_RESUME_GENERATION_LIMIT, DAILY_ANALYSIS_LIMIT, RESUME_GENERATION_COOLDOWN_SECONDS, ANALYSIS_COOLDOWN_SECONDS } from "./ai-limits";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
+import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 
 const synthetic = `Jordan Example
 Software Engineer
@@ -77,6 +78,20 @@ describe("privacy and unchanged usage contracts", () => {
     expect(safe).toContain("TypeScript");
     expect(safe).toContain("Example Studio");
     expect(withoutResumeContactDetails("https://portfolio.example.test/work\nTypeScript work")).not.toContain("portfolio.example.test");
+  });
+  it("awards contact points on the original resume without sending identifiers to extraction", () => {
+    const extraction: AtsExtraction = {
+      jobTitle: "Software Engineer", requiredSkills: [], preferredSkills: [],
+      technicalKeywords: [], responsibilities: [], minYearsExperience: 0,
+      educationRequirements: [], candidateYearsExperience: 3,
+      candidateTitles: ["Software Engineer"], candidateEducation: [],
+      skillEvidence: [], responsibilityEvidence: [], strengths: [], weaknesses: [], suggestions: [],
+    };
+    const original = computeAtsScores(synthetic, "Software Engineer", extraction);
+    const redacted = computeAtsScores(withoutResumeContactDetails(synthetic), "Software Engineer", extraction);
+    expect(original.breakdown.contact).toBe(10);
+    expect(redacted.breakdown.contact).toBe(0);
+    expect(original.recommendations).not.toContain("Complete your contact header (email, phone and a LinkedIn/GitHub link).");
   });
   it("rejects unexpected analytics metadata and permits tracker status fields", () => {
     expect(AnalyticsPayloadSchema.safeParse({ event: "JD_ANALYZED", meta: { job_description: synthetic } }).success).toBe(false);
