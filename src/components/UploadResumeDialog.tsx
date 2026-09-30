@@ -12,7 +12,7 @@ import { SaveProfileSchema } from "@/lib/save-schemas";
 
 type Props = {
   currentProfile: Profile;
-  onApply: (profile: Profile, issues: ProfileImportIssue[]) => void;
+  onApply: (profile: Profile, issues: ProfileImportIssue[], originalText?: string) => void;
 };
 
 type Stage = "choose" | "extracting" | "review" | "compare" | "error";
@@ -24,6 +24,7 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
   const [issues, setIssues] = useState<ProfileImportIssue[]>([]);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
+  const [originalText, setOriginalText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const updateDraft = (action: SetStateAction<Profile>) => {
@@ -32,7 +33,7 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
   };
 
   const reset = () => {
-    setStage("choose"); setDraft(null); setIssues([]); setError(""); setFileName("");
+    setStage("choose"); setDraft(null); setIssues([]); setError(""); setFileName(""); setOriginalText("");
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -43,6 +44,7 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
     setStage("extracting");
     try {
       const text = await extractResumeText(file);
+      setOriginalText(text);
       const parsed = parseResumeText(text);
       setDraft(parsed.profile);
       setIssues(parsed.issues);
@@ -55,7 +57,7 @@ export function UploadResumeDialog({ currentProfile, onApply }: Props) {
 
   const apply = () => {
     if (!draft) return;
-    onApply(draft, issues);
+    onApply(draft, issues, originalText);
     setOpen(false);
     reset();
   };

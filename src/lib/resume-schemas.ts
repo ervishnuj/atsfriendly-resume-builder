@@ -39,6 +39,7 @@ export const ProfileSchema = z.object({
 export const ResumeInputSchema = z.object({
   profile: ProfileSchema,
   jobDescription: z.string().min(1),
+  currentResumeText: z.string().max(30000).optional(),
 });
 
 export type ProfileInput = z.infer<typeof ProfileSchema>;

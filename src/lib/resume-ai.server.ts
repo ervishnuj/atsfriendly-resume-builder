@@ -88,10 +88,14 @@ function context(profile: ProfileInput, jobDescription: string) {
 export async function generateOptimizedResume(
   profile: ProfileInput,
   jobDescription: string,
+  currentResumeText?: string,
 ): Promise<OptimizedResume> {
   const originalText = profileToResumeText(profile);
   const extraction = await extractForOptimization(originalText, jobDescription);
   const before = computeAtsScores(originalText, jobDescription, extraction);
+  const currentText = currentResumeText?.trim() || originalText;
+  const currentExtraction = currentText === originalText ? extraction : await extractForOptimization(currentText, jobDescription);
+  const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, currentExtraction);
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
 Produce an ATS-optimized resume tailored to the target job description, covering: professional summary,
@@ -124,10 +128,10 @@ Return JSON only.`,
   result.missingKeywords = after.missingKeywords;
   result.optimization = {
     profileFit: before.atsMatchScore,
-    currentAlignment: before.atsMatchScore,
-    requirements: classifyRequirements(extraction, originalText, originalText),
-    changes: describeChanges(profile, result.optimizedProfile, { before, after }),
-    improvements: before.recommendations,
+    currentAlignment: currentScore.atsMatchScore,
+    requirements: classifyRequirements(extraction, originalText, currentText),
+    changes: describeChanges(profile, result.optimizedProfile, { before: currentScore, after }),
+    improvements: currentScore.recommendations,
   };
   return result;
 }

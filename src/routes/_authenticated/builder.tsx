@@ -84,6 +84,7 @@ function Index() {
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
+  const [currentResumeText, setCurrentResumeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
@@ -252,6 +253,7 @@ function Index() {
     setProfile(emptyProfile);
     setJd("");
     setResult(null);
+    setCurrentResumeText("");
     setSavedLocally(false);
     setImportIssues([]);
     // Drop any profile data cached by older versions of the app.
@@ -337,6 +339,7 @@ function Index() {
     clearBrowserUserData();
     setProfile(emptyProfile);
     setResult(null);
+    setCurrentResumeText("");
     setJd("");
     await supabase.auth.signOut();
     navigate({ to: "/login", replace: true });
@@ -349,8 +352,9 @@ function Index() {
     (el as HTMLElement).focus({ preventScroll: true });
   };
 
-  const handleImportProfile = (imported: Profile, issues: ProfileImportIssue[] = []) => {
+  const handleImportProfile = (imported: Profile, issues: ProfileImportIssue[] = [], originalText?: string) => {
     setProfile(imported);
+    setCurrentResumeText(originalText ?? "");
     setProfileOpen(true);
     setImportIssues(issues);
     if (issues.length > 0) {
@@ -389,7 +393,7 @@ function Index() {
     setLoading(true);
     const requestId = newGenerationRequestId();
     try {
-      const res = await run({ data: { profile, jobDescription: jd, requestId } });
+      const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
       setResult(res.resume);
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success(
