@@ -22,6 +22,6 @@
 
 # Job-specific resume optimization
 
-- [ ] Add truthful, validated optimization and before/after scoring within the existing generation allowance
-- [ ] Explain supported matches, underrepresented evidence, potential gaps, and changes in the result
+- [x] Add truthful, validated optimization and before/after scoring within the existing generation allowance
+- [x] Explain supported matches, underrepresented evidence, potential gaps, and changes in the result
 - [ ] Add synthetic regression tests and verify without making paid AI requests
