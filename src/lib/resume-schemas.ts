@@ -39,6 +39,7 @@ export const ProfileSchema = z.object({
 export const ResumeInputSchema = z.object({
   profile: ProfileSchema,
   jobDescription: z.string().min(1),
+  currentResumeText: z.string().max(30000).optional(),
 });
 
 export type ProfileInput = z.infer<typeof ProfileSchema>;
@@ -47,6 +48,13 @@ export type OptimizedResume = {
   atsScore: number;
   atsMatchScore?: number;
   ats?: AtsAnalysis;
+  optimization?: {
+    profileFit: number;
+    currentAlignment: number;
+    requirements: { strong: string[]; underrepresented: string[]; potentialGaps: string[] };
+    changes: { change: string; why: string }[];
+    improvements: string[];
+  };
   matchingKeywords: string[];
   missingKeywords: string[];
   optimizedProfile: {

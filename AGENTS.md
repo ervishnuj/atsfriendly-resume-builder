@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 Resume imports are parsed locally in the browser into existing profile fields, and ATS analysis strips contact identifiers before calling AI; this avoids uploading raw files or introducing a second profile storage path.
+
+Job-specific optimization runs inside the existing guarded resume-generation function and validates generated fields against the original profile; this preserves one entitlement/usage path and prevents unverified identity, skills, roles, or dates from entering exports.

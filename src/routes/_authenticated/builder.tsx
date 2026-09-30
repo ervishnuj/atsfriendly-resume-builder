@@ -84,6 +84,7 @@ function Index() {
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
+  const [currentResumeText, setCurrentResumeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
@@ -252,6 +253,7 @@ function Index() {
     setProfile(emptyProfile);
     setJd("");
     setResult(null);
+    setCurrentResumeText("");
     setSavedLocally(false);
     setImportIssues([]);
     // Drop any profile data cached by older versions of the app.
@@ -337,6 +339,7 @@ function Index() {
     clearBrowserUserData();
     setProfile(emptyProfile);
     setResult(null);
+    setCurrentResumeText("");
     setJd("");
     await supabase.auth.signOut();
     navigate({ to: "/login", replace: true });
@@ -349,8 +352,9 @@ function Index() {
     (el as HTMLElement).focus({ preventScroll: true });
   };
 
-  const handleImportProfile = (imported: Profile, issues: ProfileImportIssue[] = []) => {
+  const handleImportProfile = (imported: Profile, issues: ProfileImportIssue[] = [], originalText?: string) => {
     setProfile(imported);
+    setCurrentResumeText(originalText ?? "");
     setProfileOpen(true);
     setImportIssues(issues);
     if (issues.length > 0) {
@@ -389,7 +393,7 @@ function Index() {
     setLoading(true);
     const requestId = newGenerationRequestId();
     try {
-      const res = await run({ data: { profile, jobDescription: jd, requestId } });
+      const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
       setResult(res.resume);
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success(
@@ -506,7 +510,7 @@ function Index() {
             </Button>
             <Button onClick={handleGenerate} disabled={loading || dailyLimitReached} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {loading ? "Generating..." : "Generate ATS Resume"}
+              {loading ? "Optimizing your resume..." : "Optimize My Resume"}
             </Button>
             {resumeUsage && (
               <Badge variant="secondary" className="hidden gap-1 sm:inline-flex">
@@ -719,6 +723,43 @@ function Index() {
           />
           {result && (
             <Card className="p-5 print:hidden">
+              {result.optimization && (
+                <div className="mb-5 space-y-5 border-b border-border pb-5">
+                  <h2 className="text-base font-semibold">Job-specific resume results</h2>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <AtsScoreBadge score={result.optimization.profileFit} title="Profile ↔ JD fit" unit="%" caption="Verified background; rewriting does not change this score" />
+                    <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
+                    <AtsScoreBadge score={result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption="After optimization; not a guaranteed external ATS score" />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <h3 className="text-sm font-semibold">What changed?</h3>
+                      <ul className="mt-2 space-y-2 text-sm">
+                        {result.optimization.changes.map(({ change, why }, index) => (
+                          <li key={`${change}-${index}`}><span className="font-medium">{change}</span><p className="text-xs text-muted-foreground">{why}</p></li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-3 text-sm">
+                      {([
+                        ["Strong matches", result.optimization.requirements.strong],
+                        ["Present but underrepresented", result.optimization.requirements.underrepresented],
+                        ["Potential gaps", result.optimization.requirements.potentialGaps],
+                      ] as const).map(([label, terms]) => (
+                        <div key={label}><h3 className="font-semibold">{label}</h3><p className="text-muted-foreground">{terms.length ? terms.join(", ") : "None identified"}</p></div>
+                      ))}
+                      {result.optimization.requirements.potentialGaps.length > 0 && <p className="text-xs text-muted-foreground">Not found in the provided profile/resume. Add only if you have real experience.</p>}
+                    </div>
+                  </div>
+                  {result.optimization.improvements.length > 0 && <div><h3 className="text-sm font-semibold">Resume improvements</h3><ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">{result.optimization.improvements.map((tip, i) => <li key={i}>{tip}</li>)}</ul></div>}
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById("resume-print-area")?.scrollIntoView({ behavior: "smooth" })}>Review resume</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setProfile(result.optimizedProfile); setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit resume</Button>
+                    <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
+                    <Button variant="outline" size="sm" onClick={() => void handleExportDocx()}>Export DOCX</Button>
+                  </div>
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <AtsScoreBadge
                   score={result.atsScore}

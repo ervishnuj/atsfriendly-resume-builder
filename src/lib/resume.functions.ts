@@ -50,7 +50,7 @@ export const generateResume = createServerFn({ method: "POST" })
 
     if (access.isAdmin && adminBypassEnabled()) {
       const { generateOptimizedResume } = await import("./resume-ai.server");
-      const resume = await generateOptimizedResume(data.profile, data.jobDescription);
+       const resume = await generateOptimizedResume(data.profile, data.jobDescription, data.currentResumeText);
       return { resume, usage: await getAiUsage(context.userId, "RESUME") };
     }
 
@@ -61,7 +61,7 @@ export const generateResume = createServerFn({ method: "POST" })
 
     try {
       const { generateOptimizedResume } = await import("./resume-ai.server");
-      const resume = await generateOptimizedResume(data.profile, data.jobDescription);
+       const resume = await generateOptimizedResume(data.profile, data.jobDescription, data.currentResumeText);
       await finishAiGeneration(context.userId, data.requestId, true, resume);
       return { resume, usage: reservation.usage };
     } catch (err) {
