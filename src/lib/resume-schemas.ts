@@ -47,6 +47,13 @@ export type OptimizedResume = {
   atsScore: number;
   atsMatchScore?: number;
   ats?: AtsAnalysis;
+  optimization?: {
+    profileFit: number;
+    currentAlignment: number;
+    requirements: { strong: string[]; underrepresented: string[]; potentialGaps: string[] };
+    changes: { change: string; why: string }[];
+    improvements: string[];
+  };
   matchingKeywords: string[];
   missingKeywords: string[];
   optimizedProfile: {

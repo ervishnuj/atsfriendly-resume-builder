@@ -11,6 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
+import { classifyRequirements, describeChanges, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -71,6 +72,15 @@ async function runAtsAnalysis(resumeText: string, jobDescription: string): Promi
   };
 }
 
+async function extractForOptimization(resumeText: string, jobDescription: string): Promise<AtsExtraction> {
+  return callGeminiJson<AtsExtraction>({
+    systemPrompt: `${EXTRACTION_PROMPT}\n${NO_FABRICATION_RULES}`,
+    userPrompt: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${withoutResumeContactDetails(resumeText)}`,
+    schema: atsExtractionSchema as unknown as Record<string, unknown>,
+    temperature: 0,
+  });
+}
+
 function context(profile: ProfileInput, jobDescription: string) {
   return `JOB DESCRIPTION:\n${jobDescription}\n\nCANDIDATE PROFILE (JSON):\n${JSON.stringify(profile, null, 2)}`;
 }
@@ -79,6 +89,9 @@ export async function generateOptimizedResume(
   profile: ProfileInput,
   jobDescription: string,
 ): Promise<OptimizedResume> {
+  const originalText = profileToResumeText(profile);
+  const extraction = await extractForOptimization(originalText, jobDescription);
+  const before = computeAtsScores(originalText, jobDescription, extraction);
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
 Produce an ATS-optimized resume tailored to the target job description, covering: professional summary,
@@ -87,27 +100,35 @@ profile), education, JD-specific keywords and ATS-friendly bullet points.
 - Rewrite the summary and each bullet using the X-Y-Z method: "Accomplished [X], as measured by [Y], by doing [Z]".
 - Naturally integrate job-description keywords the candidate genuinely matches.
 - Keep bullets under ~30 words, starting with a strong action verb.
+- Preserve exact name, contact, titles, employers, dates and education. Preserve all experience entries and bullet counts; reorder entries for relevance and rewrite their bullets without adding any unverified numbers, metrics, technologies or claims.
+- Reorder only existing skills. Do not introduce new skills or unsupported job requirements. Projects or certifications may only be presented when explicitly supplied as experience entries.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
     userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
-  result.atsScore = clamp(result.atsScore);
-  // Score the ACTUAL generated resume, not the raw profile, using the
-  // deterministic engine — Gemini's own number is discarded.
-  try {
-    const ats = await runAtsAnalysis(
-      profileToResumeText(result.optimizedProfile as unknown as ProfileInput),
-      jobDescription,
-    );
-    result.atsScore = ats.atsScore;
-    result.atsMatchScore = ats.atsMatchScore;
-    result.ats = ats;
-    result.matchingKeywords = ats.matchedKeywords;
-    result.missingKeywords = ats.missingKeywords;
-  } catch (error) {
-    console.warn("Deterministic ATS scoring failed for the generated resume.", error);
-  }
+  result.optimizedProfile = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
+  const optimizedText = profileToResumeText(result.optimizedProfile);
+  // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
+  const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
+  const after = computeAtsScores(optimizedText, jobDescription, optimizedExtraction);
+  result.atsScore = clamp(after.atsScore);
+  result.atsMatchScore = after.atsMatchScore;
+  result.ats = {
+    ...after, score: after.atsScore, jobTitle: optimizedExtraction.jobTitle,
+    matchingKeywords: after.matchedKeywords, skillsMatched: after.matchedKeywords,
+    skillsMissing: after.missingRequiredKeywords, strengths: optimizedExtraction.strengths ?? [],
+    weaknesses: optimizedExtraction.weaknesses ?? [], suggestions: after.recommendations,
+  };
+  result.matchingKeywords = after.matchedKeywords;
+  result.missingKeywords = after.missingKeywords;
+  result.optimization = {
+    profileFit: before.atsMatchScore,
+    currentAlignment: before.atsMatchScore,
+    requirements: classifyRequirements(extraction, originalText, originalText),
+    changes: describeChanges(profile, result.optimizedProfile, { before, after }),
+    improvements: before.recommendations,
+  };
   return result;
 }
 
