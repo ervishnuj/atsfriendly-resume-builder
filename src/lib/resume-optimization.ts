@@ -38,10 +38,13 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     throw new Error("The generated resume was incomplete. Please try again.");
   }
   const originalNumbers = new Set((JSON.stringify(source).match(/\d+(?:[.,]\d+)*%?/g) ?? []));
+  const sourceWords = new Set(normalizeText(JSON.stringify(source)).split(/\s+/));
+  const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while delivering delivered built developed designed improved led created supported managed optimized collaborated maintained worked helped focused relevant experienced professional proven strong results work team teams project projects skills experience background".split(" "));
   const safeText = (text: string, fallback: string) => {
     if (typeof text !== "string") return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
-    return newNumbers.every((n) => originalNumbers.has(n)) ? text : fallback;
+    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !sourceWords.has(word) && !connectiveWords.has(word));
+    return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));
   const skills = Array.isArray(proposed.skills) ? proposed.skills.map((group) => ({
