@@ -19,3 +19,9 @@
 - [x] Connect reviewed data to the existing builder without changing manual flow
 - [x] Add synthetic parser/security regression tests
 - [x] Verify build, non-AI flows, security, limits, and diagnostics
+
+# Job-specific resume optimization
+
+- [ ] Add truthful, validated optimization and before/after scoring within the existing generation allowance
+- [ ] Explain supported matches, underrepresented evidence, potential gaps, and changes in the result
+- [ ] Add synthetic regression tests and verify without making paid AI requests
