@@ -18,8 +18,8 @@ function withoutContactDetails(profile: ProfileInput): ProfileInput {
   };
 }
 
-/** Final resume output needs the candidate's chosen contact fields. */
-export const buildResumeGenerationPayload = (profile: ProfileInput): ProfileInput => profile;
+/** Identity is restored from the verified source after generation, never requested from AI. */
+export const buildResumeGenerationPayload = withoutContactDetails;
 
 /** Matching operations need career evidence, not identity or contact details. */
 export const buildAtsPayload = withoutContactDetails;

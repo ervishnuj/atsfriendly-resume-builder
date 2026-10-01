@@ -3,6 +3,7 @@ import { classifyRequirements, describeChanges, repairResumeReadability, validat
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
+import { buildResumeGenerationPayload } from "./ai-payloads";
 
 const source: ProfileInput = {
   personal: { fullName: "Casey Sample", title: "Developer", email: "casey@example.test", phone: "555 010 4567", linkedin: "", github: "", portfolio: "", summary: "Developer with Java experience." },
@@ -38,6 +39,17 @@ describe("truthful resume optimization", () => {
     expect(checked.experience).toEqual(source.experience);
     expect(checked.education).toEqual(source.education);
     expect(checked.skills.flatMap((g) => g.items).sort()).toEqual(["Java", "MySQL", "Spring Boot"]);
+  });
+  it("never sends identity to the optimizer, but restores it in the output", () => {
+    const payload = buildResumeGenerationPayload(source);
+    expect(payload.personal.fullName).toBe("");
+    expect(payload.personal.email).toBe("");
+    expect(payload.personal.phone).toBe("");
+    expect(validateOptimizedProfile(source, payload).personal.fullName).toBe(source.personal.fullName);
+  });
+  it("rejects unsupported action verbs and claims borrowed from other entries", () => {
+    const proposed = { ...source, experience: [{ ...source.experience[0], bullets: ["Led Java services with Spring Boot."] }] };
+    expect(validateOptimizedProfile(source, proposed).experience[0].bullets).toEqual(source.experience[0].bullets);
   });
   it("keeps profile fit fixed while evaluating the newly represented resume", () => {
     const original = profileToResumeText(source);
