@@ -98,7 +98,7 @@ describe("privacy and unchanged usage contracts", () => {
     expect(AnalyticsPayloadSchema.safeParse({ event: "RESUME_CREATED", meta: { email: "jordan@example.test" } }).success).toBe(false);
     expect(AnalyticsPayloadSchema.safeParse({ event: "APPLICATION_CREATED", meta: { status: "APPLIED" } }).success).toBe(true);
   });
-  it("excludes contact data from analysis payloads and retains it only for final generation", () => {
+  it("excludes contact data from analysis and resume-generation payloads", () => {
     const profile = parseResumeText(synthetic).profile;
     for (const payload of [buildAtsPayload, buildSkillGapPayload, buildInterviewPayload, buildLinkedInPayload]) {
       const safe = payload(profile);
@@ -109,7 +109,8 @@ describe("privacy and unchanged usage contracts", () => {
     }
     expect(buildCoverLetterPayload(profile).personal.fullName).toBe("Jordan Example");
     expect(buildCoverLetterPayload(profile).personal.email).toBe("");
-    expect(buildResumeGenerationPayload(profile).personal.email).toBe("jordan@example.test");
+    expect(buildResumeGenerationPayload(profile).personal.email).toBe("");
+    expect(buildResumeGenerationPayload(profile).personal.fullName).toBe("");
   });
   it("preserves existing daily limits and cooldowns", () => {
     expect([DAILY_RESUME_GENERATION_LIMIT, DAILY_ANALYSIS_LIMIT, RESUME_GENERATION_COOLDOWN_SECONDS, ANALYSIS_COOLDOWN_SECONDS]).toEqual([10, 30, 30, 10]);
