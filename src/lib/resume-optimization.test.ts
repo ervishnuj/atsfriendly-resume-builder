@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { classifyRequirements, describeChanges, validateOptimizedProfile } from "./resume-optimization";
+import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
+import { buildResumeGenerationPayload } from "./ai-payloads";
 
 const source: ProfileInput = {
   personal: { fullName: "Casey Sample", title: "Developer", email: "casey@example.test", phone: "555 010 4567", linkedin: "", github: "", portfolio: "", summary: "Developer with Java experience." },
@@ -39,6 +40,21 @@ describe("truthful resume optimization", () => {
     expect(checked.education).toEqual(source.education);
     expect(checked.skills.flatMap((g) => g.items).sort()).toEqual(["Java", "MySQL", "Spring Boot"]);
   });
+  it("never sends identity to the optimizer, but restores it in the output", () => {
+    const payload = buildResumeGenerationPayload(source);
+    expect(payload.personal.fullName).toBe("");
+    expect(payload.personal.email).toBe("");
+    expect(payload.personal.phone).toBe("");
+    expect(validateOptimizedProfile(source, payload).personal.fullName).toBe(source.personal.fullName);
+  });
+  it("rejects unsupported action verbs and claims borrowed from other entries", () => {
+    const proposed = { ...source, experience: [{ ...source.experience[0], bullets: ["Led Java services with Spring Boot."] }] };
+    expect(validateOptimizedProfile(source, proposed).experience[0].bullets).toEqual(source.experience[0].bullets);
+  });
+  it("does not transfer a date or metric from elsewhere in the profile into a bullet", () => {
+    const proposed = { ...source, experience: [{ ...source.experience[0], bullets: ["Built 2024 Java services with Spring Boot."] }] };
+    expect(validateOptimizedProfile(source, proposed).experience[0].bullets).toEqual(source.experience[0].bullets);
+  });
   it("keeps profile fit fixed while evaluating the newly represented resume", () => {
     const original = profileToResumeText(source);
     const before = computeAtsScores(original, "Developer Java Spring Boot AWS", extraction);
@@ -48,5 +64,9 @@ describe("truthful resume optimization", () => {
     expect(before.atsMatchScore).toBeLessThanOrEqual(after.atsMatchScore);
     expect(classifyRequirements(extraction, original, profileToResumeText(afterProfile)).potentialGaps).toContain("AWS");
     expect(describeChanges(source, afterProfile, { before, after })[0].change).toContain("summary");
+  });
+  it("cleans up bullets without adding new claims", () => {
+    const cleaned = repairResumeReadability({ ...source, experience: [{ ...source.experience[0], bullets: ["•  Built   Java services with Spring Boot."] }] });
+    expect(cleaned.experience[0].bullets[0]).toBe("Built Java services with Spring Boot.");
   });
 });

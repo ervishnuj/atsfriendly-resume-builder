@@ -754,7 +754,7 @@ function Index() {
                   {result.optimization.improvements.length > 0 && <div><h3 className="text-sm font-semibold">Resume improvements</h3><ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">{result.optimization.improvements.map((tip, i) => <li key={i}>{tip}</li>)}</ul></div>}
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => document.getElementById("resume-print-area")?.scrollIntoView({ behavior: "smooth" })}>Review resume</Button>
-                    <Button variant="outline" size="sm" onClick={() => { setProfile(result.optimizedProfile); setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit resume</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit source profile</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
                     <Button variant="outline" size="sm" onClick={() => void handleExportDocx()}>Export DOCX</Button>
                   </div>

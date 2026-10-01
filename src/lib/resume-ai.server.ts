@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { classifyRequirements, describeChanges, validateOptimizedProfile } from "./resume-optimization";
+import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -95,7 +95,18 @@ export async function generateOptimizedResume(
   const before = computeAtsScores(originalText, jobDescription, extraction);
   const currentText = currentResumeText?.trim() || originalText;
   const currentExtraction = currentText === originalText ? extraction : await extractForOptimization(currentText, jobDescription);
-  const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, currentExtraction);
+  // Keep the job's requirements fixed across all three scores. Only resume evidence changes.
+  const sameRequirements = (candidate: AtsExtraction): AtsExtraction => ({
+    ...candidate,
+    jobTitle: extraction.jobTitle,
+    requiredSkills: extraction.requiredSkills,
+    preferredSkills: extraction.preferredSkills,
+    technicalKeywords: extraction.technicalKeywords,
+    responsibilities: extraction.responsibilities,
+    minYearsExperience: extraction.minYearsExperience,
+    educationRequirements: extraction.educationRequirements,
+  });
+  const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, sameRequirements(currentExtraction));
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
 Produce an ATS-optimized resume tailored to the target job description, covering: professional summary,
@@ -104,18 +115,18 @@ profile), education, JD-specific keywords and ATS-friendly bullet points.
 - Rewrite the summary and each bullet using the X-Y-Z method: "Accomplished [X], as measured by [Y], by doing [Z]".
 - Naturally integrate job-description keywords the candidate genuinely matches.
 - Keep bullets under ~30 words, starting with a strong action verb.
-- Preserve exact name, contact, titles, employers, dates and education. Preserve all experience entries and bullet counts; reorder entries for relevance and rewrite their bullets without adding any unverified numbers, metrics, technologies or claims.
+- Preserve all experience entries and bullet counts; reorder entries for relevance and rewrite their bullets without adding any unverified numbers, metrics, technologies or claims. Contact details are intentionally omitted and restored locally after validation.
 - Reorder only existing skills. Do not introduce new skills or unsupported job requirements. Projects or certifications may only be presented when explicitly supplied as experience entries.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
     userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
-  result.optimizedProfile = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
+  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput));
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
   const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
-  const after = computeAtsScores(optimizedText, jobDescription, optimizedExtraction);
+  const after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction));
   result.atsScore = clamp(after.atsScore);
   result.atsMatchScore = after.atsMatchScore;
   result.ats = {

@@ -37,18 +37,19 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
   if (!proposed || !proposed.personal || !Array.isArray(proposed.experience)) {
     throw new Error("The generated resume was incomplete. Please try again.");
   }
-  const originalNumbers = new Set((JSON.stringify(source).match(/\d+(?:[.,]\d+)*%?/g) ?? []));
   const sourceWords = new Set(normalizeText(JSON.stringify(source)).split(/\s+/));
-  const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while delivering delivered built developed designed improved led created supported managed optimized collaborated maintained worked helped focused relevant experienced professional proven strong results work team teams project projects skills experience background".split(" "));
-  const safeText = (text: string, fallback: string) => {
+  // Only grammatical connectors are free. New action verbs/claims must be present in the specific source bullet.
+  const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while".split(" "));
+  const safeText = (text: string, fallback: string, allowedWords = sourceWords) => {
     if (typeof text !== "string") return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
-    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !sourceWords.has(word) && !connectiveWords.has(word));
+    const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
+    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !allowedWords.has(word) && !connectiveWords.has(word));
     return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));
   const skills = Array.isArray(proposed.skills) ? proposed.skills.map((group) => ({
-    category: typeof group.category === "string" ? group.category : "Skills",
+    category: source.skills.some((original) => original.category === group.category) ? group.category : "Skills",
     items: Array.isArray(group.items) ? group.items.filter((item) => typeof item === "string" && originalSkills.has(normalizeTerm(item))) : [],
   })).filter((g) => g.items.length > 0) : [];
   const included = new Set(skills.flatMap((g) => g.items.map(normalizeTerm)));
@@ -64,7 +65,7 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     if (index < 0) return [];
     const original = remaining.splice(index, 1)[0];
     return [{ ...original, bullets: Array.isArray(entry.bullets) && entry.bullets.length === original.bullets.length
-      ? entry.bullets.map((bullet, i) => safeText(bullet, original.bullets[i]))
+      ? entry.bullets.map((bullet, i) => safeText(bullet, original.bullets[i], new Set(normalizeText(original.bullets[i]).split(/\s+/))))
       : original.bullets }];
   });
   return {
@@ -72,6 +73,19 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     skills,
     experience: [...experience, ...remaining],
     education: source.education,
+  };
+}
+
+/** Keep final exported text readable without inventing new content. */
+export function repairResumeReadability(profile: ProfileInput): ProfileInput {
+  return {
+    ...profile,
+    personal: { ...profile.personal, summary: profile.personal.summary.replace(/\s+/g, " ").trim() },
+    skills: profile.skills.map((group) => ({ ...group, items: [...new Set(group.items.filter(Boolean))] })),
+    experience: profile.experience.map((entry) => ({
+      ...entry,
+      bullets: entry.bullets.map((bullet) => bullet.replace(/^\s*[-•*]\s*/, "").replace(/\s+/g, " ").trim()),
+    })),
   };
 }
 
