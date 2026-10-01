@@ -37,13 +37,13 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
   if (!proposed || !proposed.personal || !Array.isArray(proposed.experience)) {
     throw new Error("The generated resume was incomplete. Please try again.");
   }
-  const originalNumbers = new Set((JSON.stringify(source).match(/\d+(?:[.,]\d+)*%?/g) ?? []));
   const sourceWords = new Set(normalizeText(JSON.stringify(source)).split(/\s+/));
   // Only grammatical connectors are free. New action verbs/claims must be present in the specific source bullet.
   const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while".split(" "));
   const safeText = (text: string, fallback: string, allowedWords = sourceWords) => {
     if (typeof text !== "string") return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
+    const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
     const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !allowedWords.has(word) && !connectiveWords.has(word));
     return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };

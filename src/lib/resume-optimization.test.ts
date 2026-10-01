@@ -51,6 +51,10 @@ describe("truthful resume optimization", () => {
     const proposed = { ...source, experience: [{ ...source.experience[0], bullets: ["Led Java services with Spring Boot."] }] };
     expect(validateOptimizedProfile(source, proposed).experience[0].bullets).toEqual(source.experience[0].bullets);
   });
+  it("does not transfer a date or metric from elsewhere in the profile into a bullet", () => {
+    const proposed = { ...source, experience: [{ ...source.experience[0], bullets: ["Built 2024 Java services with Spring Boot."] }] };
+    expect(validateOptimizedProfile(source, proposed).experience[0].bullets).toEqual(source.experience[0].bullets);
+  });
   it("keeps profile fit fixed while evaluating the newly represented resume", () => {
     const original = profileToResumeText(source);
     const before = computeAtsScores(original, "Developer Java Spring Boot AWS", extraction);
