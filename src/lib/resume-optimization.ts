@@ -48,7 +48,7 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));
   const skills = Array.isArray(proposed.skills) ? proposed.skills.map((group) => ({
-    category: typeof group.category === "string" ? group.category : "Skills",
+    category: source.skills.some((original) => original.category === group.category) ? group.category : "Skills",
     items: Array.isArray(group.items) ? group.items.filter((item) => typeof item === "string" && originalSkills.has(normalizeTerm(item))) : [],
   })).filter((g) => g.items.length > 0) : [];
   const included = new Set(skills.flatMap((g) => g.items.map(normalizeTerm)));
@@ -72,6 +72,19 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     skills,
     experience: [...experience, ...remaining],
     education: source.education,
+  };
+}
+
+/** Keep final exported text readable without inventing new content. */
+export function repairResumeReadability(profile: ProfileInput): ProfileInput {
+  return {
+    ...profile,
+    personal: { ...profile.personal, summary: profile.personal.summary.replace(/\s+/g, " ").trim() },
+    skills: profile.skills.map((group) => ({ ...group, items: [...new Set(group.items.filter(Boolean))] })),
+    experience: profile.experience.map((entry) => ({
+      ...entry,
+      bullets: entry.bullets.map((bullet) => bullet.replace(/^\s*[-•*]\s*/, "").replace(/\s+/g, " ").trim()),
+    })),
   };
 }
 

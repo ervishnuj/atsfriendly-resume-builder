@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyRequirements, describeChanges, validateOptimizedProfile } from "./resume-optimization";
+import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
@@ -48,5 +48,9 @@ describe("truthful resume optimization", () => {
     expect(before.atsMatchScore).toBeLessThanOrEqual(after.atsMatchScore);
     expect(classifyRequirements(extraction, original, profileToResumeText(afterProfile)).potentialGaps).toContain("AWS");
     expect(describeChanges(source, afterProfile, { before, after })[0].change).toContain("summary");
+  });
+  it("cleans up bullets without adding new claims", () => {
+    const cleaned = repairResumeReadability({ ...source, experience: [{ ...source.experience[0], bullets: ["•  Built   Java services with Spring Boot."] }] });
+    expect(cleaned.experience[0].bullets[0]).toBe("Built Java services with Spring Boot.");
   });
 });

@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { classifyRequirements, describeChanges, validateOptimizedProfile } from "./resume-optimization";
+import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -111,7 +111,7 @@ Return JSON only.`,
     userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
-  result.optimizedProfile = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
+  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput));
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
   const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
