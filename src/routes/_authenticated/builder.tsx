@@ -90,6 +90,7 @@ function Index() {
   const [checkingScore, setCheckingScore] = useState(false);
   const [recheckedScore, setRecheckedScore] = useState<number | null>(null);
   const [editingResume, setEditingResume] = useState(false);
+  const [resumeDraft, setResumeDraft] = useState<OptimizedResume["optimizedProfile"] | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -260,6 +261,7 @@ function Index() {
     setResult(null);
     setRecheckedScore(null);
     setEditingResume(false);
+    setResumeDraft(null);
     setCurrentResumeText("");
     setSavedLocally(false);
     setImportIssues([]);
@@ -400,6 +402,7 @@ function Index() {
     setLoading(true);
     setRecheckedScore(null);
     setEditingResume(false);
+    setResumeDraft(null);
     const requestId = newGenerationRequestId();
     try {
       const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
@@ -444,22 +447,18 @@ function Index() {
     }
   };
 
-  const updateResumeText = (field: "summary" | "bullet", value: string, entryIndex?: number, bulletIndex?: number) => {
-    if (!result) return;
-    const proposed = structuredClone(result.optimizedProfile);
-    if (field === "summary") proposed.personal.summary = value;
-    else if (entryIndex !== undefined && bulletIndex !== undefined && proposed.experience[entryIndex]) {
-      proposed.experience[entryIndex].bullets[bulletIndex] = value;
-    }
-    const checked = validateOptimizedProfile(profile, proposed);
-    const accepted = field === "summary" ? checked.personal.summary === value :
-      entryIndex !== undefined && bulletIndex !== undefined && checked.experience[entryIndex]?.bullets[bulletIndex] === value;
-    if (!accepted) {
-      toast.warning("That edit adds information not verified in its source. Update your profile first.");
+  const saveResumeDraft = () => {
+    if (!result || !resumeDraft) return;
+    const checked = validateOptimizedProfile(profile, resumeDraft);
+    if (checked.personal.summary !== resumeDraft.personal.summary || checked.experience.some((entry, i) => entry.bullets.some((bullet, j) => bullet !== resumeDraft.experience[i]?.bullets[j]))) {
+      toast.warning("Some edits add information not verified in its source. Update your profile first, or rephrase using supplied facts.");
       return;
     }
     setResult({ ...result, optimizedProfile: checked });
     setRecheckedScore(null);
+    setResumeDraft(null);
+    setEditingResume(false);
+    toast.success("Resume wording saved. Re-check the score after your edits.");
   };
 
   const handleDownload = async () => {
@@ -772,7 +771,7 @@ function Index() {
                   <div className="grid gap-3 sm:grid-cols-3">
                     <AtsScoreBadge score={result.optimization.profileFit} title="Profile ↔ JD fit" unit="%" caption="Verified background; rewriting does not change this score" />
                     <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
-                     <AtsScoreBadge score={recheckedScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedScore !== null ? "Re-checked after your edits; not an external ATS score" : "Calculated after final validation; not an external ATS score"} />
+                     <AtsScoreBadge score={recheckedScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedScore !== null ? "Re-checked after your edits; not an external ATS score" : result.optimization.readability?.needsReview?.includes("Score pending re-check") ? "Previous score; re-check after editing" : "Calculated after final validation; not an external ATS score"} />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -801,12 +800,12 @@ function Index() {
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => document.getElementById("resume-print-area")?.scrollIntoView({ behavior: "smooth" })}>Review resume</Button>
                     <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit source profile</Button>
-                     <Button variant="outline" size="sm" onClick={() => setEditingResume((value) => !value)}>{editingResume ? "Done editing" : "Edit resume"}</Button>
+                     <Button variant="outline" size="sm" onClick={() => { setEditingResume((value) => !value); setResumeDraft(editingResume ? null : structuredClone(result.optimizedProfile)); }}>{editingResume ? "Cancel edits" : "Edit resume"}</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
                      <Button variant="outline" size="sm" onClick={() => void handleExportDocx()} disabled={exportingDocx}>Export DOCX</Button>
                      <Button variant="outline" size="sm" onClick={() => void handleRecheck()} disabled={checkingScore}>{checkingScore ? "Re-checking…" : "Re-check score"}</Button>
                   </div>
-                   {editingResume && <div className="space-y-3 border-t border-border pt-4"><h3 className="text-sm font-semibold">Edit verified wording</h3><p className="text-xs text-muted-foreground">Edits can rephrase supplied facts only. A re-check uses one analysis allowance; scores remain from the last completed check until then.</p><label className="block text-xs font-medium">Summary<Textarea className="mt-1" value={result.optimizedProfile.personal.summary} onChange={(event) => updateResumeText("summary", event.target.value)} /></label>{result.optimizedProfile.experience.map((entry, i) => <div key={`${entry.title}-${entry.company}-${i}`} className="space-y-2"><p className="text-xs font-semibold">{entry.title || entry.company}</p>{entry.bullets.map((bullet, j) => <label key={j} className="block text-xs">Bullet {j + 1}<Textarea className="mt-1" value={bullet} onChange={(event) => updateResumeText("bullet", event.target.value, i, j)} /></label>)}</div>)}{auditResumeReadability(result.optimizedProfile).length > 0 && <p className="text-xs text-muted-foreground">Review remaining missing details in your source profile before sharing.</p>}</div>}
+                   {editingResume && resumeDraft && <div className="space-y-3 border-t border-border pt-4"><h3 className="text-sm font-semibold">Edit verified wording</h3><p className="text-xs text-muted-foreground">Edits can rephrase supplied facts only. A re-check uses one analysis allowance; scores remain from the last completed check until then.</p><label className="block text-xs font-medium">Summary<Textarea className="mt-1" value={resumeDraft.personal.summary} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, personal: { ...draft.personal, summary: event.target.value } } : draft)} /></label>{resumeDraft.experience.map((entry, i) => <div key={`${entry.title}-${entry.company}-${i}`} className="space-y-2"><p className="text-xs font-semibold">{entry.title || entry.company}</p>{entry.bullets.map((bullet, j) => <label key={j} className="block text-xs">Bullet {j + 1}<Textarea className="mt-1" value={bullet} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, experience: draft.experience.map((item, index) => index === i ? { ...item, bullets: item.bullets.map((text, bulletIndex) => bulletIndex === j ? event.target.value : text) } : item) } : draft)} /></label>)}</div>)}<Button size="sm" onClick={saveResumeDraft}>Save verified edits</Button>{auditResumeReadability(resumeDraft).length > 0 && <p className="text-xs text-muted-foreground">Review remaining missing details in your source profile before sharing.</p>}</div>}
                 </div>
               )}
               <div className="grid gap-4 sm:grid-cols-2">
