@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
@@ -68,5 +68,25 @@ describe("truthful resume optimization", () => {
   it("cleans up bullets without adding new claims", () => {
     const cleaned = repairResumeReadability({ ...source, experience: [{ ...source.experience[0], bullets: ["•  Built   Java services with Spring Boot."] }] });
     expect(cleaned.experience[0].bullets[0]).toBe("Built Java services with Spring Boot.");
+  });
+  it("plans learning for required and preferred gaps without presenting them as candidate facts", () => {
+    const plan = planForGaps({ ...extraction, preferredSkills: ["Docker"] }, ["AWS", "Docker"]);
+    expect(plan.map((item) => item.priority)).toEqual(["High", "Medium"]);
+    expect(plan.every((item) => item.why.includes("not found in the provided profile/resume"))).toBe(true);
+    expect(JSON.stringify(source)).not.toContain("Docker");
+  });
+  it("prioritizes only source-backed project and experience entries", () => {
+    const older = { title: "Developer", company: "Old Co", dateRange: "2019", bullets: ["Built HTML pages."] };
+    const project = { title: "Spring Boot project", company: "Personal", dateRange: "2024", bullets: ["Built Java services with Spring Boot."] };
+    const ordered = prioritizeVerifiedExperience({ ...source, experience: [older, project] }, extraction);
+    expect(ordered.experience).toEqual([project, older]);
+    expect(ordered.experience).toHaveLength(2);
+  });
+  it("repairs and audits formatting, without claiming missing facts were fixed", () => {
+    const candidate = { ...source, experience: [{ ...source.experience[0], dateRange: "", bullets: ["•  Built  Java services."] }] };
+    expect(auditResumeReadability(candidate).map((issue) => issue.code)).toContain("spacing-0-0");
+    const repaired = repairResumeReadability(candidate);
+    expect(auditResumeReadability(repaired).map((issue) => issue.code)).not.toContain("spacing-0-0");
+    expect(auditResumeReadability(repaired).map((issue) => issue.code)).toContain("date-0");
   });
 });
