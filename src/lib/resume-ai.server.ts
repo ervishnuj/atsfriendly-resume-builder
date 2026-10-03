@@ -127,6 +127,7 @@ Return JSON only.`,
   // Fix only verifiable presentation issues; score the exact repaired artifact.
   const repaired = repairResumeReadability(validated);
   result.optimizedProfile = prioritizeVerifiedExperience(repaired, extraction);
+  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile));
   const finalReadability = auditResumeReadability(result.optimizedProfile);
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
