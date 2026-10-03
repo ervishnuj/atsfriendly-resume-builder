@@ -8,6 +8,53 @@ export type RequirementGroup = {
   potentialGaps: string[];
 };
 
+export type LearningStep = { skill: string; why: string; priority: "High" | "Medium"; learning: string; practice: string };
+
+/** Gap guidance is about future learning, never a claim about the candidate. */
+export function planForGaps(extraction: AtsExtraction, gaps: string[]): LearningStep[] {
+  const required = new Set(extraction.requiredSkills.map(normalizeTerm));
+  return gaps.map((skill) => ({
+    skill,
+    why: required.has(normalizeTerm(skill)) ? "Required in this job description; not found in the provided profile/resume." : "Preferred in this job description; not found in the provided profile/resume.",
+    priority: required.has(normalizeTerm(skill)) ? "High" : "Medium",
+    learning: `Learn the fundamentals of ${skill}, then work through its official documentation and a guided exercise.`,
+    practice: `Build a small practice project using ${skill}; add it to your profile only after completing it.`,
+  }));
+}
+
+export type ReadabilityIssue = { code: string; message: string };
+
+/** Audit only properties we can actually inspect in structured resume content. */
+export function auditResumeReadability(profile: ProfileInput): ReadabilityIssue[] {
+  const issues: ReadabilityIssue[] = [];
+  if (!profile.personal.fullName.trim()) issues.push({ code: "name", message: "Add your name to the contact header." });
+  if (!profile.personal.email.trim() && !profile.personal.phone.trim()) issues.push({ code: "contact", message: "Add an email address or phone number to the contact header." });
+  if (!profile.personal.summary.trim()) issues.push({ code: "summary", message: "Add a verified professional summary." });
+  if (!profile.skills.some((group) => group.items.some(Boolean))) issues.push({ code: "skills", message: "Add verified skills." });
+  if (!profile.experience.some((entry) => entry.title.trim() || entry.company.trim())) issues.push({ code: "experience", message: "Add experience or projects, if applicable." });
+  if (!profile.education.some((entry) => entry.degree.trim() || entry.institution.trim())) issues.push({ code: "education", message: "Add education details, if applicable." });
+  for (const [i, entry] of profile.experience.entries()) {
+    if (!entry.dateRange.trim()) issues.push({ code: `date-${i}`, message: `${entry.title || entry.company || "An entry"} has no date range; confirm it in your profile.` });
+    for (const [j, bullet] of entry.bullets.entries()) {
+      if (/^\s*[-•*]/.test(bullet) || /\s{2,}/.test(bullet)) issues.push({ code: `spacing-${i}-${j}`, message: "Inconsistent bullet spacing or markers." });
+      if (bullet.trim().split(/\s+/).length > 45) issues.push({ code: `length-${i}-${j}`, message: "A bullet is longer than 45 words; shorten it without removing facts." });
+    }
+  }
+  if (profile.skills.some((group) => new Set(group.items.map(normalizeTerm)).size !== group.items.length)) issues.push({ code: "duplicates", message: "Duplicate skills found." });
+  return issues;
+}
+
+/** Rank existing entries by literal evidence; never insert a JD term into an entry. */
+export function prioritizeVerifiedExperience(profile: ProfileInput, extraction: AtsExtraction): ProfileInput {
+  const terms = [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords];
+  const score = (entry: ProfileInput["experience"][number]) => {
+    const text = normalizeText([entry.title, entry.company, ...entry.bullets].join(" "));
+    return terms.reduce((total, term) => total + (containsTerm(text, term) ? 1 : 0), 0);
+  };
+  return { ...profile, experience: profile.experience.map((entry, index) => ({ entry, index }))
+    .sort((a, b) => score(b.entry) - score(a.entry) || a.index - b.index).map(({ entry }) => entry) };
+}
+
 /** Never treat a model's unsupported presence claim as verified evidence. */
 export function classifyRequirements(
   extraction: AtsExtraction,
@@ -81,7 +128,7 @@ export function repairResumeReadability(profile: ProfileInput): ProfileInput {
   return {
     ...profile,
     personal: { ...profile.personal, summary: profile.personal.summary.replace(/\s+/g, " ").trim() },
-    skills: profile.skills.map((group) => ({ ...group, items: [...new Set(group.items.filter(Boolean))] })),
+    skills: profile.skills.map((group) => ({ ...group, items: group.items.map((item) => item.trim()).filter((item, index, items) => item && items.findIndex((other) => normalizeTerm(other) === normalizeTerm(item)) === index) })),
     experience: profile.experience.map((entry) => ({
       ...entry,
       bullets: entry.bullets.map((bullet) => bullet.replace(/^\s*[-•*]\s*/, "").replace(/\s+/g, " ").trim()),
