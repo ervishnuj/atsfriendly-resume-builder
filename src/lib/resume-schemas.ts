@@ -54,6 +54,8 @@ export type OptimizedResume = {
     requirements: { strong: string[]; underrepresented: string[]; potentialGaps: string[] };
     changes: { change: string; why: string }[];
     improvements: string[];
+    learningRoadmap?: { skill: string; why: string; priority: "High" | "Medium"; learning: string; practice: string }[];
+    readability?: { fixed: string[]; needsReview: string[] };
   };
   matchingKeywords: string[];
   missingKeywords: string[];
