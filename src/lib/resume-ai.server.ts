@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { classifyRequirements, describeChanges, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -107,6 +107,7 @@ export async function generateOptimizedResume(
     educationRequirements: extraction.educationRequirements,
   });
   const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, sameRequirements(currentExtraction));
+  const sourceReadability = auditResumeReadability(profile);
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
 Produce an ATS-optimized resume tailored to the target job description, covering: professional summary,
@@ -122,7 +123,12 @@ Return JSON only.`,
     userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
-  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput));
+  const validated = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
+  // Fix only verifiable presentation issues; score the exact repaired artifact.
+  const repaired = repairResumeReadability(validated);
+  result.optimizedProfile = prioritizeVerifiedExperience(repaired, extraction);
+  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile));
+  const finalReadability = auditResumeReadability(result.optimizedProfile);
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
   const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
@@ -143,6 +149,11 @@ Return JSON only.`,
     requirements: classifyRequirements(extraction, originalText, currentText),
     changes: describeChanges(profile, result.optimizedProfile, { before: currentScore, after }),
     improvements: currentScore.recommendations,
+    learningRoadmap: planForGaps(extraction, classifyRequirements(extraction, originalText, currentText).potentialGaps),
+    readability: {
+      fixed: sourceReadability.filter((item) => !finalReadability.some((remaining) => remaining.code === item.code)).map((item) => item.message),
+      needsReview: finalReadability.map((item) => item.message),
+    },
   };
   return result;
 }

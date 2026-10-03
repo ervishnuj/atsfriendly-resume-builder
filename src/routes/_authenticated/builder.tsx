@@ -40,11 +40,12 @@ import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import { UploadResumeDialog } from "@/components/UploadResumeDialog";
 import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import { TemplateStudio } from "@/components/TemplateStudio";
-import { ATS_CLASSIC, BUILTIN_TEMPLATES, type TemplateConfig } from "@/lib/resume-templates";
+import { ATS_CLASSIC, BUILTIN_TEMPLATES, atsWarnings, type TemplateConfig } from "@/lib/resume-templates";
 import { buildResumeDocx } from "@/lib/resume-docx";
 import type { ProfileImportIssue } from "@/lib/profile-io";
-import { generateResume, getMyAiUsage } from "@/lib/resume.functions";
+import { analyzeAtsScore, generateResume, getMyAiUsage } from "@/lib/resume.functions";
 import type { OptimizedResume } from "@/lib/resume.functions";
+import { auditResumeReadability, validateOptimizedProfile } from "@/lib/resume-optimization";
 import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
 import { getCurrentSubscription, amIAdmin, consumeDownloadEntitlement } from "@/lib/billing.functions";
@@ -86,12 +87,17 @@ function Index() {
   const [result, setResult] = useState<OptimizedResume | null>(null);
   const [currentResumeText, setCurrentResumeText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingScore, setCheckingScore] = useState(false);
+  const [recheckedScore, setRecheckedScore] = useState<number | null>(null);
+  const [editingResume, setEditingResume] = useState(false);
+  const [resumeDraft, setResumeDraft] = useState<OptimizedResume["optimizedProfile"] | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [importIssues, setImportIssues] = useState<ProfileImportIssue[]>([]);
   const jdRef = useRef<HTMLTextAreaElement>(null);
   const run = useServerFn(generateResume);
+  const recheck = useServerFn(analyzeAtsScore);
   const fetchAiUsage = useServerFn(getMyAiUsage);
   const loadRemote = useServerFn(getMyProfile);
   const saveRemote = useServerFn(saveMyProfile);
@@ -253,6 +259,9 @@ function Index() {
     setProfile(emptyProfile);
     setJd("");
     setResult(null);
+    setRecheckedScore(null);
+    setEditingResume(false);
+    setResumeDraft(null);
     setCurrentResumeText("");
     setSavedLocally(false);
     setImportIssues([]);
@@ -391,6 +400,9 @@ function Index() {
       return;
     }
     setLoading(true);
+    setRecheckedScore(null);
+    setEditingResume(false);
+    setResumeDraft(null);
     const requestId = newGenerationRequestId();
     try {
       const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
@@ -418,6 +430,35 @@ function Index() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecheck = async () => {
+    if (!result || checkingScore) return;
+    setCheckingScore(true);
+    try {
+      const checked = await recheck({ data: { profile: result.optimizedProfile, jobDescription: jd, requestId: newGenerationRequestId() } });
+      setRecheckedScore(checked.atsMatchScore);
+      await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
+      toast.success("Alignment re-checked against the current resume.");
+    } catch (err) {
+      toast.error(err instanceof Error ? parseAiLimitError(err.message)?.message ?? err.message : "Could not re-check the score.");
+    } finally {
+      setCheckingScore(false);
+    }
+  };
+
+  const saveResumeDraft = () => {
+    if (!result || !resumeDraft) return;
+    const checked = validateOptimizedProfile(profile, resumeDraft);
+    if (checked.personal.summary !== resumeDraft.personal.summary || checked.experience.some((entry, i) => entry.bullets.some((bullet, j) => bullet !== resumeDraft.experience[i]?.bullets[j]))) {
+      toast.warning("Some edits add information not verified in its source. Update your profile first, or rephrase using supplied facts.");
+      return;
+    }
+    setResult({ ...result, optimizedProfile: checked });
+    setRecheckedScore(null);
+    setResumeDraft(null);
+    setEditingResume(false);
+    toast.success("Resume wording saved. Re-check the score after your edits.");
   };
 
   const handleDownload = async () => {
@@ -564,6 +605,7 @@ function Index() {
         </div>
       </header>
 
+      {loading && <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-6 pt-5 print:hidden"><div className="flex items-center gap-3 border-b border-border pb-4 text-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Analyzing the role and your profile, optimizing verified content, then validating and scoring the finished resume…</span></div></div>}
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
         <section className="space-y-4 print:hidden">
           {!isSubscribed && !isAdminAccess && gateStatus && (
@@ -725,11 +767,11 @@ function Index() {
             <Card className="p-5 print:hidden">
               {result.optimization && (
                 <div className="mb-5 space-y-5 border-b border-border pb-5">
-                  <h2 className="text-base font-semibold">Job-specific resume results</h2>
+                   <h2 className="text-base font-semibold">Resume optimization complete</h2>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <AtsScoreBadge score={result.optimization.profileFit} title="Profile ↔ JD fit" unit="%" caption="Verified background; rewriting does not change this score" />
                     <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
-                    <AtsScoreBadge score={result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption="After optimization; not a guaranteed external ATS score" />
+                     <AtsScoreBadge score={recheckedScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedScore !== null ? "Re-checked after your edits; not an external ATS score" : result.optimization.readability?.needsReview?.includes("Score pending re-check") ? "Previous score; re-check after editing" : "Calculated after final validation; not an external ATS score"} />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -752,12 +794,18 @@ function Index() {
                     </div>
                   </div>
                   {result.optimization.improvements.length > 0 && <div><h3 className="text-sm font-semibold">Resume improvements</h3><ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">{result.optimization.improvements.map((tip, i) => <li key={i}>{tip}</li>)}</ul></div>}
+                   {result.optimization.learningRoadmap && result.optimization.learningRoadmap.length > 0 && <div><h3 className="text-sm font-semibold">Suggested learning path</h3><div className="mt-2 grid gap-3 sm:grid-cols-2">{result.optimization.learningRoadmap.map((step) => <div key={step.skill} className="border-l-2 border-border pl-3 text-xs"><p className="font-semibold">{step.skill} · {step.priority} priority</p><p className="mt-1 text-muted-foreground">{step.why}</p><p className="mt-1">{step.learning}</p><p className="mt-1">{step.practice}</p></div>)}</div></div>}
+                   <div className="text-xs"><h3 className="text-sm font-semibold">Readability review</h3><p className="mt-1 text-muted-foreground">{result.optimization.readability?.fixed.length ? `${result.optimization.readability.fixed.length} formatting issue(s) corrected automatically.` : "No fixable formatting issues detected."} Review the remaining items before sharing.</p>{[...auditResumeReadability(result.optimizedProfile).map((item) => item.message), ...atsWarnings(templateConfig)].length > 0 ? <ul className="mt-2 list-disc pl-5 text-muted-foreground">{[...auditResumeReadability(result.optimizedProfile).map((item) => item.message), ...atsWarnings(templateConfig)].map((item, i) => <li key={i}>{item}</li>)}</ul> : <p className="mt-1 text-muted-foreground">No detectable content or layout issues remain.</p>}</div>
+                   <p className="text-xs text-muted-foreground">The job description, source profile and {currentResumeText ? "imported resume" : "current profile resume"} were compared; verified content was prioritized, readability checked and the final alignment calculated. PDF and DOCX depend on your chosen layout and should be reviewed before sharing.</p>
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => document.getElementById("resume-print-area")?.scrollIntoView({ behavior: "smooth" })}>Review resume</Button>
                     <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit source profile</Button>
+                     <Button variant="outline" size="sm" onClick={() => { setEditingResume((value) => !value); setResumeDraft(editingResume ? null : structuredClone(result.optimizedProfile)); }}>{editingResume ? "Cancel edits" : "Edit resume"}</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
-                    <Button variant="outline" size="sm" onClick={() => void handleExportDocx()}>Export DOCX</Button>
+                     <Button variant="outline" size="sm" onClick={() => void handleExportDocx()} disabled={exportingDocx}>Export DOCX</Button>
+                     <Button variant="outline" size="sm" onClick={() => void handleRecheck()} disabled={checkingScore}>{checkingScore ? "Re-checking…" : "Re-check score"}</Button>
                   </div>
+                   {editingResume && resumeDraft && <div className="space-y-3 border-t border-border pt-4"><h3 className="text-sm font-semibold">Edit verified wording</h3><p className="text-xs text-muted-foreground">Edits can rephrase supplied facts only. A re-check uses one analysis allowance; scores remain from the last completed check until then.</p><label className="block text-xs font-medium">Summary<Textarea className="mt-1" value={resumeDraft.personal.summary} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, personal: { ...draft.personal, summary: event.target.value } } : draft)} /></label>{resumeDraft.experience.map((entry, i) => <div key={`${entry.title}-${entry.company}-${i}`} className="space-y-2"><p className="text-xs font-semibold">{entry.title || entry.company}</p>{entry.bullets.map((bullet, j) => <label key={j} className="block text-xs">Bullet {j + 1}<Textarea className="mt-1" value={bullet} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, experience: draft.experience.map((item, index) => index === i ? { ...item, bullets: item.bullets.map((text, bulletIndex) => bulletIndex === j ? event.target.value : text) } : item) } : draft)} /></label>)}</div>)}<Button size="sm" onClick={saveResumeDraft}>Save verified edits</Button>{auditResumeReadability(resumeDraft).length > 0 && <p className="text-xs text-muted-foreground">Review remaining missing details in your source profile before sharing.</p>}</div>}
                 </div>
               )}
               <div className="grid gap-4 sm:grid-cols-2">
