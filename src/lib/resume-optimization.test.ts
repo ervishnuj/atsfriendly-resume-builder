@@ -90,3 +90,38 @@ describe("truthful resume optimization", () => {
     expect(auditResumeReadability(repaired).map((issue) => issue.code)).toContain("date-0");
   });
 });
+
+describe("synthetic job and candidate scenarios", () => {
+  const project = { title: "Java project", company: "Personal", dateRange: "2024", bullets: ["Built Java services with Spring Boot."] };
+  const oldRole = { title: "Assistant", company: "Old Co", dateRange: "2018", bullets: ["Prepared HTML pages."] };
+  const cases: { name: string; candidate: ProfileInput; current: string; jd: AtsExtraction; expectedGap: string[]; firstEntry?: string }[] = [
+    { name: "strong candidate and strong resume", candidate: source, current: profileToResumeText(source), jd: { ...extraction, requiredSkills: ["Java", "Spring Boot"], preferredSkills: [] }, expectedGap: [] },
+    { name: "strong profile and weak current resume", candidate: source, current: "Developer Java", jd: extraction, expectedGap: ["AWS"] },
+    { name: "strong experience with missing resume keywords", candidate: source, current: "Developer at Example Co", jd: extraction, expectedGap: ["AWS"] },
+    { name: "strong project and weak experience", candidate: { ...source, experience: [oldRole, project] }, current: "Assistant HTML", jd: extraction, expectedGap: ["AWS"], firstEntry: "Java project" },
+    { name: "fresher with a verified project", candidate: { ...source, experience: [project] }, current: "Computing graduate", jd: extraction, expectedGap: ["AWS"], firstEntry: "Java project" },
+    { name: "genuine skill gap", candidate: source, current: profileToResumeText(source), jd: { ...extraction, requiredSkills: ["Java", "Kubernetes"] }, expectedGap: ["Kubernetes"] },
+    { name: "irrelevant old experience", candidate: { ...source, experience: [oldRole, source.experience[0]] }, current: "Assistant HTML", jd: extraction, expectedGap: ["AWS"], firstEntry: "Developer" },
+    { name: "multiple relevant projects", candidate: { ...source, experience: [oldRole, project, { ...project, title: "Spring Boot API", company: "Open Source" }] }, current: "Assistant HTML", jd: extraction, expectedGap: ["AWS"], firstEntry: "Java project" },
+    { name: "ATS-unfriendly bullet markers", candidate: { ...source, experience: [{ ...source.experience[0], bullets: ["•  Built   Java services with Spring Boot."] }] }, current: "Developer Java", jd: extraction, expectedGap: ["AWS"] },
+    { name: "required plus preferred skills", candidate: source, current: "Developer Java", jd: { ...extraction, preferredSkills: ["MySQL", "Docker"] }, expectedGap: ["AWS", "Docker"] },
+  ];
+
+  it.each(cases)("keeps $name truthful and scores the evidence", ({ candidate, current, jd, expectedGap, firstEntry }) => {
+    const original = profileToResumeText(candidate);
+    const groups = classifyRequirements(jd, original, current);
+    expect(groups.potentialGaps).toEqual(expectedGap);
+    const reordered = prioritizeVerifiedExperience(candidate, jd);
+    const validated = repairResumeReadability(validateOptimizedProfile(candidate, reordered));
+    expect(validated.experience).toHaveLength(candidate.experience.length);
+    if (firstEntry) expect(validated.experience[0].title).toBe(firstEntry);
+    expect(JSON.stringify(validated)).not.toContain("Kubernetes");
+    const profileFit = computeAtsScores(original, "Java Spring Boot AWS Docker", jd).atsMatchScore;
+    const currentScore = computeAtsScores(current, "Java Spring Boot AWS Docker", jd).atsMatchScore;
+    const finalScore = computeAtsScores(profileToResumeText(validated), "Java Spring Boot AWS Docker", jd).atsMatchScore;
+    expect(profileFit).toBe(computeAtsScores(original, "Java Spring Boot AWS Docker", jd).atsMatchScore);
+    expect(finalScore).toBeGreaterThanOrEqual(currentScore);
+    expect(groups.potentialGaps.every((gap) => !candidate.skills.some((group) => group.items.includes(gap)))).toBe(true);
+    expect(auditResumeReadability(repairResumeReadability(validated)).some((issue) => issue.code.startsWith("spacing"))).toBe(false);
+  });
+});

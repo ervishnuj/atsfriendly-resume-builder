@@ -44,7 +44,7 @@ import { ATS_CLASSIC, BUILTIN_TEMPLATES, atsWarnings, type TemplateConfig } from
 import { buildResumeDocx } from "@/lib/resume-docx";
 import type { ProfileImportIssue } from "@/lib/profile-io";
 import { analyzeAtsScore, generateResume, getMyAiUsage } from "@/lib/resume.functions";
-import type { OptimizedResume } from "@/lib/resume.functions";
+import type { OptimizedResume, AtsAnalysis } from "@/lib/resume.functions";
 import { auditResumeReadability, validateOptimizedProfile } from "@/lib/resume-optimization";
 import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
@@ -88,7 +88,8 @@ function Index() {
   const [currentResumeText, setCurrentResumeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingScore, setCheckingScore] = useState(false);
-  const [recheckedScore, setRecheckedScore] = useState<number | null>(null);
+  const [recheckedAnalysis, setRecheckedAnalysis] = useState<AtsAnalysis | null>(null);
+  const [scorePending, setScorePending] = useState(false);
   const [editingResume, setEditingResume] = useState(false);
   const [resumeDraft, setResumeDraft] = useState<OptimizedResume["optimizedProfile"] | null>(null);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
@@ -259,7 +260,8 @@ function Index() {
     setProfile(emptyProfile);
     setJd("");
     setResult(null);
-    setRecheckedScore(null);
+    setRecheckedAnalysis(null);
+    setScorePending(false);
     setEditingResume(false);
     setResumeDraft(null);
     setCurrentResumeText("");
@@ -400,7 +402,7 @@ function Index() {
       return;
     }
     setLoading(true);
-    setRecheckedScore(null);
+    setRecheckedAnalysis(null);
     setEditingResume(false);
     setResumeDraft(null);
     const requestId = newGenerationRequestId();
@@ -433,11 +435,12 @@ function Index() {
   };
 
   const handleRecheck = async () => {
-    if (!result || checkingScore) return;
+    if (!result || checkingScore || editingResume) return;
     setCheckingScore(true);
     try {
       const checked = await recheck({ data: { profile: result.optimizedProfile, jobDescription: jd, requestId: newGenerationRequestId() } });
-      setRecheckedScore(checked.atsMatchScore);
+      setRecheckedAnalysis(checked);
+      setScorePending(false);
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success("Alignment re-checked against the current resume.");
     } catch (err) {
@@ -455,7 +458,8 @@ function Index() {
       return;
     }
     setResult({ ...result, optimizedProfile: checked });
-    setRecheckedScore(null);
+    setRecheckedAnalysis(null);
+    setScorePending(true);
     setResumeDraft(null);
     setEditingResume(false);
     toast.success("Resume wording saved. Re-check the score after your edits.");
@@ -768,10 +772,13 @@ function Index() {
               {result.optimization && (
                 <div className="mb-5 space-y-5 border-b border-border pb-5">
                    <h2 className="text-base font-semibold">Resume optimization complete</h2>
+                   <ol className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground" aria-label="Completed optimization steps">
+                     <li>✓ Role requirements compared</li><li>✓ Profile evidence verified</li><li>✓ Resume wording optimized</li><li>✓ Readability reviewed</li><li>✓ Final alignment calculated</li>
+                   </ol>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <AtsScoreBadge score={result.optimization.profileFit} title="Profile ↔ JD fit" unit="%" caption="Verified background; rewriting does not change this score" />
                     <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
-                     <AtsScoreBadge score={recheckedScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedScore !== null ? "Re-checked after your edits; not an external ATS score" : result.optimization.readability?.needsReview?.includes("Score pending re-check") ? "Previous score; re-check after editing" : "Calculated after final validation; not an external ATS score"} />
+                     {scorePending ? <div role="status" className="border border-border p-3 text-sm text-muted-foreground">Alignment score pending re-check after edits.</div> : <AtsScoreBadge score={recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedAnalysis ? "Re-checked after your edits; not an external ATS score" : "Calculated after final validation; not an external ATS score"} />}
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -803,20 +810,20 @@ function Index() {
                      <Button variant="outline" size="sm" onClick={() => { setEditingResume((value) => !value); setResumeDraft(editingResume ? null : structuredClone(result.optimizedProfile)); }}>{editingResume ? "Cancel edits" : "Edit resume"}</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
                      <Button variant="outline" size="sm" onClick={() => void handleExportDocx()} disabled={exportingDocx}>Export DOCX</Button>
-                     <Button variant="outline" size="sm" onClick={() => void handleRecheck()} disabled={checkingScore}>{checkingScore ? "Re-checking…" : "Re-check score"}</Button>
+                      <Button variant="outline" size="sm" onClick={() => void handleRecheck()} disabled={checkingScore || editingResume}>{checkingScore ? "Re-checking…" : "Re-check score"}</Button>
                   </div>
                    {editingResume && resumeDraft && <div className="space-y-3 border-t border-border pt-4"><h3 className="text-sm font-semibold">Edit verified wording</h3><p className="text-xs text-muted-foreground">Edits can rephrase supplied facts only. A re-check uses one analysis allowance; scores remain from the last completed check until then.</p><label className="block text-xs font-medium">Summary<Textarea className="mt-1" value={resumeDraft.personal.summary} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, personal: { ...draft.personal, summary: event.target.value } } : draft)} /></label>{resumeDraft.experience.map((entry, i) => <div key={`${entry.title}-${entry.company}-${i}`} className="space-y-2"><p className="text-xs font-semibold">{entry.title || entry.company}</p>{entry.bullets.map((bullet, j) => <label key={j} className="block text-xs">Bullet {j + 1}<Textarea className="mt-1" value={bullet} onChange={(event) => setResumeDraft((draft) => draft ? { ...draft, experience: draft.experience.map((item, index) => index === i ? { ...item, bullets: item.bullets.map((text, bulletIndex) => bulletIndex === j ? event.target.value : text) } : item) } : draft)} /></label>)}</div>)}<Button size="sm" onClick={saveResumeDraft}>Save verified edits</Button>{auditResumeReadability(resumeDraft).length > 0 && <p className="text-xs text-muted-foreground">Review remaining missing details in your source profile before sharing.</p>}</div>}
                 </div>
               )}
-              <div className="grid gap-4 sm:grid-cols-2">
+              {scorePending ? <p role="status" className="text-sm text-muted-foreground">ATS scores and keyword breakdown are pending re-check. Your edited resume remains available to review and export.</p> : <><div className="grid gap-4 sm:grid-cols-2">
                 <AtsScoreBadge
-                  score={result.atsScore}
+                  score={recheckedAnalysis?.atsScore ?? result.atsScore}
                   title="ATS Score"
                   caption="Overall ATS-readiness of your resume"
                 />
-                {typeof result.atsMatchScore === "number" && (
+                {typeof (recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore) === "number" && (
                   <AtsScoreBadge
-                    score={result.atsMatchScore}
+                    score={recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore ?? 0}
                     title="ATS Match Score"
                     unit="%"
                     caption="How closely this resume matches the job description"
@@ -825,16 +832,16 @@ function Index() {
               </div>
               {result.ats && (
                 <div className="mt-4">
-                  <AtsBreakdownPanel breakdown={result.ats.breakdown} matchBreakdown={result.ats.matchBreakdown} />
+                  <AtsBreakdownPanel breakdown={recheckedAnalysis?.breakdown ?? result.ats.breakdown} matchBreakdown={recheckedAnalysis?.matchBreakdown ?? result.ats.matchBreakdown} />
                 </div>
               )}
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <div className="mb-1 text-xs font-medium text-muted-foreground">
-                    Matching Keywords ({result.matchingKeywords.length})
+                    Matching Keywords ({(recheckedAnalysis?.matchedKeywords ?? result.matchingKeywords).length})
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {result.matchingKeywords.map((k) => (
+                    {(recheckedAnalysis?.matchedKeywords ?? result.matchingKeywords).map((k) => (
                       <Badge
                         key={k}
                         variant="secondary"
@@ -847,10 +854,10 @@ function Index() {
                 </div>
                 <div>
                   <div className="mb-1 text-xs font-medium text-muted-foreground">
-                    Missing Keywords ({result.missingKeywords.length})
+                    Missing Keywords ({(recheckedAnalysis?.missingKeywords ?? result.missingKeywords).length})
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {result.missingKeywords.map((k) => (
+                    {(recheckedAnalysis?.missingKeywords ?? result.missingKeywords).map((k) => (
                       <Badge
                         key={k}
                         variant="secondary"
@@ -861,7 +868,7 @@ function Index() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </div></>}
             </Card>
           )}
 
