@@ -402,7 +402,7 @@ function Index() {
       return;
     }
     setLoading(true);
-    setRecheckedScore(null);
+    setRecheckedAnalysis(null);
     setEditingResume(false);
     setResumeDraft(null);
     const requestId = newGenerationRequestId();
@@ -820,16 +820,16 @@ function Index() {
                 />
                 {typeof (recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore) === "number" && (
                   <AtsScoreBadge
-                    score={recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore}
+                    score={recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore ?? 0}
                     title="ATS Match Score"
                     unit="%"
                     caption="How closely this resume matches the job description"
                   />
                 )}
               </div>
-              {(recheckedAnalysis ?? result.ats) && (
+              {result.ats && (
                 <div className="mt-4">
-                  <AtsBreakdownPanel breakdown={(recheckedAnalysis ?? result.ats).breakdown} matchBreakdown={(recheckedAnalysis ?? result.ats).matchBreakdown} />
+                  <AtsBreakdownPanel breakdown={recheckedAnalysis?.breakdown ?? result.ats.breakdown} matchBreakdown={recheckedAnalysis?.matchBreakdown ?? result.ats.matchBreakdown} />
                 </div>
               )}
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
