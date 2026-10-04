@@ -25,6 +25,6 @@
 - [x] Add truthful, validated optimization and before/after scoring within the existing generation allowance
 - [x] Explain supported matches, underrepresented evidence, potential gaps, and changes in the result
 - [x] Add synthetic regression tests and verify without making paid AI requests
-- [ ] Complete readability audit, auto-repair and final re-validation with factual review prompts
-- [ ] Add learning roadmap, final result review/edit/re-check and progress feedback
-- [ ] Test synthetic project, fresher, gap, and formatting scenarios without paid AI
+- [x] Complete readability audit, auto-repair and final re-validation with factual review prompts
+- [x] Add learning roadmap, final result review/edit/re-check and honest progress feedback
+- [x] Test synthetic project, fresher, gap, and formatting scenarios without paid AI

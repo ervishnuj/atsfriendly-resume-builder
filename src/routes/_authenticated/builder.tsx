@@ -772,6 +772,9 @@ function Index() {
               {result.optimization && (
                 <div className="mb-5 space-y-5 border-b border-border pb-5">
                    <h2 className="text-base font-semibold">Resume optimization complete</h2>
+                   <ol className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground" aria-label="Completed optimization steps">
+                     <li>✓ Role requirements compared</li><li>✓ Profile evidence verified</li><li>✓ Resume wording optimized</li><li>✓ Readability reviewed</li><li>✓ Final alignment calculated</li>
+                   </ol>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <AtsScoreBadge score={result.optimization.profileFit} title="Profile ↔ JD fit" unit="%" caption="Verified background; rewriting does not change this score" />
                     <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
