@@ -36,7 +36,7 @@ export function classifySkill(profile: ProfileInput, term: string, relevant = tr
   const skillText = skillGroups.flatMap((group) => group.items.filter((item) => mentions(item, term)).map((item) => `${group.category}: ${item}`));
   const learning = [summary, ...skillText].map((text) => ({ status: learningSignal(text, term), text })).find((item) => item.status);
   const entries = profile.experience.filter((entry) => mentions([entry.title, entry.company, ...entry.bullets].join(" "), term));
-  const projectEntry = entries.find((entry) => project.test(`${entry.title} ${entry.company}`));
+  const projectEntry = entries.find((entry) => project.test(`${entry.title} ${entry.company}`) && entry.bullets.some((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)));
   const professionalEntry = entries.find((entry) => !project.test(`${entry.title} ${entry.company}`) && entry.bullets.some((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)));
   if (professionalEntry) return evidence("verifiedExperience", professionalEntry.bullets.find((bullet) => mentions(bullet, term)) ?? professionalEntry.title, learning?.status ?? undefined);
   if (projectEntry) return evidence("projectExposure", projectEntry.bullets.find((bullet) => mentions(bullet, term)) ?? `${projectEntry.title} — ${projectEntry.company}`, learning?.status ?? undefined);
