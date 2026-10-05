@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SkillEvidence } from "./skill-status";
 
 export const ExperienceSchema = z.object({
   title: z.string().default(""),
@@ -51,7 +52,7 @@ export type OptimizedResume = {
   optimization?: {
     profileFit: number;
     currentAlignment: number;
-    requirements: { strong: string[]; underrepresented: string[]; potentialGaps: string[] };
+    requirements: { strong: string[]; underrepresented: string[]; potentialGaps: string[]; details?: SkillEvidence[] };
     changes: { change: string; why: string }[];
     improvements: string[];
     learningRoadmap?: { skill: string; why: string; priority: "High" | "Medium"; learning: string; practice: string }[];
