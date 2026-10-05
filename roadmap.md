@@ -28,3 +28,10 @@
 - [x] Complete readability audit, auto-repair and final re-validation with factual review prompts
 - [x] Add learning roadmap, final result review/edit/re-check and honest progress feedback
 - [x] Test synthetic project, fresher, gap, and formatting scenarios without paid AI
+
+# Learning and training-aware resume optimization
+
+- [ ] Classify JD skills by verified work, project, skill, learning, training, or gap using source evidence
+- [ ] Preserve truthful labels in generated resume and explain each requirement
+- [ ] Apply partial fit weighting for learning/training without changing generic ATS checks
+- [ ] Test synthetic statuses, existing-resume comparisons, and export content without paid AI or credits
