@@ -161,7 +161,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                     return next;
                   })
                 }
-                placeholder="Comma-separated (React, TypeScript, Node.js)"
+                 placeholder="Comma-separated (Java, Spring Boot — Currently Learning)"
               />
               {err(`skills.${i}.items`) && <ErrorText>{err(`skills.${i}.items`)}</ErrorText>}
             </div>
@@ -178,6 +178,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
           >
             <Plus className="mr-1 h-4 w-4" /> Add category
           </Button>
+           <p className="text-xs text-muted-foreground">For skills you are studying, add “— Currently Learning” or “— Currently Training” to the skill. Add real projects under Experience / Projects.</p>
         </AccordionContent>
       </AccordionItem>
 

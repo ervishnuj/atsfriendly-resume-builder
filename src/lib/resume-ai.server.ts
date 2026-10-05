@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { auditResumeReadability, classifyRequirements, describeChanges, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, labelLearningSkills, learningAwareWeights, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -92,7 +92,8 @@ export async function generateOptimizedResume(
 ): Promise<OptimizedResume> {
   const originalText = profileToResumeText(profile);
   const extraction = await extractForOptimization(originalText, jobDescription);
-  const before = computeAtsScores(originalText, jobDescription, extraction);
+  const weights = learningAwareWeights(profile, extraction);
+  const before = computeAtsScores(originalText, jobDescription, extraction, weights);
   const currentText = currentResumeText?.trim() || originalText;
   const currentExtraction = currentText === originalText ? extraction : await extractForOptimization(currentText, jobDescription);
   // Keep the job's requirements fixed across all three scores. Only resume evidence changes.
@@ -106,7 +107,7 @@ export async function generateOptimizedResume(
     minYearsExperience: extraction.minYearsExperience,
     educationRequirements: extraction.educationRequirements,
   });
-  const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, sameRequirements(currentExtraction));
+  const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, sameRequirements(currentExtraction), weights);
   const sourceReadability = auditResumeReadability(profile);
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
@@ -118,6 +119,7 @@ profile), education, JD-specific keywords and ATS-friendly bullet points.
 - Keep bullets under ~30 words, starting with a strong action verb.
 - Preserve all experience entries and bullet counts; reorder entries for relevance and rewrite their bullets without adding any unverified numbers, metrics, technologies or claims. Contact details are intentionally omitted and restored locally after validation.
 - Reorder only existing skills. Do not introduce new skills or unsupported job requirements. Projects or certifications may only be presented when explicitly supplied as experience entries.
+- Distinguish professional use, named skills, project use, currently learning and currently training. Never turn learning or training into professional experience. Mention ongoing study in the summary only when the candidate explicitly supplied it. Do not place studied-only skills inside an employer's bullets. Preserve existing learning/training qualifiers.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
     userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
@@ -127,12 +129,12 @@ Return JSON only.`,
   // Fix only verifiable presentation issues; score the exact repaired artifact.
   const repaired = repairResumeReadability(validated);
   result.optimizedProfile = prioritizeVerifiedExperience(repaired, extraction);
-  result.optimizedProfile = repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile));
+  result.optimizedProfile = labelLearningSkills(profile, repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile)), [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
   const finalReadability = auditResumeReadability(result.optimizedProfile);
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
   const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
-  const after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction));
+  const after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction), weights);
   result.atsScore = clamp(after.atsScore);
   result.atsMatchScore = after.atsMatchScore;
   result.ats = {
@@ -146,10 +148,10 @@ Return JSON only.`,
   result.optimization = {
     profileFit: before.atsMatchScore,
     currentAlignment: currentScore.atsMatchScore,
-    requirements: classifyRequirements(extraction, originalText, currentText),
+    requirements: classifyRequirements(extraction, originalText, currentText, profile),
     changes: describeChanges(profile, result.optimizedProfile, { before: currentScore, after }),
     improvements: currentScore.recommendations,
-    learningRoadmap: planForGaps(extraction, classifyRequirements(extraction, originalText, currentText).potentialGaps),
+    learningRoadmap: planForGaps(extraction, classifyRequirements(extraction, originalText, currentText, profile).potentialGaps),
     readability: {
       fixed: sourceReadability.filter((item) => !finalReadability.some((remaining) => remaining.code === item.code)).map((item) => item.message),
       needsReview: finalReadability.map((item) => item.message),

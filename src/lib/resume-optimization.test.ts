@@ -4,6 +4,10 @@ import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
 import { buildResumeGenerationPayload } from "./ai-payloads";
+import { classifyJobSkills, classifySkill, labelLearningSkills } from "./skill-status";
+import { buildResumeDocx } from "./resume-docx";
+import { ATS_CLASSIC } from "./resume-templates";
+import { unzipSync } from "fflate";
 
 const source: ProfileInput = {
   personal: { fullName: "Casey Sample", title: "Developer", email: "casey@example.test", phone: "555 010 4567", linkedin: "", github: "", portfolio: "", summary: "Developer with Java experience." },
@@ -123,5 +127,56 @@ describe("synthetic job and candidate scenarios", () => {
     expect(finalScore).toBeGreaterThanOrEqual(currentScore);
     expect(groups.potentialGaps.every((gap) => !candidate.skills.some((group) => group.items.includes(gap)))).toBe(true);
     expect(auditResumeReadability(repairResumeReadability(validated)).some((issue) => issue.code.startsWith("spacing"))).toBe(false);
+  });
+});
+
+describe("learning and training-aware optimization (synthetic, no AI or credits)", () => {
+  const candidate: ProfileInput = {
+    ...source,
+    personal: { ...source.personal, summary: "Java developer currently learning Spring Boot. Currently training in AWS." },
+    skills: [{ category: "Technical", items: ["Java", "Spring Boot — Currently Learning", "AWS — Currently Training", "Kafka — Currently Learning", "Docker — Currently Training"] }],
+    experience: [{ ...source.experience[0], bullets: ["Built Java services with MySQL."] }],
+  };
+  const jd = { ...extraction, requiredSkills: ["Java", "Spring Boot", "AWS", "Kafka", "Docker", "Kubernetes"], preferredSkills: [] };
+  it("separates professional, learning, training, multiple studies and missing skills", () => {
+    expect(classifyJobSkills(candidate, jd.requiredSkills).map((item) => item.status)).toEqual([
+      "verifiedExperience", "currentlyLearning", "currentlyTraining", "currentlyLearning", "currentlyTraining", "potentialGap",
+    ]);
+    const groups = classifyRequirements(jd, profileToResumeText(candidate), "Java developer", candidate);
+    expect(groups.potentialGaps).toEqual(["Kubernetes"]);
+    expect(groups.underrepresented).toContain("Spring Boot");
+    expect(groups.details?.find((item) => item.term === "AWS")?.treatment).toBe("AWS — Currently Training");
+  });
+  it("prefers verified project evidence without promoting it to professional use", () => {
+    const withProject = { ...candidate, experience: [...candidate.experience, { title: "Spring Boot project", company: "Personal", dateRange: "2025", bullets: ["Built a Spring Boot demo."] }] };
+    expect(classifySkill(withProject, "Spring Boot")).toMatchObject({ status: "projectExposure", secondary: "currentlyLearning" });
+    expect(classifySkill(candidate, "React").status).toBe("potentialGap");
+    expect(classifySkill(candidate, "Java", false).status).toBe("notRelevant");
+  });
+  it("does not promote studying in a role to professional experience or invent course topics", () => {
+    const studyingAtWork = { ...candidate, experience: [{ ...source.experience[0], bullets: ["Currently learning Spring Boot at work."] }] };
+    expect(classifySkill(studyingAtWork, "Spring Boot").status).toBe("currentlyLearning");
+    expect(classifySkill({ ...candidate, personal: { ...candidate.personal, summary: "Currently undergoing Java Full Stack training." }, skills: [] }, "REST API").status).toBe("potentialGap");
+  });
+  it("weights JD fit partially without inflating professional experience or generic ATS checks", () => {
+    const text = profileToResumeText(candidate);
+    const full = computeAtsScores(text, "Java Spring Boot AWS Kafka Docker Kubernetes", jd);
+    const weighted = computeAtsScores(text, "Java Spring Boot AWS Kafka Docker Kubernetes", jd, new Map([
+      ["java", 1], ["spring boot", 0.35], ["aws", 0.35], ["kafka", 0.35], ["docker", 0.35], ["kubernetes", 0],
+    ]));
+    expect(weighted.atsMatchScore).toBeLessThan(full.atsMatchScore);
+    expect(weighted.atsScore).toBe(full.atsScore);
+  });
+  it("keeps labels visible in resume text and DOCX, without fabricated role bullets", async () => {
+    const proposed = { ...candidate, skills: [{ category: "Technical", items: ["Java", "Spring Boot", "AWS", "Docker"] }], experience: [{ ...candidate.experience[0], bullets: ["Built Java services with AWS."] }] };
+    const safe = labelLearningSkills(candidate, validateOptimizedProfile(candidate, proposed), jd.requiredSkills);
+    expect(safe.experience[0].bullets).toEqual(candidate.experience[0].bullets);
+    expect(profileToResumeText(safe)).toContain("Currently Learning: Spring Boot, Kafka");
+    expect(profileToResumeText(safe)).toContain("Currently Training: AWS, Docker");
+    const blob = await buildResumeDocx({ atsScore: 0, matchingKeywords: [], missingKeywords: [], optimizedProfile: safe }, ATS_CLASSIC);
+    const content = new TextDecoder().decode(unzipSync(new Uint8Array(await blob.arrayBuffer()))["word/document.xml"]);
+    expect(content).toContain("Currently Learning");
+    expect(content).toContain("Spring Boot");
+    expect(content).not.toContain("Built Java services with AWS");
   });
 });
