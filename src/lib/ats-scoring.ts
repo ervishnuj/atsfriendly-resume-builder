@@ -226,6 +226,7 @@ export function computeAtsScores(
   resumeText: string,
   jobDescription: string,
   raw: AtsExtraction,
+  skillWeights?: ReadonlyMap<string, number>,
 ): AtsScoreResult {
   const resumeNorm = normalizeText(resumeText);
   const has = buildPresence(resumeNorm, raw);
@@ -239,6 +240,8 @@ export function computeAtsScores(
   const req = coverage(required, has);
   const tech = coverage(technical, has);
   const pref = coverage(preferred, has);
+  // Structured, source-verified evidence affects JD fit only. Generic ATS checks keep their historical formula.
+  const weightedCoverage = (terms: string[]) => terms.length ? terms.reduce((sum, term) => sum + (has(term) ? (skillWeights?.get(normalizeTerm(term)) ?? 1) : 0), 0) / terms.length : 0;
 
   /* ---- ATS Match Score (JD fit) ---- */
   const responsibilities = dedupe(raw.responsibilities || []);
@@ -283,8 +286,8 @@ export function computeAtsScores(
       : jdTitleTokens.filter((t) => containsTerm(candTitleText, t)).length / jdTitleTokens.length;
 
   const matchBreakdown: AtsMatchBreakdown = {
-    requiredSkills: round(MATCH_MAX.requiredSkills * req.ratio),
-    technicalKeywords: round(MATCH_MAX.technicalKeywords * tech.ratio),
+    requiredSkills: round(MATCH_MAX.requiredSkills * weightedCoverage(required)),
+    technicalKeywords: round(MATCH_MAX.technicalKeywords * weightedCoverage(technical)),
     responsibilities: round(MATCH_MAX.responsibilities * respRatio),
     experience: round(MATCH_MAX.experience * yearsRatio),
     education: round(MATCH_MAX.education * eduRatio),

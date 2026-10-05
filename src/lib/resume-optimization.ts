@@ -1,11 +1,13 @@
 import type { AtsExtraction, AtsScoreResult } from "./ats-scoring";
 import { containsTerm, normalizeTerm, normalizeText } from "./ats-scoring";
 import type { ProfileInput } from "./resume-schemas";
+import { classifyJobSkills, labelLearningSkills, type SkillEvidence } from "./skill-status";
 
 export type RequirementGroup = {
   strong: string[];
   underrepresented: string[];
   potentialGaps: string[];
+  details?: SkillEvidence[];
 };
 
 export type LearningStep = { skill: string; why: string; priority: "High" | "Medium"; learning: string; practice: string };
@@ -60,11 +62,13 @@ export function classifyRequirements(
   extraction: AtsExtraction,
   sourceText: string,
   currentText: string,
+  profile?: ProfileInput,
 ): RequirementGroup {
   const source = normalizeText(sourceText);
   const current = normalizeText(currentText);
   const seen = new Set<string>();
   const groups: RequirementGroup = { strong: [], underrepresented: [], potentialGaps: [] };
+  if (profile) groups.details = classifyJobSkills(profile, [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
   for (const term of [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]) {
     const key = normalizeTerm(term);
     if (!key || seen.has(key)) continue;
@@ -72,12 +76,22 @@ export function classifyRequirements(
     const evidence = extraction.skillEvidence.find((item) => normalizeTerm(item.term) === key);
     const quote = normalizeText(evidence?.evidence ?? "").trim();
     const supported = containsTerm(source, term) || Boolean(evidence?.present && quote.length >= 4 && source.includes(quote));
-    if (!supported) groups.potentialGaps.push(term);
+    const status = groups.details?.find((item) => normalizeTerm(item.term) === key);
+    if (status?.status === "potentialGap" || (!status && !supported)) groups.potentialGaps.push(term);
+    else if (status && (status.status === "currentlyLearning" || status.status === "currentlyTraining") && !containsTerm(current, term)) groups.underrepresented.push(term);
     else if (containsTerm(current, term)) groups.strong.push(term);
     else groups.underrepresented.push(term);
   }
   return groups;
 }
+
+export function learningAwareWeights(profile: ProfileInput, extraction: AtsExtraction): Map<string, number> {
+  const weights: Record<SkillEvidence["status"], number> = { verifiedExperience: 1, projectExposure: 0.8, verifiedSkill: 0.7, currentlyTraining: 0.35, currentlyLearning: 0.35, potentialGap: 0, notRelevant: 0 };
+  return new Map(classifyJobSkills(profile, [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords])
+    .map((item) => [normalizeTerm(item.term), weights[item.status]]));
+}
+
+export { labelLearningSkills };
 
 /** Restore all identity, claims and skills from the source. Unsafe rewrites fall back to source wording. */
 export function validateOptimizedProfile(source: ProfileInput, proposed: ProfileInput): ProfileInput {
