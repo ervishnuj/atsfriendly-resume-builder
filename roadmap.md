@@ -31,7 +31,7 @@
 
 # Learning and training-aware resume optimization
 
-- [ ] Classify JD skills by verified work, project, skill, learning, training, or gap using source evidence
-- [ ] Preserve truthful labels in generated resume and explain each requirement
-- [ ] Apply partial fit weighting for learning/training without changing generic ATS checks
-- [ ] Test synthetic statuses, existing-resume comparisons, and export content without paid AI or credits
+- [x] Classify JD skills by verified work, project, skill, learning, training, or gap using source evidence
+- [x] Preserve truthful labels in generated resume and explain each requirement
+- [x] Apply partial fit weighting for learning/training without changing generic ATS checks
+- [x] Test synthetic statuses, existing-resume comparisons, and export content without paid AI or credits
