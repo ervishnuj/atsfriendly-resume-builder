@@ -7,7 +7,7 @@ import { buildResumeGenerationPayload } from "./ai-payloads";
 import { classifyJobSkills, classifySkill, labelLearningSkills } from "./skill-status";
 import { buildResumeDocx } from "./resume-docx";
 import { ATS_CLASSIC } from "./resume-templates";
-import { unzipSync } from "fflate";
+import JSZip from "jszip";
 
 const source: ProfileInput = {
   personal: { fullName: "Casey Sample", title: "Developer", email: "casey@example.test", phone: "555 010 4567", linkedin: "", github: "", portfolio: "", summary: "Developer with Java experience." },
@@ -174,7 +174,7 @@ describe("learning and training-aware optimization (synthetic, no AI or credits)
     expect(profileToResumeText(safe)).toContain("Currently Learning: Spring Boot, Kafka");
     expect(profileToResumeText(safe)).toContain("Currently Training: AWS, Docker");
     const blob = await buildResumeDocx({ atsScore: 0, matchingKeywords: [], missingKeywords: [], optimizedProfile: safe }, ATS_CLASSIC);
-    const content = new TextDecoder().decode(unzipSync(new Uint8Array(await blob.arrayBuffer()))["word/document.xml"]);
+    const content = await (await JSZip.loadAsync(await blob.arrayBuffer())).file("word/document.xml")?.async("text") ?? "";
     expect(content).toContain("Currently Learning");
     expect(content).toContain("Spring Boot");
     expect(content).not.toContain("Built Java services with AWS");
