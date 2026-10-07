@@ -109,13 +109,13 @@ export async function callGeminiJson<T>({
       throw new Error("AI demand is unusually high right now. Please wait a moment and try again.");
     }
     if (res && RETRYABLE_STATUSES.has(res.status)) {
-      throw new Error("AI generation is temporarily busy. Please try again in a moment.");
+      throw new Error("Resume generation is temporarily busy. Please try again in a moment.");
     }
     if (res?.status === 401 || res?.status === 403 || body.includes("API_KEY_INVALID")) {
       throw new Error("AI rejected the configured API key. Please add a valid API_KEY.");
     }
     console.error(`Gemini request failed with status ${res?.status ?? "unknown"}.`, body.slice(0, 500));
-    throw new Error("AI generation could not be completed. Please try again.");
+    throw new Error("Resume generation could not be completed. Please try again.");
   }
 
   const json = (await res.json()) as {
