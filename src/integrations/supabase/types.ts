@@ -315,6 +315,42 @@ export type Database = {
           },
         ]
       }
+      learning_plans: {
+        Row: {
+          created_at: string
+          id: string
+          job_title: string
+          milestones: Json
+          priority: string
+          skill: string
+          updated_at: string
+          user_id: string
+          why: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_title?: string
+          milestones?: Json
+          priority?: string
+          skill: string
+          updated_at?: string
+          user_id: string
+          why?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_title?: string
+          milestones?: Json
+          priority?: string
+          skill?: string
+          updated_at?: string
+          user_id?: string
+          why?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           admin_note: string | null
