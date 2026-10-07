@@ -35,3 +35,9 @@
 - [x] Preserve truthful labels in generated resume and explain each requirement
 - [x] Apply partial fit weighting for learning/training without changing generic ATS checks
 - [x] Test synthetic statuses, existing-resume comparisons, and export content without paid AI or credits
+
+# Updateable learning plans
+
+- [x] Save job-skill gaps as private learning plans with milestones
+- [x] Update milestone status and notes; review before adding evidence to profile
+- [x] Synthetic tests without AI or credits
