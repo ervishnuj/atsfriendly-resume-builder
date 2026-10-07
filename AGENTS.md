@@ -14,3 +14,5 @@ Resume imports are parsed locally in the browser into existing profile fields, a
 Job-specific optimization runs inside the existing guarded resume-generation function and validates generated fields against the original profile; this preserves one entitlement/usage path and prevents unverified identity, skills, roles, or dates from entering exports.
 
 Learning/training evidence is classified from the candidate's supplied profile and weighted only in job-specific fit scoring; qualified skills remain labeled in the existing skills section so all exports stay truthful without changing the generic ATS checker or storage schema.
+
+Learning plans are stored per account with deterministic milestones and no AI call; completed milestones reach the profile only through an explicit review step that adds labeled skills or personal projects, never employment.
