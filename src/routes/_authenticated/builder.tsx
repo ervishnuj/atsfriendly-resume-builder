@@ -39,6 +39,8 @@ import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { ImportProfileDialog } from "@/components/ImportProfileDialog";
 import { UploadResumeDialog } from "@/components/UploadResumeDialog";
 import { AiInsightsPanel } from "@/components/AiInsightsPanel";
+import { LearningPlanPanel } from "@/components/LearningPlanPanel";
+import { addLearningPlans } from "@/lib/learning-plans.functions";
 import { TemplateStudio } from "@/components/TemplateStudio";
 import { ATS_CLASSIC, BUILTIN_TEMPLATES, atsWarnings, type TemplateConfig } from "@/lib/resume-templates";
 import { buildResumeDocx } from "@/lib/resume-docx";
@@ -333,6 +335,20 @@ function Index() {
     // saveRemote is a framework hook result; userId scopes the persisted value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, hydratedUserId, userId, isSubscribed]);
+
+  const addPlans = useServerFn(addLearningPlans);
+  const saveLearningPlan = async () => {
+    const steps = result?.optimization?.learningRoadmap ?? [];
+    if (!steps.length) return;
+    try {
+      const { added } = await addPlans({ data: { jobTitle: result?.ats?.jobTitle ?? "", items: steps.map((s) => ({ skill: s.skill, priority: s.priority, why: s.why })) } });
+      await queryClient.invalidateQueries({ queryKey: ["learning-plans", userId] });
+      toast.success(added ? `Added ${added} skill${added > 1 ? "s" : ""} to your learning plan.` : "These skills are already in your learning plan.");
+      document.getElementById("learning-plan")?.scrollIntoView({ behavior: "smooth" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save your learning plan.");
+    }
+  };
 
   const handleClearProfile = async () => {
     await clearRemote().catch(() => undefined);
@@ -753,6 +769,7 @@ function Index() {
               </p>
             )}
           </Card>
+          <LearningPlanPanel userId={userId} onAddToProfile={(apply) => setProfile((p) => apply(p) as Profile)} />
           <AiInsightsPanel
             profile={profile}
             jobDescription={jd}
@@ -802,7 +819,7 @@ function Index() {
                   </div>
                    {result.optimization.requirements.details && <div><h3 className="text-sm font-semibold">Requirement evidence</h3><div className="mt-2 grid gap-2 sm:grid-cols-2">{result.optimization.requirements.details.map((item) => <div key={item.term} className="border-l-2 border-border pl-3 text-xs"><p className="font-semibold">{item.term} · {({ verifiedExperience: "Verified experience", verifiedSkill: "Verified skill", projectExposure: "Project-based exposure", currentlyLearning: "Currently learning", currentlyTraining: "Currently training", potentialGap: "Potential gap", notRelevant: "Not relevant" } as const)[item.status]}{item.secondary ? ` + ${item.secondary === "currentlyLearning" ? "currently learning" : "currently training"}` : ""}</p><p className="mt-1 text-muted-foreground">Evidence: {item.evidence}</p><p className="mt-1 text-muted-foreground">Resume treatment: {item.treatment}</p></div>)}</div></div>}
                   {result.optimization.improvements.length > 0 && <div><h3 className="text-sm font-semibold">Resume improvements</h3><ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">{result.optimization.improvements.map((tip, i) => <li key={i}>{tip}</li>)}</ul></div>}
-                   {result.optimization.learningRoadmap && result.optimization.learningRoadmap.length > 0 && <div><h3 className="text-sm font-semibold">Suggested learning path</h3><div className="mt-2 grid gap-3 sm:grid-cols-2">{result.optimization.learningRoadmap.map((step) => <div key={step.skill} className="border-l-2 border-border pl-3 text-xs"><p className="font-semibold">{step.skill} · {step.priority} priority</p><p className="mt-1 text-muted-foreground">{step.why}</p><p className="mt-1">{step.learning}</p><p className="mt-1">{step.practice}</p></div>)}</div></div>}
+                   {result.optimization.learningRoadmap && result.optimization.learningRoadmap.length > 0 && <div><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">Suggested learning path</h3><Button variant="outline" size="sm" onClick={() => void saveLearningPlan()}>Save to my learning plan</Button></div><div className="mt-2 grid gap-3 sm:grid-cols-2">{result.optimization.learningRoadmap.map((step) => <div key={step.skill} className="border-l-2 border-border pl-3 text-xs"><p className="font-semibold">{step.skill} · {step.priority} priority</p><p className="mt-1 text-muted-foreground">{step.why}</p><p className="mt-1">{step.learning}</p><p className="mt-1">{step.practice}</p></div>)}</div></div>}
                    <div className="text-xs"><h3 className="text-sm font-semibold">Readability review</h3><p className="mt-1 text-muted-foreground">{result.optimization.readability?.fixed.length ? `${result.optimization.readability.fixed.length} formatting issue(s) corrected automatically.` : "No fixable formatting issues detected."} Review the remaining items before sharing.</p>{[...auditResumeReadability(result.optimizedProfile).map((item) => item.message), ...atsWarnings(templateConfig)].length > 0 ? <ul className="mt-2 list-disc pl-5 text-muted-foreground">{[...auditResumeReadability(result.optimizedProfile).map((item) => item.message), ...atsWarnings(templateConfig)].map((item, i) => <li key={i}>{item}</li>)}</ul> : <p className="mt-1 text-muted-foreground">No detectable content or layout issues remain.</p>}</div>
                    <p className="text-xs text-muted-foreground">The job description, source profile and {currentResumeText ? "imported resume" : "current profile resume"} were compared; verified content was prioritized, readability checked and the final alignment calculated. PDF and DOCX depend on your chosen layout and should be reviewed before sharing.</p>
                   <div className="flex flex-wrap gap-2">
