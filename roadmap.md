@@ -41,3 +41,9 @@
 - [x] Save job-skill gaps as private learning plans with milestones
 - [x] Update milestone status and notes; review before adding evidence to profile
 - [x] Synthetic tests without AI or credits
+
+# Honest high-score optimization
+
+- [ ] Prioritize verified JD evidence and keep the stronger validated resume without changing scoring formulas
+- [ ] Explain score shortfalls and preserve qualifications, facts, billing and usage limits
+- [ ] Verify synthetic regression tests and preview; no paid AI calls or credits
