@@ -44,6 +44,7 @@
 
 # Honest high-score optimization
 
-- [ ] Prioritize verified JD evidence and keep the stronger validated resume without changing scoring formulas
-- [ ] Explain score shortfalls and preserve qualifications, facts, billing and usage limits
-- [ ] Verify synthetic regression tests and preview; no paid AI calls or credits
+- [x] Prioritize verified JD evidence and keep the stronger validated resume without changing scoring formulas
+- [x] Explain score shortfalls and preserve qualifications, facts, billing and usage limits
+- [x] Verify 38 synthetic regression tests, clean preview build and signed-in builder; no paid AI calls or credits
+- [ ] Live generated-result verification — blocked by the requirement not to make paid AI calls during testing
