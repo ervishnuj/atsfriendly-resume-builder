@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { auditResumeReadability, classifyRequirements, describeChanges, labelLearningSkills, learningAwareWeights, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, keepOptimizedCandidate, labelLearningSkills, learningAwareWeights, planForGaps, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -128,13 +128,23 @@ Return JSON only.`,
   const validated = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
   // Fix only verifiable presentation issues; score the exact repaired artifact.
   const repaired = repairResumeReadability(validated);
-  result.optimizedProfile = prioritizeVerifiedExperience(repaired, extraction);
-  result.optimizedProfile = labelLearningSkills(profile, repairResumeReadability(validateOptimizedProfile(profile, result.optimizedProfile)), [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
-  const finalReadability = auditResumeReadability(result.optimizedProfile);
+  result.optimizedProfile = prioritizeVerifiedSkills(prioritizeVerifiedExperience(repaired, extraction), extraction);
+  result.optimizedProfile = labelLearningSkills(profile, result.optimizedProfile, [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
-  const optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
-  const after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction), weights);
+  let optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
+  let after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction), weights);
+  // No extra model call or allowance: preserve the stronger source-backed artifact.
+  const baseline = labelLearningSkills(profile,
+    prioritizeVerifiedSkills(prioritizeVerifiedExperience(repairResumeReadability(profile), extraction), extraction),
+    [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
+  const baselineScore = computeAtsScores(profileToResumeText(baseline), jobDescription, extraction, weights);
+  if (!keepOptimizedCandidate(baselineScore, after)) {
+    result.optimizedProfile = baseline;
+    optimizedExtraction = extraction;
+    after = baselineScore;
+  }
+  const finalReadability = auditResumeReadability(result.optimizedProfile);
   result.atsScore = clamp(after.atsScore);
   result.atsMatchScore = after.atsMatchScore;
   result.ats = {

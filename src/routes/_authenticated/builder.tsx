@@ -47,7 +47,7 @@ import { buildResumeDocx } from "@/lib/resume-docx";
 import type { ProfileImportIssue } from "@/lib/profile-io";
 import { analyzeAtsScore, generateResume, getMyAiUsage } from "@/lib/resume.functions";
 import type { OptimizedResume, AtsAnalysis } from "@/lib/resume.functions";
-import { auditResumeReadability, validateOptimizedProfile } from "@/lib/resume-optimization";
+import { auditResumeReadability, explainScoreTarget, validateOptimizedProfile } from "@/lib/resume-optimization";
 import { newGenerationRequestId, parseAiLimitError } from "@/lib/ai-limits";
 import { getMyProfile, saveMyProfile, clearMyProfile } from "@/lib/profile-sync.functions";
 import { getCurrentSubscription, amIAdmin, consumeDownloadEntitlement } from "@/lib/billing.functions";
@@ -63,16 +63,16 @@ import { clearBrowserUserData } from "@/lib/profile-storage";
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
     meta: [
-      { title: "Resume Builder — ATS Resume Builder" },
+      { title: "Job-Specific Resume Optimizer — Resume Rocket" },
       {
         name: "description",
         content:
-          "Paste a job description and generate a tailored, ATS-friendly resume with an AI match score, keyword analysis, and one-click PDF download.",
+          "Optimize a resume for a specific job using your supplied evidence, explainable ATS scores and truthful learning labels.",
       },
-      { property: "og:title", content: "Resume Builder — ATS Resume Builder" },
+      { property: "og:title", content: "Job-Specific Resume Optimizer — Resume Rocket" },
       {
         property: "og:description",
-        content: "Generate ATS-optimized resumes tailored to any job description in seconds.",
+        content: "Tailor verified experience to a job and review honest ATS readiness and match scores with Resume Rocket.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -418,6 +418,7 @@ function Index() {
       return;
     }
     setLoading(true);
+    setScorePending(false);
     setRecheckedAnalysis(null);
     setEditingResume(false);
     setResumeDraft(null);
@@ -797,6 +798,16 @@ function Index() {
                     <AtsScoreBadge score={result.optimization.currentAlignment} title="Current resume ↔ JD" unit="%" caption="Before optimization" />
                      {scorePending ? <div role="status" className="border border-border p-3 text-sm text-muted-foreground">Alignment score pending re-check after edits.</div> : <AtsScoreBadge score={recheckedAnalysis?.atsMatchScore ?? result.atsMatchScore ?? 0} title="Optimized resume ↔ JD" unit="%" caption={recheckedAnalysis ? "Re-checked after your edits; not an external ATS score" : "Calculated after final validation; not an external ATS score"} />}
                   </div>
+                  {!scorePending && (recheckedAnalysis ?? result.ats) && <div className="space-y-2 border-l-2 border-primary pl-3 text-xs" aria-label="95 score target review">
+                    <h3 className="text-sm font-semibold">95+ target review</h3>
+                    <p className="text-muted-foreground">Scores are Resume Rocket estimates, not guarantees from an employer’s ATS. Readiness includes job relevance, not just formatting. No score or legal outcome is guaranteed; review all claims before sharing.</p>
+                    {([['ATS readiness', 'readiness'], ['Job match', 'match']] as const).map(([label, key]) => {
+                      const analysis = recheckedAnalysis ?? result.ats;
+                      if (!analysis) return null;
+                      const items = explainScoreTarget(analysis)[key];
+                      return <div key={key}><p className="font-medium">{label}: {(key === 'readiness' ? analysis.atsScore : analysis.atsMatchScore) >= 95 ? '95+ achieved in this estimate' : 'Below 95 — evidence or review needed'}</p>{items.length > 0 && <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">{items.map((item) => <li key={item}>{item}</li>)}</ul>}</div>;
+                    })}
+                  </div>}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <h3 className="text-sm font-semibold">What changed?</h3>

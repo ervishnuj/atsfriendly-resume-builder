@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { auditResumeReadability, classifyRequirements, describeChanges, planForGaps, prioritizeVerifiedExperience, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, explainScoreTarget, keepOptimizedCandidate, planForGaps, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
@@ -22,6 +22,28 @@ const extraction: AtsExtraction = {
 };
 
 describe("truthful resume optimization", () => {
+  it("orders relevant skills without adding JD gaps or dropping study labels", () => {
+    const candidate = { ...source, skills: [{ category: 'Technical', items: ['MySQL', 'AWS — Currently Learning', 'Java'] }] };
+    const ranked = prioritizeVerifiedSkills(candidate, { ...extraction, requiredSkills: ['Java', 'AWS'], preferredSkills: [] });
+    expect(ranked.skills[0].items).toEqual(['Java', 'AWS — Currently Learning', 'MySQL']);
+    expect(candidate.skills[0].items[0]).toBe('MySQL');
+  });
+  it("retains negation, learning and limited participation when rewrites reuse source words", () => {
+    for (const bullet of ['Not built Java services.', 'Currently learning Java services.', 'Assisted with Java services.']) {
+      const candidate = { ...source, experience: [{ ...source.experience[0], bullets: [bullet] }] };
+      const proposed = { ...candidate, experience: [{ ...candidate.experience[0], bullets: [bullet.replace(/Not |Currently learning |Assisted with /, '')] }] };
+      expect(validateOptimizedProfile(candidate, proposed).experience[0].bullets).toEqual([bullet]);
+    }
+  });
+  it("never floors a score at 95 and rejects regressions in either score", () => {
+    const score = computeAtsScores(profileToResumeText(source), 'Java AWS', extraction);
+    expect(score.atsScore).toBeLessThan(95);
+    expect(explainScoreTarget(score).readiness.some((s) => s.includes('formatting alone'))).toBe(true);
+    expect(explainScoreTarget(score).match.join(' ')).toContain('AWS');
+    expect(keepOptimizedCandidate(score, { ...score, atsScore: score.atsScore - 1 })).toBe(false);
+    expect(keepOptimizedCandidate(score, { ...score, atsMatchScore: score.atsMatchScore - 1 })).toBe(false);
+    expect(keepOptimizedCandidate(score, score)).toBe(true);
+  });
   it("separates verified strengths, underrepresentation and genuine gaps", () => {
     expect(classifyRequirements(extraction, profileToResumeText(source), "Developer with Java experience.")).toEqual({
       strong: ["Java"], underrepresented: ["Spring Boot", "MySQL"], potentialGaps: ["AWS"],
