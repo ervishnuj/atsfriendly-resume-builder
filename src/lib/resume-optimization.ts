@@ -93,6 +93,45 @@ export function learningAwareWeights(profile: ProfileInput, extraction: AtsExtra
 
 export { labelLearningSkills };
 
+/** Surface relevant skills without inventing synonyms or removing learning qualifiers. */
+export function prioritizeVerifiedSkills(profile: ProfileInput, extraction: AtsExtraction): ProfileInput {
+  const terms = [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords];
+  const relevance = (item: string) => terms.reduce((total, term, index) =>
+    total + (containsTerm(normalizeText(item), term) ? terms.length - index : 0), 0);
+  const skills = profile.skills.map((group) => ({ ...group,
+    items: group.items.map((item, index) => ({ item, index })).sort((a, b) => relevance(b.item) - relevance(a.item) || a.index - b.index).map(({ item }) => item),
+  }));
+  return { ...profile, skills: skills.map((group, index) => ({ group, index }))
+    .sort((a, b) => Math.max(0, ...b.group.items.map(relevance)) - Math.max(0, ...a.group.items.map(relevance)) || a.index - b.index)
+    .map(({ group }) => group) };
+}
+
+/** A rewrite is not an improvement if either existing deterministic score falls. */
+export function keepOptimizedCandidate(before: AtsScoreResult, after: AtsScoreResult): boolean {
+  return after.atsScore >= before.atsScore && after.atsMatchScore >= before.atsMatchScore;
+}
+
+/** Scores include content and JD evidence, not just formatting; never promise a target. */
+export function explainScoreTarget(scores: AtsScoreResult): { readiness: string[]; match: string[] } {
+  const readiness: string[] = [];
+  const match: string[] = [];
+  if (scores.atsScore < 95) {
+    if (scores.breakdown.contact < 10) readiness.push("Complete your real contact details, including a professional link if you have one.");
+    if (scores.breakdown.structure < 20 || scores.breakdown.sections < 15) readiness.push("Supply missing summary, skills, experience/project and education details where applicable; empty sections do not establish evidence.");
+    if (scores.breakdown.keywords < 20 || scores.breakdown.jobRelevance < 15) readiness.push("The readiness score also includes job keywords and relevance. Missing skills cannot be repaired through formatting alone.");
+    if (scores.breakdown.experience < 10) readiness.push("Add actual outcomes and measurements you can substantiate. Do not invent numbers to increase the score.");
+    if (scores.breakdown.formatting < 10) readiness.push("Review long bullets and resume length; use a plain single-column layout such as ATS Classic.");
+  }
+  if (scores.atsMatchScore < 95) {
+    if (scores.missingRequiredKeywords.length) match.push(`Required evidence not found: ${scores.missingRequiredKeywords.join(", ")}.`);
+    if (scores.missingPreferredKeywords.length) match.push(`Preferred evidence not found: ${scores.missingPreferredKeywords.join(", ")}.`);
+    if (scores.matchBreakdown.requiredSkills < 40 || scores.matchBreakdown.technicalKeywords < 25) match.push("Learning, training and project exposure receive partial fit credit; only substantiated professional use receives full weight.");
+    if (scores.matchBreakdown.responsibilities < 15) match.push("Document actual examples of the job's responsibilities; wording alone does not prove them.");
+    if (scores.matchBreakdown.experience < 10 || scores.matchBreakdown.education < 5 || scores.matchBreakdown.jobTitle < 5) match.push("Experience duration, education and role alignment must come from your real background, not the target job title.");
+  }
+  return { readiness, match };
+}
+
 /** Restore all identity, claims and skills from the source. Unsafe rewrites fall back to source wording. */
 export function validateOptimizedProfile(source: ProfileInput, proposed: ProfileInput): ProfileInput {
   if (!proposed || !proposed.personal || !Array.isArray(proposed.experience)) {
@@ -103,6 +142,10 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
   const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while".split(" "));
   const safeText = (text: string, fallback: string, allowedWords = sourceWords) => {
     if (typeof text !== "string") return fallback;
+    // Word membership alone cannot distinguish negation or training from professional use.
+    // Retain source wording whenever a qualified claim is rewritten.
+    if (/\b(not|no|never|without|learning|training|studying|enrolled|assisted|supported)\b/i.test(fallback)
+      && normalizeText(text).trim() !== normalizeText(fallback).trim()) return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
     const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
     const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !allowedWords.has(word) && !connectiveWords.has(word));

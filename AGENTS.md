@@ -16,3 +16,5 @@ Job-specific optimization runs inside the existing guarded resume-generation fun
 Learning/training evidence is classified from the candidate's supplied profile and weighted only in job-specific fit scoring; qualified skills remain labeled in the existing skills section so all exports stay truthful without changing the generic ATS checker or storage schema.
 
 Learning plans are stored per account with deterministic milestones and no AI call; completed milestones reach the profile only through an explicit review step that adds labeled skills or personal projects, never employment.
+
+Resume optimization keeps the source-backed candidate whenever a validated rewrite lowers either existing deterministic score; score-target guidance derives from the actual final breakdown, never a forced minimum or a changed scoring formula.
