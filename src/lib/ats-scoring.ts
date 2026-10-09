@@ -101,6 +101,9 @@ const ALIASES: Record<string, string> = {
   "ci/cd": "cicd",
   "ci cd": "cicd",
   "my sql": "mysql",
+  "amazon web services": "aws",
+  "google cloud platform": "google cloud",
+  "continuous integration": "ci",
 };
 
 /** Lowercase, strip punctuation/bullets, collapse whitespace. Analysis only. */
@@ -327,7 +330,7 @@ export function computeAtsScores(
   const sampled = bulletLines.length ? bulletLines : lines.filter((l) => l.length > 40);
   const quantified = sampled.filter((l) => /\d/.test(l)).length;
   const actionLed = sampled.filter((l) =>
-    ACTION_VERBS.some((v) => normalizeText(l).trim().startsWith(v)),
+    ACTION_VERBS.some((v) => normalizeText(l.replace(/^\s*(?:[-*\u2022\u25cf]|\d+[.)])\s*/, "")).trim().split(/\s+/)[0] === v),
   ).length;
   const ratio = (n: number) => (sampled.length ? n / sampled.length : 0);
   const experience = clamp(

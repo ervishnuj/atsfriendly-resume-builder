@@ -106,6 +106,28 @@ export function prioritizeVerifiedSkills(profile: ProfileInput, extraction: AtsE
     .map(({ group }) => group) };
 }
 
+/** Materialize only skills explicitly named in supplied evidence, preserving its level. */
+export function prepareOptimizationSource(profile: ProfileInput, extraction: AtsExtraction): ProfileInput {
+  const skills = profile.skills.map((group) => ({ ...group, items: [...group.items] }));
+  const terms = [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords];
+  for (const item of classifyJobSkills(profile, terms)) {
+    if (item.status === "potentialGap" || item.status === "notRelevant" || !containsTerm(normalizeText(item.evidence), item.term)) continue;
+    if (skills.some((group) => group.items.some((skill) => containsTerm(normalizeText(skill), item.term)))) continue;
+    const category = item.status === "projectExposure" ? "Project Experience" :
+      item.status === "currentlyLearning" ? "Currently Learning" : item.status === "currentlyTraining" ? "Currently Training" : "Technical Skills";
+    let group = skills.find((candidate) => candidate.category === category);
+    if (!group) { group = { category, items: [] }; skills.push(group); }
+    group.items.push(item.term);
+  }
+  const termsScore = (bullet: string) => terms.reduce((score, term, index) =>
+    score + (containsTerm(normalizeText(bullet), term) ? terms.length - index : 0), 0);
+  return prioritizeVerifiedSkills(prioritizeVerifiedExperience({ ...profile, skills,
+    experience: profile.experience.map((entry) => ({ ...entry,
+      bullets: entry.bullets.map((bullet, index) => ({ bullet, index }))
+        .sort((a, b) => termsScore(b.bullet) - termsScore(a.bullet) || a.index - b.index).map(({ bullet }) => bullet),
+    })), extraction), extraction);
+}
+
 /** A rewrite is not an improvement if either existing deterministic score falls. */
 export function keepOptimizedCandidate(before: AtsScoreResult, after: AtsScoreResult): boolean {
   return after.atsScore >= before.atsScore && after.atsMatchScore >= before.atsMatchScore;
@@ -140,6 +162,9 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
   const sourceWords = new Set(normalizeText(JSON.stringify(source)).split(/\s+/));
   // Only grammatical connectors are free. New action verbs/claims must be present in the specific source bullet.
   const connectiveWords = new Set("a an and as at by for from in into of on or the to with using through across while".split(" "));
+  // Inflection-only alternatives preserve the same action, not a broader claim.
+  const actionForms: Record<string, string> = { building: "build", built: "build", developing: "develop", developed: "develop", implementing: "implement", implemented: "implement", testing: "test", tested: "test", deploying: "deploy", deployed: "deploy", creating: "create", created: "create", managing: "manage", managed: "manage" };
+  const canonicalWord = (word: string) => actionForms[word] ?? word;
   const safeText = (text: string, fallback: string, allowedWords = sourceWords) => {
     if (typeof text !== "string") return fallback;
     // Word membership alone cannot distinguish negation or training from professional use.
@@ -148,7 +173,8 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
       && normalizeText(text).trim() !== normalizeText(fallback).trim()) return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
     const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
-    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !allowedWords.has(word) && !connectiveWords.has(word));
+    const canonicalAllowed = new Set([...allowedWords].map(canonicalWord));
+    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !canonicalAllowed.has(canonicalWord(word)) && !connectiveWords.has(word));
     return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));
@@ -168,9 +194,18 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     const index = remaining.findIndex((original) => original.title === entry.title && original.company === entry.company && original.dateRange === entry.dateRange);
     if (index < 0) return [];
     const original = remaining.splice(index, 1)[0];
-    return [{ ...original, bullets: Array.isArray(entry.bullets) && entry.bullets.length === original.bullets.length
-      ? entry.bullets.map((bullet, i) => safeText(bullet, original.bullets[i], new Set(normalizeText(original.bullets[i]).split(/\s+/))))
-      : original.bullets }];
+    const unused = original.bullets.map((bullet, index) => ({ bullet, index }));
+    const bullets = Array.isArray(entry.bullets) && entry.bullets.length === original.bullets.length
+      ? entry.bullets.map((bullet, i) => {
+        const match = unused.findIndex((candidate) => typeof bullet === "string" &&
+          safeText(bullet, candidate.bullet, new Set(normalizeText(candidate.bullet).split(/\s+/))) === bullet);
+        if (match < 0) return null;
+        const candidate = unused.splice(match, 1)[0];
+        return candidate ? bullet : original.bullets[i];
+      }) : [];
+    // Reject the entire rewrite if a source bullet was dropped or duplicated.
+    return [{ ...original, bullets: bullets.length === original.bullets.length && bullets.every((bullet): bullet is string => bullet !== null)
+      ? bullets : original.bullets }];
   });
   return {
     personal: { ...source.personal, summary: safeText(proposed.personal.summary, source.personal.summary) },
