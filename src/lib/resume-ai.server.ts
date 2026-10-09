@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { auditResumeReadability, classifyRequirements, describeChanges, keepOptimizedCandidate, labelLearningSkills, learningAwareWeights, planForGaps, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, classifyRequirements, describeChanges, keepOptimizedCandidate, labelLearningSkills, learningAwareWeights, planForGaps, prepareOptimizationSource, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -109,34 +109,36 @@ export async function generateOptimizedResume(
   });
   const currentScore = currentText === originalText ? before : computeAtsScores(currentText, jobDescription, sameRequirements(currentExtraction), weights);
   const sourceReadability = auditResumeReadability(profile);
+  const prepared = prepareOptimizationSource(repairResumeReadability(profile), extraction);
   const result = await callGeminiJson<OptimizedResume>({
     systemPrompt: `You are an expert ATS (Applicant Tracking System) specialist and career coach.
 Produce an ATS-optimized resume tailored to the target job description, covering: professional summary,
 technical skills, professional experience, relevant projects (as experience entries only if present in the
 profile), education, JD-specific keywords and ATS-friendly bullet points.
-- Rewrite the summary and each bullet using the X-Y-Z method: "Accomplished [X], as measured by [Y], by doing [Z]".
+- Use achievement-focused wording only when the source contains the outcome. Use X-Y-Z only where X, Y and Z are supplied; never force a metric into a task-only bullet.
 - Naturally integrate job-description keywords the candidate genuinely matches.
 - Keep bullets under ~30 words, starting with a strong action verb.
 - Preserve all experience entries and bullet counts; reorder entries for relevance and rewrite their bullets without adding any unverified numbers, metrics, technologies or claims. Contact details are intentionally omitted and restored locally after validation.
+- Rank bullets within each entry by required skills, preferred skills and responsibilities. Keep every bullet associated with its original role/project. Favor concise source wording and inflections of the same action over novel verbs; do not borrow facts from another bullet.
 - Reorder only existing skills. Do not introduce new skills or unsupported job requirements. Projects or certifications may only be presented when explicitly supplied as experience entries.
 - Distinguish professional use, named skills, project use, currently learning and currently training. Never turn learning or training into professional experience. Mention ongoing study in the summary only when the candidate explicitly supplied it. Do not place studied-only skills inside an employer's bullets. Preserve existing learning/training qualifiers.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: context(buildResumeGenerationPayload(profile), jobDescription),
+    userPrompt: `${context(buildResumeGenerationPayload(prepared), withoutResumeContactDetails(jobDescription))}\n\nSOURCE-VERIFIED REQUIREMENT TREATMENT:\n${JSON.stringify(classifyRequirements(extraction, originalText, currentText, profile).details)}\n\nEXISTING RESUME (comparison only; do not treat additional claims as verified profile facts):\n${withoutResumeContactDetails(currentText)}`,
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
-  const validated = validateOptimizedProfile(profile, result.optimizedProfile as ProfileInput);
+  const validated = validateOptimizedProfile(prepared, result.optimizedProfile as ProfileInput);
   // Fix only verifiable presentation issues; score the exact repaired artifact.
   const repaired = repairResumeReadability(validated);
   result.optimizedProfile = prioritizeVerifiedSkills(prioritizeVerifiedExperience(repaired, extraction), extraction);
-  result.optimizedProfile = labelLearningSkills(profile, result.optimizedProfile, [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
+  result.optimizedProfile = labelLearningSkills(prepared, result.optimizedProfile, [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
   const optimizedText = profileToResumeText(result.optimizedProfile);
   // Re-extract against the final artifact: quoted evidence cannot be reused after rewriting.
   let optimizedExtraction = await extractForOptimization(optimizedText, jobDescription);
   let after = computeAtsScores(optimizedText, jobDescription, sameRequirements(optimizedExtraction), weights);
   // No extra model call or allowance: preserve the stronger source-backed artifact.
-  const baseline = labelLearningSkills(profile,
-    prioritizeVerifiedSkills(prioritizeVerifiedExperience(repairResumeReadability(profile), extraction), extraction),
+  const baseline = labelLearningSkills(prepared,
+    prepared,
     [...extraction.requiredSkills, ...extraction.preferredSkills, ...extraction.technicalKeywords]);
   const baselineScore = computeAtsScores(profileToResumeText(baseline), jobDescription, extraction, weights);
   if (!keepOptimizedCandidate(baselineScore, after)) {

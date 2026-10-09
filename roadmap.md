@@ -48,3 +48,9 @@
 - [x] Explain score shortfalls and preserve qualifications, facts, billing and usage limits
 - [x] Verify 38 synthetic regression tests, clean preview build and signed-in builder; no paid AI calls or credits
 - [ ] Live generated-result verification — blocked by the requirement not to make paid AI calls during testing
+
+# Automatic alignment quality
+
+- [ ] Surface source-backed work, project and study skills; prioritize relevant bullets
+- [ ] Improve constrained rewriting and final evidence validation without changing score weights
+- [ ] Test complete generation with mocked AI across multiple profiles and job descriptions
