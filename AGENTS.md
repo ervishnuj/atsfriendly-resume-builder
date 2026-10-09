@@ -18,3 +18,5 @@ Learning/training evidence is classified from the candidate's supplied profile a
 Learning plans are stored per account with deterministic milestones and no AI call; completed milestones reach the profile only through an explicit review step that adds labeled skills or personal projects, never employment.
 
 Resume optimization keeps the source-backed candidate whenever a validated rewrite lowers either existing deterministic score; score-target guidance derives from the actual final breakdown, never a forced minimum or a changed scoring formula.
+
+Generation prepares a deterministic evidence-backed skills inventory and ranks source bullets before rewriting; one-to-one bullet validation and inflection-only action alternatives preserve factual scope while permitting useful edits.

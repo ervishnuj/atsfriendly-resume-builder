@@ -34,12 +34,12 @@ export function classifySkill(profile: ProfileInput, term: string, relevant = tr
   const summary = profile.personal.summary;
   const skillGroups = profile.skills.filter((group) => mentions(group.category, term) || group.items.some((item) => mentions(item, term)));
   const skillText = skillGroups.flatMap((group) => group.items.filter((item) => mentions(item, term)).map((item) => `${group.category}: ${item}`));
-  const learning = [summary, ...skillText].map((text) => ({ status: learningSignal(text, term), text })).find((item) => item.status);
   const entries = profile.experience.filter((entry) => mentions([entry.title, entry.company, ...entry.bullets].join(" "), term));
+  const learning = [summary, ...skillText, ...entries.flatMap((entry) => entry.bullets)].map((text) => ({ status: learningSignal(text, term), text })).find((item) => item.status);
   const projectEntry = entries.find((entry) => project.test(`${entry.title} ${entry.company}`) && entry.bullets.some((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)));
   const professionalEntry = entries.find((entry) => !project.test(`${entry.title} ${entry.company}`) && entry.bullets.some((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)));
-  if (professionalEntry) return evidence("verifiedExperience", professionalEntry.bullets.find((bullet) => mentions(bullet, term)) ?? professionalEntry.title, learning?.status ?? undefined);
-  if (projectEntry) return evidence("projectExposure", projectEntry.bullets.find((bullet) => mentions(bullet, term)) ?? `${projectEntry.title} — ${projectEntry.company}`, learning?.status ?? undefined);
+  if (professionalEntry) return evidence("verifiedExperience", professionalEntry.bullets.find((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)) ?? professionalEntry.title, learning?.status ?? undefined);
+  if (projectEntry) return evidence("projectExposure", projectEntry.bullets.find((bullet) => mentions(bullet, term) && !learningSignal(bullet, term) && !negative.test(bullet)) ?? `${projectEntry.title} — ${projectEntry.company}`, learning?.status ?? undefined);
   if (learning?.status) return evidence(learning.status, learning.text);
   const explicit = skillText.find((text) => !negative.test(text));
   if (explicit) return evidence("verifiedSkill", explicit);
