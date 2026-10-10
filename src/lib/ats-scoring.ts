@@ -112,6 +112,8 @@ export function normalizeText(input: string): string {
   text = text.replace(/[\u2022\u25cf\u25aa\u2023\u2043]/g, " ");
   text = text.replace(/[\r\n\t]+/g, " ");
   text = text.replace(/[^a-z0-9+#./ -]/g, " ");
+  // Sentence punctuation is a boundary; preserve dots inside Node.js and URLs.
+  text = text.replace(/\.(?=\s|$)/g, " ");
   text = text.replace(/\s+/g, " ");
   for (const [from, to] of Object.entries(ALIASES)) {
     text = text.split(` ${from} `).join(` ${to} `);
