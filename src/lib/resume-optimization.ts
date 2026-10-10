@@ -125,7 +125,7 @@ export function prepareOptimizationSource(profile: ProfileInput, extraction: Ats
     experience: profile.experience.map((entry) => ({ ...entry,
       bullets: entry.bullets.map((bullet, index) => ({ bullet, index }))
         .sort((a, b) => termsScore(b.bullet) - termsScore(a.bullet) || a.index - b.index).map(({ bullet }) => bullet),
-    })), extraction), extraction);
+    })), }, extraction), extraction);
 }
 
 /** A rewrite is not an improvement if either existing deterministic score falls. */
