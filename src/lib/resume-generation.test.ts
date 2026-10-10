@@ -21,13 +21,15 @@ describe("automatic generation quality (mocked AI; no requests or credits)", () 
     { name: "learning in an existing entry", candidate: { ...base, experience: [{ ...base.experience[0], bullets: ["Currently learning Java."] }] }, requirements: jd, expected: "Currently Learning: Java" },
     { name: "training in summary", candidate: { ...base, personal: { ...base.personal, summary: "Currently training in Spring Boot." }, experience: [] }, requirements: jd, expected: "Currently Training: Spring Boot" },
     { name: "unrelated candidate with genuine gaps", candidate: { ...base, experience: [], personal: { ...base.personal, summary: "Customer service representative." } }, requirements: jd, expected: "Customer service representative" },
+    { name: "data analyst with Python and SQL", candidate: { ...base, personal: { ...base.personal, title: "Data Analyst" }, experience: [{ title: "Data Analyst", company: "Sample", dateRange: "2020–2025", bullets: ["Built Python reports with SQL."] }] }, requirements: { ...jd, jobTitle: "Data Analyst", requiredSkills: ["Python", "SQL"], technicalKeywords: ["Python", "SQL"], responsibilities: [], responsibilityEvidence: [], candidateTitles: ["Data Analyst"] }, expected: "Technical Skills: Python, SQL" },
+    { name: "cloud engineer with a full AWS name", candidate: { ...base, personal: { ...base.personal, title: "Cloud Engineer" }, experience: [{ title: "Cloud Engineer", company: "Sample", dateRange: "2020–2025", bullets: ["Deployed services on Amazon Web Services."] }] }, requirements: { ...jd, jobTitle: "Cloud Engineer", requiredSkills: ["AWS"], technicalKeywords: ["AWS"], responsibilities: [], responsibilityEvidence: [], candidateTitles: ["Cloud Engineer"] }, expected: "Technical Skills: AWS" },
   ])("generates $name from verified evidence", async ({ candidate, requirements, expected }) => {
     const original = JSON.stringify(candidate);
     const prepared = prepareOptimizationSource(candidate, requirements);
     vi.mocked(callGeminiJson).mockReset();
     vi.mocked(callGeminiJson).mockResolvedValueOnce(requirements).mockResolvedValueOnce(requirements)
       .mockResolvedValueOnce({ optimizedProfile: prepared, atsScore: 99 }).mockResolvedValueOnce(requirements);
-    const result = await generateOptimizedResume(candidate, "Developer: Java and Spring Boot. Build Java services. Bachelor's degree; 2 years.", "Weak current resume with Kubernetes claims.");
+    const result = await generateOptimizedResume(candidate, `${requirements.jobTitle}: ${requirements.requiredSkills.join(", ")}. ${requirements.responsibilities.join(". ")}. Bachelor's degree; 2 years.`, "Weak current resume with Kubernetes claims.");
     expect(profileToResumeText(result.optimizedProfile)).toContain(expected);
     expect(profileToResumeText(result.optimizedProfile)).not.toContain("Kubernetes");
     expect(JSON.stringify(candidate)).toBe(original);
