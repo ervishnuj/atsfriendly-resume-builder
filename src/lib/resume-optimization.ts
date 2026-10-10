@@ -173,8 +173,12 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
       && normalizeText(text).trim() !== normalizeText(fallback).trim()) return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
     const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
+    // Numeric membership cannot prove that a metric still belongs to the same outcome.
+    // Keep quantified claims verbatim except for inflections of the same action.
+    const canonicalText = (value: string) => normalizeText(value).trim().split(/\s+/).map(canonicalWord).join(" ");
+    if (originalNumbers.size && canonicalText(text) !== canonicalText(fallback)) return fallback;
     const canonicalAllowed = new Set([...allowedWords].map(canonicalWord));
-    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !canonicalAllowed.has(canonicalWord(word)) && !connectiveWords.has(word));
+    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 0 && !canonicalAllowed.has(canonicalWord(word)) && !connectiveWords.has(word));
     return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));

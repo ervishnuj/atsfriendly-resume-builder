@@ -52,6 +52,22 @@ describe("automatic generation quality (mocked AI; no requests or credits)", () 
     expect(score.breakdown.experience).toBe(8);
   });
 
+  it("rejects unsupported short technology names", () => {
+    for (const term of ["Go", "R", "AI"]) {
+      const proposed = { ...base, experience: [{ ...base.experience[0], bullets: [`Building Java services with Spring Boot and ${term}.`, base.experience[0].bullets[1]] }] };
+      expect(validateOptimizedProfile(base, proposed).experience[0].bullets).toEqual(base.experience[0].bullets);
+    }
+  });
+
+  it("rejects metric reassignment even when both numbers exist in the same bullet", () => {
+    const bullet = "Improved throughput by 10% and reduced cost by 50%.";
+    const candidate = { ...base, experience: [{ ...base.experience[0], bullets: [bullet] }] };
+    for (const rewrite of ["Improved throughput by 50% and reduced cost by 10%.", "Reduced throughput by 10% and improved cost by 50%."]) {
+      const proposed = { ...candidate, experience: [{ ...candidate.experience[0], bullets: [rewrite] }] };
+      expect(validateOptimizedProfile(candidate, proposed).experience[0].bullets).toEqual([bullet]);
+    }
+  });
+
   it("keeps project exposure categorized and preserves labels during attempted promotion", () => {
     const candidate = { ...base, skills: [{ category: "Project Experience", items: ["Java"] }] };
     const promoted = validateOptimizedProfile(candidate, { ...candidate, skills: [{ category: "Technical Skills", items: ["Java"] }] });
