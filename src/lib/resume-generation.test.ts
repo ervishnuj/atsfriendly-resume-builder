@@ -50,6 +50,22 @@ describe("automatic generation quality (mocked AI; no requests or credits)", () 
     expect(score.breakdown.experience).toBe(8);
   });
 
+  it("keeps project exposure categorized and preserves labels during attempted promotion", () => {
+    const candidate = { ...base, skills: [{ category: "Project Experience", items: ["Java"] }] };
+    const promoted = validateOptimizedProfile(candidate, { ...candidate, skills: [{ category: "Technical Skills", items: ["Java"] }] });
+    expect(promoted.skills.find((group) => group.items.includes("Java"))?.category).toBe("Project Experience");
+  });
+
+  it("keeps the source-backed baseline if the generated artifact scores worse", async () => {
+    const prepared = prepareOptimizationSource(base, jd);
+    vi.mocked(callGeminiJson).mockReset();
+    vi.mocked(callGeminiJson).mockResolvedValueOnce(jd).mockResolvedValueOnce({ optimizedProfile: prepared, atsScore: 100 })
+      .mockResolvedValueOnce({ ...jd, candidateYearsExperience: 0, candidateTitles: [], candidateEducation: [], responsibilityEvidence: [] });
+    const result = await generateOptimizedResume(base, "Developer Java Spring Boot");
+    expect(result.optimizedProfile).toEqual(prepared);
+    expect(result.atsMatchScore).toBe(computeAtsScores(profileToResumeText(prepared), "Developer Java Spring Boot", jd, new Map([["java", 1], ["spring boot", 1]])).atsMatchScore);
+  });
+
   it("allows 95+ alignment when professional evidence supports every requirement, without a floor", async () => {
     const strong = { ...base, experience: [{ ...base.experience[0], bullets: ["Built 2 Java services with Spring Boot.", "Created 2 Java services.", "Developed 3 Java services.", "Implemented 4 Java services.", "Delivered 5 Java services."] }] };
     const facts = { ...jd, responsibilityEvidence: [{ responsibility: "Build Java services", present: true, evidence: strong.experience[0].bullets[0] }] };

@@ -182,6 +182,11 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     category: source.skills.some((original) => original.category === group.category) ? group.category : "Skills",
     items: Array.isArray(group.items) ? group.items.filter((item) => typeof item === "string" && originalSkills.has(normalizeTerm(item))) : [],
   })).filter((g) => g.items.length > 0) : [];
+  // Evidence-level categories are source facts, not interchangeable presentation labels.
+  for (const group of source.skills.filter((item) => /project|learning|training/i.test(item.category))) {
+    const items = new Set(group.items.map(normalizeTerm));
+    for (const output of skills) if (output.category !== group.category) output.items = output.items.filter((item) => !items.has(normalizeTerm(item)));
+  }
   const included = new Set(skills.flatMap((g) => g.items.map(normalizeTerm)));
   for (const group of source.skills) {
     const rest = group.items.filter((item) => !included.has(normalizeTerm(item)));
