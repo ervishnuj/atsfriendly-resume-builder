@@ -51,6 +51,8 @@
 
 # Automatic alignment quality
 
-- [ ] Surface source-backed work, project and study skills; prioritize relevant bullets
-- [ ] Improve constrained rewriting and final evidence validation without changing score weights
-- [ ] Test complete generation with mocked AI across multiple profiles and job descriptions
+- [x] Surface source-backed work, project and study skills; prioritize relevant bullets
+- [x] Improve constrained rewriting and final evidence validation without changing score weights; fix action-verb detection after bullet markers
+- [x] Test complete generation with mocked AI across multiple profiles and job descriptions
+- [x] Verify final safeguards for short skill names and metric association; 56 tests pass and preview build is clean
+- [ ] Live AI output-quality verification — blocked by the requirement not to make paid AI calls during testing

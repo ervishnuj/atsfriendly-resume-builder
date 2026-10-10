@@ -125,7 +125,7 @@ export function prepareOptimizationSource(profile: ProfileInput, extraction: Ats
     experience: profile.experience.map((entry) => ({ ...entry,
       bullets: entry.bullets.map((bullet, index) => ({ bullet, index }))
         .sort((a, b) => termsScore(b.bullet) - termsScore(a.bullet) || a.index - b.index).map(({ bullet }) => bullet),
-    })), extraction), extraction);
+    })), }, extraction), extraction);
 }
 
 /** A rewrite is not an improvement if either existing deterministic score falls. */
@@ -173,8 +173,12 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
       && normalizeText(text).trim() !== normalizeText(fallback).trim()) return fallback;
     const newNumbers = text.match(/\d+(?:[.,]\d+)*%?/g) ?? [];
     const originalNumbers = new Set(fallback.match(/\d+(?:[.,]\d+)*%?/g) ?? []);
+    // Numeric membership cannot prove that a metric still belongs to the same outcome.
+    // Keep quantified claims verbatim except for inflections of the same action.
+    const canonicalText = (value: string) => normalizeText(value).trim().split(/\s+/).map(canonicalWord).join(" ");
+    if (originalNumbers.size && canonicalText(text) !== canonicalText(fallback)) return fallback;
     const canonicalAllowed = new Set([...allowedWords].map(canonicalWord));
-    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 2 && !canonicalAllowed.has(canonicalWord(word)) && !connectiveWords.has(word));
+    const newClaims = normalizeText(text).split(/\s+/).filter((word) => word.length > 0 && !canonicalAllowed.has(canonicalWord(word)) && !connectiveWords.has(word));
     return newNumbers.every((n) => originalNumbers.has(n)) && newClaims.length === 0 ? text : fallback;
   };
   const originalSkills = new Set(source.skills.flatMap((g) => g.items.map(normalizeTerm)));
@@ -182,6 +186,11 @@ export function validateOptimizedProfile(source: ProfileInput, proposed: Profile
     category: source.skills.some((original) => original.category === group.category) ? group.category : "Skills",
     items: Array.isArray(group.items) ? group.items.filter((item) => typeof item === "string" && originalSkills.has(normalizeTerm(item))) : [],
   })).filter((g) => g.items.length > 0) : [];
+  // Evidence-level categories are source facts, not interchangeable presentation labels.
+  for (const group of source.skills.filter((item) => /project|learning|training/i.test(item.category))) {
+    const items = new Set(group.items.map(normalizeTerm));
+    for (const output of skills) if (output.category !== group.category) output.items = output.items.filter((item) => !items.has(normalizeTerm(item)));
+  }
   const included = new Set(skills.flatMap((g) => g.items.map(normalizeTerm)));
   for (const group of source.skills) {
     const rest = group.items.filter((item) => !included.has(normalizeTerm(item)));
