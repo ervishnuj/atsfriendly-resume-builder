@@ -84,6 +84,24 @@ describe("automatic generation quality (mocked AI; no requests or credits)", () 
     expect(result.atsMatchScore).toBe(computeAtsScores(profileToResumeText(prepared), "Developer Java Spring Boot", jd, new Map([["java", 1], ["spring boot", 1]])).atsMatchScore);
   });
 
+  it("supplies measured gap actions and reports only final unresolved gaps", async () => {
+    const facts = { ...jd, requiredSkills: [...jd.requiredSkills, "Kubernetes"] };
+    const prepared = prepareOptimizationSource(base, facts);
+    vi.mocked(callGeminiJson).mockReset();
+    vi.mocked(callGeminiJson).mockResolvedValueOnce(facts).mockResolvedValueOnce(facts)
+      .mockResolvedValueOnce({ optimizedProfile: prepared, atsScore: 100 }).mockResolvedValueOnce(facts);
+    const result = await generateOptimizedResume(base, "Developer Java Spring Boot Kubernetes", "Developer Java");
+    const prompt = vi.mocked(callGeminiJson).mock.calls[2][0].userPrompt;
+    expect(prompt).toContain("MEASURED ATS GAPS");
+    expect(prompt).toContain('"action":"surfaceEvidence"');
+    expect(prompt).toContain('"action":"needsCandidateEvidence"');
+    expect(prompt).not.toContain(base.personal.email);
+    expect(result.optimization?.improvements.join(" ")).toContain("Kubernetes");
+    expect(result.optimization?.improvements.join(" ")).not.toContain("Required evidence not found: Spring Boot");
+    expect(profileToResumeText(result.optimizedProfile)).not.toContain("Kubernetes");
+    expect(callGeminiJson).toHaveBeenCalledTimes(4);
+  });
+
   it("allows 95+ alignment when professional evidence supports every requirement, without a floor", async () => {
     const strong = { ...base, experience: [{ ...base.experience[0], bullets: ["Built 2 Java services with Spring Boot.", "Created 2 Java services.", "Developed 3 Java services.", "Implemented 4 Java services.", "Delivered 5 Java services."] }] };
     const facts = { ...jd, responsibilityEvidence: [{ responsibility: "Build Java services", present: true, evidence: strong.experience[0].bullets[0] }] };
