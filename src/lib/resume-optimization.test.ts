@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { auditResumeReadability, classifyRequirements, describeChanges, explainScoreTarget, keepOptimizedCandidate, planForGaps, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, buildOptimizationGapPlan, classifyRequirements, describeChanges, explainScoreTarget, keepOptimizedCandidate, planForGaps, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import type { ProfileInput } from "./resume-schemas";
@@ -22,6 +22,17 @@ const extraction: AtsExtraction = {
 };
 
 describe("truthful resume optimization", () => {
+  it("targets measured omissions with distinct evidence and missing-qualification actions", () => {
+    const score = computeAtsScores("Developer Java", "Java Spring Boot AWS", extraction);
+    const plan = buildOptimizationGapPlan(source, extraction, score);
+    expect(plan.find((item) => item.requirement === "Spring Boot")).toMatchObject({ action: "surfaceEvidence", evidence: "Built Java services with Spring Boot." });
+    expect(plan.find((item) => item.requirement === "AWS")).toMatchObject({ action: "needsCandidateEvidence" });
+    expect(plan.some((item) => item.requirement === "Java")).toBe(false);
+  });
+  it("reports technical-only gaps rather than only required and preferred terms", () => {
+    const score = computeAtsScores(profileToResumeText(source), "Java Docker", { ...extraction, technicalKeywords: ["Docker"] });
+    expect(explainScoreTarget(score).match.join(" ")).toContain("Other job keywords not evidenced: Docker");
+  });
   it("orders relevant skills without adding JD gaps or dropping study labels", () => {
     const candidate = { ...source, skills: [{ category: 'Technical', items: ['MySQL', 'AWS — Currently Learning', 'Java'] }] };
     const ranked = prioritizeVerifiedSkills(candidate, { ...extraction, requiredSkills: ['Java', 'AWS'], preferredSkills: [] });
@@ -168,6 +179,13 @@ describe("learning and training-aware optimization (synthetic, no AI or credits)
     expect(groups.potentialGaps).toEqual(["Kubernetes"]);
     expect(groups.underrepresented).toContain("Spring Boot");
     expect(groups.details?.find((item) => item.term === "AWS")?.treatment).toBe("AWS — Currently Training");
+  });
+  it("never labels learning keywords as strong matches just because they appear", () => {
+    const groups = classifyRequirements(jd, profileToResumeText(candidate), profileToResumeText(candidate), candidate);
+    expect(groups.strong).not.toContain("Spring Boot");
+    expect(groups.underrepresented).toContain("Spring Boot");
+    const scores = computeAtsScores(profileToResumeText(candidate), "Java AWS", jd);
+    expect(buildOptimizationGapPlan(candidate, jd, scores).find((item) => item.requirement === "AWS")?.action).toBe("preserveQualification");
   });
   it("prefers verified project evidence without promoting it to professional use", () => {
     const withProject = { ...candidate, experience: [...candidate.experience, { title: "Spring Boot project", company: "Personal", dateRange: "2025", bullets: ["Built a Spring Boot demo."] }] };
