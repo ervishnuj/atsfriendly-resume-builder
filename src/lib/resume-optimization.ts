@@ -78,7 +78,7 @@ export function classifyRequirements(
     const supported = containsTerm(source, term) || Boolean(evidence?.present && quote.length >= 4 && source.includes(quote));
     const status = groups.details?.find((item) => normalizeTerm(item.term) === key);
     if (status?.status === "potentialGap" || (!status && !supported)) groups.potentialGaps.push(term);
-    else if (status && (status.status === "currentlyLearning" || status.status === "currentlyTraining") && !containsTerm(current, term)) groups.underrepresented.push(term);
+    else if (status && (status.status === "currentlyLearning" || status.status === "currentlyTraining")) groups.underrepresented.push(term);
     else if (containsTerm(current, term)) groups.strong.push(term);
     else groups.underrepresented.push(term);
   }
@@ -133,6 +133,28 @@ export function keepOptimizedCandidate(before: AtsScoreResult, after: AtsScoreRe
   return after.atsScore >= before.atsScore && after.atsMatchScore >= before.atsMatchScore;
 }
 
+export type OptimizationGapAction = {
+  requirement: string;
+  action: "surfaceEvidence" | "preserveQualification" | "needsCandidateEvidence";
+  evidence: string;
+  instruction: string;
+};
+
+/** Turn measured missing keywords into a bounded editing plan, not a wish list from the JD. */
+export function buildOptimizationGapPlan(profile: ProfileInput, extraction: AtsExtraction, scores: AtsScoreResult): OptimizationGapAction[] {
+  return classifyJobSkills(profile, [...scores.missingKeywords, ...extraction.requiredSkills, ...extraction.technicalKeywords])
+    .filter((item) => scores.missingKeywords.some((term) => normalizeTerm(term) === normalizeTerm(item.term))
+      || item.status === "currentlyLearning" || item.status === "currentlyTraining")
+    .map((item) => ({
+      requirement: item.term,
+      action: item.status === "potentialGap" || item.status === "notRelevant" ? "needsCandidateEvidence" :
+        item.status === "currentlyLearning" || item.status === "currentlyTraining" || item.status === "projectExposure" ? "preserveQualification" : "surfaceEvidence",
+      evidence: item.evidence,
+      instruction: item.status === "potentialGap" || item.status === "notRelevant" ? "Leave absent. Ask for real evidence or suggest future learning; never insert this requirement." :
+        `${item.treatment} Surface only this supplied evidence; do not add outcomes, proficiency, dates or employment claims.`,
+    }));
+}
+
 /** Scores include content and JD evidence, not just formatting; never promise a target. */
 export function explainScoreTarget(scores: AtsScoreResult): { readiness: string[]; match: string[] } {
   const readiness: string[] = [];
@@ -147,6 +169,8 @@ export function explainScoreTarget(scores: AtsScoreResult): { readiness: string[
   if (scores.atsMatchScore < 95) {
     if (scores.missingRequiredKeywords.length) match.push(`Required evidence not found: ${scores.missingRequiredKeywords.join(", ")}.`);
     if (scores.missingPreferredKeywords.length) match.push(`Preferred evidence not found: ${scores.missingPreferredKeywords.join(", ")}.`);
+    const otherMissing = scores.missingKeywords.filter((term) => ![...scores.missingRequiredKeywords, ...scores.missingPreferredKeywords].some((known) => normalizeTerm(known) === normalizeTerm(term)));
+    if (otherMissing.length) match.push(`Other job keywords not evidenced: ${otherMissing.join(", ")}. Add only with supporting background.`);
     if (scores.matchBreakdown.requiredSkills < 40 || scores.matchBreakdown.technicalKeywords < 25) match.push("Learning, training and project exposure receive partial fit credit; only substantiated professional use receives full weight.");
     if (scores.matchBreakdown.responsibilities < 15) match.push("Document actual examples of the job's responsibilities; wording alone does not prove them.");
     if (scores.matchBreakdown.experience < 10 || scores.matchBreakdown.education < 5 || scores.matchBreakdown.jobTitle < 5) match.push("Experience duration, education and role alignment must come from your real background, not the target job title.");

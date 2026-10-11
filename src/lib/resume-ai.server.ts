@@ -11,7 +11,7 @@ import {
 import { computeAtsScores, type AtsExtraction } from "./ats-scoring";
 import { profileToResumeText } from "./resume-text";
 import { withoutResumeContactDetails } from "./resume-text-privacy";
-import { auditResumeReadability, classifyRequirements, describeChanges, keepOptimizedCandidate, labelLearningSkills, learningAwareWeights, planForGaps, prepareOptimizationSource, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
+import { auditResumeReadability, buildOptimizationGapPlan, classifyRequirements, describeChanges, explainScoreTarget, keepOptimizedCandidate, labelLearningSkills, learningAwareWeights, planForGaps, prepareOptimizationSource, prioritizeVerifiedExperience, prioritizeVerifiedSkills, repairResumeReadability, validateOptimizedProfile } from "./resume-optimization";
 import {
   buildAtsPayload,
   buildCoverLetterPayload,
@@ -122,9 +122,10 @@ profile), education, JD-specific keywords and ATS-friendly bullet points.
 - Rank bullets within each entry by required skills, preferred skills and responsibilities. Keep every bullet associated with its original role/project. Favor concise source wording and inflections of the same action over novel verbs; do not borrow facts from another bullet.
 - Reorder only existing skills. Do not introduce new skills or unsupported job requirements. Projects or certifications may only be presented when explicitly supplied as experience entries.
 - Distinguish professional use, named skills, project use, currently learning and currently training. Never turn learning or training into professional experience. Mention ongoing study in the summary only when the candidate explicitly supplied it. Do not place studied-only skills inside an employer's bullets. Preserve existing learning/training qualifiers.
+- Address the MEASURED ATS GAPS in priority order. Surface omitted source evidence before editing already-matched text. Missing contact, dates, education, experience duration or outcomes require candidate input, not invented filler. Never target or return a promised score. The breakdown is diagnostic context only; scores are calculated after validation.
 ${NO_FABRICATION_RULES}
 Return JSON only.`,
-    userPrompt: `${context(buildResumeGenerationPayload(prepared), withoutResumeContactDetails(jobDescription))}\n\nSOURCE-VERIFIED REQUIREMENT TREATMENT:\n${JSON.stringify(classifyRequirements(extraction, originalText, currentText, profile).details)}\n\nEXISTING RESUME (comparison only; do not treat additional claims as verified profile facts):\n${withoutResumeContactDetails(currentText)}`,
+    userPrompt: `${context(buildResumeGenerationPayload(prepared), withoutResumeContactDetails(jobDescription))}\n\nMEASURED ATS GAPS:\n${JSON.stringify({ readinessBreakdown: currentScore.breakdown, matchBreakdown: currentScore.matchBreakdown, keywordActions: buildOptimizationGapPlan(profile, extraction, currentScore), candidateReview: explainScoreTarget(currentScore), readability: sourceReadability })}\n\nSOURCE-VERIFIED REQUIREMENT TREATMENT:\n${JSON.stringify(classifyRequirements(extraction, originalText, currentText, profile).details)}\n\nEXISTING RESUME (comparison only; do not treat additional claims as verified profile facts):\n${withoutResumeContactDetails(currentText)}`,
     schema: resumeSchema as unknown as Record<string, unknown>,
   });
   const validated = validateOptimizedProfile(prepared, result.optimizedProfile as ProfileInput);
@@ -162,7 +163,7 @@ Return JSON only.`,
     currentAlignment: currentScore.atsMatchScore,
     requirements: classifyRequirements(extraction, originalText, currentText, profile),
     changes: describeChanges(profile, result.optimizedProfile, { before: currentScore, after }),
-    improvements: currentScore.recommendations,
+    improvements: [...new Set([...explainScoreTarget(after).readiness, ...explainScoreTarget(after).match, ...finalReadability.map((item) => item.message)])],
     learningRoadmap: planForGaps(extraction, classifyRequirements(extraction, originalText, currentText, profile).potentialGaps),
     readability: {
       fixed: sourceReadability.filter((item) => !finalReadability.some((remaining) => remaining.code === item.code)).map((item) => item.message),

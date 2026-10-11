@@ -20,3 +20,5 @@ Learning plans are stored per account with deterministic milestones and no AI ca
 Resume optimization keeps the source-backed candidate whenever a validated rewrite lowers either existing deterministic score; score-target guidance derives from the actual final breakdown, never a forced minimum or a changed scoring formula.
 
 Generation prepares a deterministic evidence-backed skills inventory and ranks source bullets before rewriting; one-to-one bullet validation and inflection-only action alternatives preserve factual scope while permitting useful edits.
+
+Optimization derives editing actions from the existing score breakdown and source-classified keyword gaps, then reports guidance from the final artifact; this targets real omissions without reusing stale recommendations or changing scoring formulas.
