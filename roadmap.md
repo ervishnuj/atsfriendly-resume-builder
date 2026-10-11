@@ -56,3 +56,9 @@
 - [x] Test complete generation with mocked AI across multiple profiles and job descriptions
 - [x] Verify final safeguards for short skill names and metric association; 56 tests pass and preview build is clean
 - [ ] Live AI output-quality verification — blocked by the requirement not to make paid AI calls during testing
+
+# Actual ATS gap treatment
+
+- [ ] Drive rewriting from the measured breakdown and source-backed missing evidence
+- [ ] Report unresolved final gaps and distinguish study evidence from strong matches
+- [ ] Verify synthetic generation, preview build, and signed-in controls without paid AI or credits
