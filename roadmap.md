@@ -59,6 +59,6 @@
 
 # Actual ATS gap treatment
 
-- [ ] Drive rewriting from the measured breakdown and source-backed missing evidence
-- [ ] Report unresolved final gaps and distinguish study evidence from strong matches
-- [ ] Verify synthetic generation, preview build, and signed-in controls without paid AI or credits
+- [x] Drive rewriting from the measured breakdown and source-backed missing evidence
+- [x] Report unresolved final gaps and distinguish study evidence from strong matches
+- [x] Verify 60 synthetic tests, successful preview build, and signed-in job-description entry and optimizer controls without paid AI or credits
