@@ -115,13 +115,17 @@ function GuidePage() {
               <h2 className="text-xl font-semibold tracking-tight">{s.heading}</h2>
               {s.paragraphs?.map((p, i) => (
                 <p key={i} className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {p}
+                  {p.split(/(free checker)/g).map((part, index) => part === "free checker"
+                    ? <Link key={index} to="/ats-checker" className="text-primary underline underline-offset-4">free ATS resume checker</Link>
+                    : part)}
                 </p>
               ))}
               {s.bullets && (
                 <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
                   {s.bullets.map((b, i) => (
-                    <li key={i}>{b}</li>
+                    <li key={i}>{b.split(/(free checker)/g).map((part, index) => part === "free checker"
+                      ? <Link key={index} to="/ats-checker" className="text-primary underline underline-offset-4">free ATS resume checker</Link>
+                      : part)}</li>
                   ))}
                 </ul>
               )}

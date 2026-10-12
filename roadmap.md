@@ -74,3 +74,9 @@
 - [x] Add local PDF/DOCX upload, replacement/removal, progress, errors, and preserved paste workflow
 - [x] Show evidence-aware keyword actions and potential gaps without changing scoring
 - [x] Test file/paste analysis, unsupported/blank PDFs, replacement/removal, mobile/desktop, and 63 regressions without AI or credits
+
+# Focused ATS checker SEO improvements
+
+- [ ] Link existing contextual checker mentions in guides and articles
+- [ ] Clarify checker score limitations without changing scoring
+- [ ] Verify contextual navigation and checker analysis without AI or credits
