@@ -80,3 +80,9 @@
 - [x] Link existing contextual checker mentions in guides and articles
 - [x] Clarify checker score limitations without changing scoring
 - [x] Verify contextual navigation, pasted-resume analysis, clean browser errors, and preview build without AI or credits
+
+# ATS checker search visibility and indexing baseline
+
+- [x] Read URL Inspection, checker-specific performance, and sitemap status from the verified Google property
+- [ ] Apply any focused discoverability gaps confirmed against the current and published pages
+- [ ] Verify checker navigation and analysis, and provide a dated indexing baseline with follow-up steps
