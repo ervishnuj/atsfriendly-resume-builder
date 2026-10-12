@@ -284,14 +284,15 @@ function AtsCheckerPage() {
         <section className="mt-16 max-w-3xl">
           <h2 className="text-xl font-semibold tracking-tight">How this ATS scanner works</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Applicant tracking systems rank your resume by how closely its text matches the requirements in the job posting. This checker pulls the most frequent meaningful terms and phrases out of the job description, then looks for each of them in your resume, allowing for common variants (React / React.js, Node.js / Node, K8s / Kubernetes). It also flags structural problems ATS parsers trip on: missing section headings, no dates, or a resume that is too thin.
+            Employers use applicant tracking systems in different ways; there is no universal ATS score or pass threshold. This checker estimates job-description alignment and resume readiness using consistent rules. It extracts meaningful terms and phrases from the posting, looks for them in your resume with common variants (React / React.js, Node.js / Node, K8s / Kubernetes), and checks text structure, section headings, dates, and content length. It does not reproduce an employer’s screening decision or verify your qualifications.
           </p>
-          <h3 className="mt-6 text-base font-semibold">What a good score looks like</h3>
+          <h3 className="mt-6 text-base font-semibold">How to interpret your job match score</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
             <li>75+ — strong keyword alignment in this checker, not a guarantee of passing employer screening.</li>
             <li>50–74 — partial match; add the missing required skills you genuinely have.</li>
-            <li>Below 50 — the resume is not tailored to this posting yet.</li>
+            <li>Below 50 — limited alignment detected; review your supplied evidence and the role requirements before making changes.</li>
           </ul>
+          <p className="mt-3 text-sm text-muted-foreground">The separate ATS readiness score reviews the extracted text, not every visual detail of your PDF or DOCX. Neither score guarantees an interview. Keep learning and training clearly labeled, and add missing keywords only when your real background supports them.</p>
         </section>
       </main>
 
