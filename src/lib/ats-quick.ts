@@ -183,7 +183,7 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     candidateTitles: resumeLines.filter((l) => TITLE_WORDS.test(l) && l.length <= 80).slice(0, 6),
     candidateEducation: resumeLines.filter((l) => DEGREE_WORDS.test(l)).slice(0, 4),
     // No AI: literal/alias matching only, never semantic guesses.
-    skillEvidence: extraction.technicalKeywords.map(kw => ({ term: kw, present: resumeNorm.includes(normalizeTerm(kw)), evidence: resumeLines.find(l => normalizeText(l).includes(normalizeTerm(kw))) ?? "" })),
+    skillEvidence: [],
     responsibilityEvidence,
     strengths: [],
     weaknesses: [],
