@@ -10,11 +10,7 @@ import {
  * Free, offline ATS check for the public /ats-checker page.
  *
  * It uses EXACTLY the same scoring engine as the builder
- * (`computeAtsScores` in ats-scoring.ts) — the same weights, the same keyword
- * normalization/aliases and the same recommendations. The only difference is
- * where the structured facts come from: the builder asks Gemini to extract
- * them, while this page derives them from the job description text itself so
- * anonymous visitors get an instant, free and fully deterministic result.
+ * (`computeAtsScores` in ats-scoring.ts).
  */
 
 const STOPWORDS = new Set(
@@ -32,9 +28,9 @@ const DEGREE_WORDS =
   /(bachelor|master|b\.?tech|m\.?tech|b\.?sc|m\.?sc|bca|mca|mba|phd|degree|diploma|university|college)/i;
 
 export type QuickAtsResult = AtsScoreResult & {
-  /** Job-description keywords that drove the keyword sub-scores. */
   keywordsChecked: number;
   wordCount: number;
+  evidence: Record<string, string>;
 };
 
 function lines(text: string): string[] {
@@ -44,10 +40,7 @@ function lines(text: string): string[] {
     .filter(Boolean);
 }
 
-/** Frequency + phrase ranked keywords from the job description. */
 function extractKeywords(jd: string, limit = 30): string[] {
-  // Tokenize per clause so bigrams never straddle a sentence boundary
-  // ("graphql. bachelor") and trailing punctuation never leaks into a keyword.
   const clauses = jd
     .split(/[.;:!?\n\r,()/]+/)
     .map((c) =>
@@ -78,7 +71,6 @@ function extractKeywords(jd: string, limit = 30): string[] {
     }
   }
 
-
   const ranked = [...counts.entries()]
     .sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))
     .map(([term]) => term);
@@ -96,7 +88,6 @@ function extractKeywords(jd: string, limit = 30): string[] {
 function yearsFrom(text: string): number {
   const m = text.match(/(\d{1,2})\s*\+?\s*(?:to|-|–)?\s*\d{0,2}\s*(?:years?|yrs?)/i);
   if (m) return Number(m[1]) || 0;
-  // Fall back to the span covered by four-digit years in the text.
   const years = (text.match(/\b(19|20)\d{2}\b/g) || []).map(Number);
   if (years.length >= 2) {
     const span = Math.max(...years) - Math.min(...years);
@@ -105,22 +96,16 @@ function yearsFrom(text: string): number {
   return 0;
 }
 
-/**
- * Derives the same fact shape Gemini returns in the builder, using only text
- * heuristics so nothing is invented and no network call is needed.
- */
 function localExtraction(resumeText: string, jobDescription: string): AtsExtraction {
   const jdLines = lines(jobDescription);
   const resumeLines = lines(resumeText);
   const resumeNorm = normalizeText(resumeText);
-
   const keywords = extractKeywords(jobDescription);
 
-  // A keyword is "required" when it shows up in a sentence that signals a hard
-  // requirement, "preferred" when the sentence signals a nice-to-have.
   const requiredSkills: string[] = [];
   const preferredSkills: string[] = [];
   const sentences = jobDescription.split(/(?<=[.;:!?])\s+|\r?\n+/).filter(Boolean);
+  
   for (const kw of keywords) {
     const hosts = sentences.filter((s) => normalizeText(s).includes(` ${kw} `));
     const isPreferred = hosts.some((s) => PREFERRED_HINT.test(s));
@@ -128,8 +113,6 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     if (isRequired && !isPreferred) requiredSkills.push(kw);
     else if (isPreferred) preferredSkills.push(kw);
   }
-  // If the posting has no explicit "required" wording, treat the strongest
-  // keywords as the required set so the sub-score stays meaningful.
   if (requiredSkills.length === 0) requiredSkills.push(...keywords.slice(0, 10));
 
   const sentenceLike = jdLines.filter((l) => {
@@ -139,9 +122,6 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
   const flagged = sentenceLike.filter((l) => RESP_HINT.test(l));
   const responsibilities = (flagged.length >= 3 ? flagged : sentenceLike).slice(0, 8);
 
-
-  // Responsibility "evidence" must be a real resume line, so a responsibility
-  // only counts when a resume bullet actually shares most of its key terms.
   const responsibilityEvidence = responsibilities.map((r) => {
     const terms = normalizeText(r)
       .split(/\s+/)
@@ -170,7 +150,6 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     jdLines.find((l) => l.length <= 80 && TITLE_WORDS.test(l)) ??
     (jdLines[0] && jdLines[0].length <= 80 ? jdLines[0] : "");
 
-
   return {
     jobTitle: jdTitle,
     requiredSkills,
@@ -182,8 +161,11 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     candidateYearsExperience: yearsFrom(resumeText),
     candidateTitles: resumeLines.filter((l) => TITLE_WORDS.test(l) && l.length <= 80).slice(0, 6),
     candidateEducation: resumeLines.filter((l) => DEGREE_WORDS.test(l)).slice(0, 4),
-    // No AI: literal/alias matching only, never semantic guesses.
-    skillEvidence: [],
+    skillEvidence: keywords.map(kw => ({
+      term: kw,
+      present: resumeNorm.includes(` ${kw} `),
+      evidence: resumeLines.find(l => normalizeText(l).includes(` ${kw} `))?.trim() ?? ""
+    })),
     responsibilityEvidence,
     strengths: [],
     weaknesses: [],
@@ -196,9 +178,18 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
 export function quickAtsCheck(resumeText: string, jobDescription: string): QuickAtsResult {
   const extraction = localExtraction(resumeText, jobDescription);
   const scored = computeAtsScores(resumeText, jobDescription, extraction);
+  
+  const evidence: Record<string, string> = {};
+  for (const item of extraction.skillEvidence) {
+    if (item.present && item.evidence) {
+      evidence[normalizeTerm(item.term)] = item.evidence;
+    }
+  }
+
   return {
     ...scored,
     keywordsChecked: extraction.technicalKeywords.length,
     wordCount: resumeText.trim().split(/\s+/).filter(Boolean).length,
+    evidence,
   };
 }

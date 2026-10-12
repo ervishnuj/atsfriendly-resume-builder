@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,16 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
-import { AtsResumeUpload } from "@/components/AtsResumeUpload";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { atsKeywordGuidance } from "@/lib/ats-keyword-guidance";
 import { quickAtsCheck, type QuickAtsResult } from "@/lib/ats-quick";
+import { normalizeTerm } from "@/lib/ats-scoring";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Loader2, Upload, ClipboardPaste } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TITLE = "Free ATS Resume Checker & Score Scanner | Resume Rocket";
 const DESCRIPTION =
-  "Upload a PDF or DOCX resume, or paste its text, for a free job-description match check with matched keywords, potential gaps and evidence-aware suggestions. Processed locally without sign-up.";
+  "Paste your resume and a job description to get a free ATS score in seconds. See matched and missing keywords, formatting warnings and fixes — no sign-up, no upload.";
 const PAGE_URL = "https://theresumerocket.com/ats-checker";
 
 export const Route = createFileRoute("/ats-checker")({
@@ -56,36 +55,6 @@ function AtsCheckerPage() {
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState<QuickAtsResult | null>(null);
-  const [mode, setMode] = useState("upload");
-  const [uploadedText, setUploadedText] = useState("");
-  const [extracting, setExtracting] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState("");
-  const [guidance, setGuidance] = useState<ReturnType<typeof atsKeywordGuidance>>([]);
-  const analysisRequest = useRef(0);
-  const activeText = mode === "upload" ? uploadedText : resumeText;
-
-  const invalidate = () => {
-    analysisRequest.current += 1;
-    setResult(null); setGuidance([]); setAnalyzing(false); setAnalysisError("");
-  };
-
-  const analyze = async () => {
-    if (analyzing || extracting || !ready) return;
-    const request = ++analysisRequest.current;
-    setAnalyzing(true); setAnalysisError("");
-    await new Promise((resolve) => window.setTimeout(resolve, 40));
-    if (request !== analysisRequest.current) return;
-    try {
-      const next = quickAtsCheck(activeText, jobDescription);
-      setGuidance(atsKeywordGuidance(activeText, next));
-      setResult(next);
-    } catch {
-      setAnalysisError("Could not analyze this text. Check your resume and job description, then try again.");
-    } finally {
-      if (request === analysisRequest.current) setAnalyzing(false);
-    }
-  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
@@ -93,7 +62,7 @@ function AtsCheckerPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const ready = activeText.trim().length > 80 && jobDescription.trim().length > 80;
+  const ready = resumeText.trim().length > 80 && jobDescription.trim().length > 80;
   const scoreColor = useMemo(() => {
     if (!result) return "";
     if (result.atsMatchScore >= 75) return "text-emerald-600";
@@ -114,214 +83,169 @@ function AtsCheckerPage() {
             Free ATS Resume Checker
           </h1>
           <p className="mt-3 text-muted-foreground">
-             Upload a PDF or DOCX resume, or paste your resume text, then add your target job description.
-             Files and analysis stay in your browser; nothing is uploaded or stored.
+            Paste your resume text and the job description you are targeting. You will get an instant
+            ATS match score, the keywords the job asks for that your resume already covers, and the
+            ones you are missing. The check runs entirely in your browser — nothing is uploaded or
+            stored.
           </p>
           <p className="mt-3 text-sm">
-            <Link
-              to="/how-it-works"
-              hash="ats-score"
-              className="font-medium hover:underline"
-            >
+            <Link to="/how-it-works" hash="ats-score" className="font-medium hover:underline">
               Not sure what to paste? View the ATS Checker Guide →
             </Link>
           </p>
         </div>
 
-        <h2 className="mt-12 text-xl font-semibold tracking-tight">Check Your Resume Against a Job Description</h2>
+        <h2 className="mt-12 text-xl font-semibold tracking-tight">Scan your resume</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="min-w-0 border-t border-border py-4">
-            <Tabs value={mode} onValueChange={(value) => { invalidate(); setMode(value); }}>
-              <TabsList className="mb-4 grid h-auto w-full grid-cols-2">
-                <TabsTrigger value="upload" className="gap-1.5 whitespace-normal"><Upload className="h-4 w-4 shrink-0" />Upload Resume</TabsTrigger>
-                <TabsTrigger value="paste" className="gap-1.5 whitespace-normal"><ClipboardPaste className="h-4 w-4 shrink-0" />Paste Resume Text</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div hidden={mode !== "upload"}>
-              <AtsResumeUpload onText={(text) => { invalidate(); setUploadedText(text); }} onBusy={setExtracting} />
-              {uploadedText && <details className="mt-3"><summary className="cursor-pointer text-sm font-medium">Review extracted text</summary><Textarea aria-label="Extracted resume text" value={uploadedText} onChange={(event) => { invalidate(); setUploadedText(event.target.value); }} className="mt-2 min-h-48 text-sm" /></details>}
-            </div>
-            <div hidden={mode !== "paste"}>
-            <label htmlFor="ats-resume" className="text-sm font-medium">
-              Your resume text
-            </label>
+          <Card className="p-4">
+            <label htmlFor="ats-resume" className="text-sm font-medium">Your resume text</label>
             <Textarea
               id="ats-resume"
               value={resumeText}
-              onChange={(e) => { invalidate(); setResumeText(e.target.value); }}
+              onChange={(e) => setResumeText(e.target.value)}
               placeholder="Paste the full text of your resume here…"
               className="mt-2 min-h-[280px] font-mono text-xs"
             />
-            </div>
-          </div>
-          <div className="min-w-0 border-t border-border py-4">
-            <label htmlFor="ats-jd" className="text-sm font-medium">
-              Target job description
-            </label>
+          </Card>
+          <Card className="p-4">
+            <label htmlFor="ats-jd" className="text-sm font-medium">Target job description</label>
             <Textarea
               id="ats-jd"
               value={jobDescription}
-              onChange={(e) => { invalidate(); setJobDescription(e.target.value); }}
+              onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job description you are applying for…"
               className="mt-2 min-h-[280px] font-mono text-xs"
             />
-          </div>
+          </Card>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button
             size="lg"
-            disabled={!ready || extracting || analyzing}
-            onClick={() => { void analyze(); }}
+            disabled={!ready}
+            onClick={() => setResult(quickAtsCheck(resumeText, jobDescription))}
             className="gap-2"
           >
-            {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} {analyzing ? "Analyzing…" : "Analyze Resume"}
+            <Sparkles className="h-4 w-4" /> Check ATS score
           </Button>
           {!ready && (
             <span className="text-xs text-muted-foreground">
-              Add at least a few lines of resume text and a job description to run the check.
+              Paste at least a few lines in both boxes to run the check.
             </span>
           )}
         </div>
-        {analysisError && <p role="alert" className="mt-3 text-sm text-destructive">{analysisError}</p>}
 
         {result && (
-          <section className="mt-10" aria-live="polite">
-            <h2 className="text-xl font-semibold tracking-tight">Your ATS results</h2>
-            <p role="status" className="mt-2 text-sm text-primary">Analysis complete.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Resume Rocket estimates, not an employer ATS guarantee. Keyword presence alone does not verify a qualification.</p>
-            <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <Card className="flex flex-col items-center justify-center p-6 text-center">
-                  <div className={`text-5xl font-bold ${scoreColor}`}>{result.atsMatchScore}</div>
-                  <div className="mt-1 text-sm font-medium">{result.band}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">Job match score /100</p>
-                </Card>
-                <Card className="flex flex-col items-center justify-center p-6 text-center">
-                  <div className="text-3xl font-bold">{result.atsScore}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    ATS readiness score /100
+          <TooltipProvider>
+            <section className="mt-10" aria-live="polite">
+              <h2 className="text-xl font-semibold tracking-tight">Your ATS results</h2>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+                <div className="space-y-4">
+                  <Card className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className={`text-5xl font-bold ${scoreColor}`}>{result.atsMatchScore}</div>
+                    <div className="mt-1 text-sm font-medium">{result.band}</div>
+                    <p className="mt-1 text-xs text-muted-foreground">Job match score /100</p>
+                  </Card>
+                  <Card className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="text-3xl font-bold">{result.atsScore}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">ATS readiness score /100</div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {result.matchedKeywords.length} of {result.keywordsChecked} job keywords found ·{" "}
+                      {result.wordCount} words
+                    </p>
+                  </Card>
+                </div>
+
+                <Card className="space-y-4 p-5">
+                  <AtsBreakdownPanel breakdown={result.breakdown} matchBreakdown={result.matchBreakdown} />
+                  <div>
+                    <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Matched keywords ({result.matchedKeywords.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-1">
+                      {result.matchedKeywords.length ? (
+                        result.matchedKeywords.map((k) => {
+                          const snippet = result.evidence[normalizeTerm(k)];
+                          return (
+                            <Tooltip key={k}>
+                              <TooltipTrigger asChild>
+                                <Badge variant="secondary" className="cursor-help bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                  {k}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Found in resume:</p>
+                                <p className="mt-1 text-xs italic leading-tight">{snippet || "Generic match"}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None yet.</span>
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {result.matchedKeywords.length} of {result.keywordsChecked} job keywords found ·{" "}
-                    {result.wordCount} words
-                  </p>
+                  <div>
+                    <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+                      <XCircle className="h-4 w-4 text-rose-600" /> Missing keywords ({result.missingKeywords.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-1">
+                      {result.missingKeywords.length ? (
+                        result.missingKeywords.map((k) => (
+                          <Badge
+                            key={k}
+                            variant="secondary"
+                            className={
+                              result.missingRequiredKeywords.includes(k)
+                                ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200"
+                                : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                            }
+                          >
+                            {k}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Nothing missing — great coverage.</span>
+                      )}
+                    </div>
+                    {result.missingRequiredKeywords.length > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground">Red = required by the posting, amber = preferred/technical.</p>
+                    )}
+                  </div>
+                  {result.recommendations.length > 0 && (
+                    <div>
+                      <h3 className="mb-2 text-sm font-semibold">How to improve</h3>
+                      <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                        {result.recommendations.map((n, i) => <li key={i}>{n}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </Card>
               </div>
 
-              <Card className="space-y-4 p-5">
-                <AtsBreakdownPanel
-                  breakdown={result.breakdown}
-                  matchBreakdown={result.matchBreakdown}
-                />
-                <div>
-                  <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Matched keywords (
-                    {result.matchedKeywords.length})
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {result.matchedKeywords.length ? (
-                      result.matchedKeywords.map((k) => (
-                        <Badge
-                          key={k}
-                          variant="secondary"
-                          className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
-                        >
-                          {k}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-xs text-muted-foreground">None yet.</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Suggested keywords & potential skill gaps</h3>
-                  <div className="mt-2 divide-y divide-border">
-                    {guidance.filter((item) => item.status === "potentialGap" || item.status === "currentlyLearning" || item.status === "currentlyTraining" || result.missingKeywords.includes(item.term)).map((item) => (
-                      <div key={item.term} className="py-3 text-sm">
-                        <p className="font-semibold">{item.term} <span className="font-normal text-muted-foreground">· {item.required ? "Required keyword missing" : "Job keyword"}</span></p>
-                        <p className="mt-1 text-xs font-medium text-muted-foreground">{item.label}</p>
-                        {item.status !== "potentialGap" && <p className="mt-1 break-words text-xs text-muted-foreground">Supplied evidence: {item.evidence}</p>}
-                        <p className="mt-1 text-muted-foreground">{item.action}</p>
-                      </div>
-                    ))}
-                    {!guidance.some((item) => item.status === "potentialGap" || item.status === "currentlyLearning" || item.status === "currentlyTraining" || result.missingKeywords.includes(item.term)) && <p className="py-3 text-sm text-muted-foreground">No additional keyword evidence gaps detected by this text review.</p>}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-                    <XCircle className="h-4 w-4 text-rose-600" /> Missing keywords (
-                    {result.missingKeywords.length})
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {result.missingKeywords.length ? (
-                      result.missingKeywords.map((k) => (
-                        <Badge
-                          key={k}
-                          variant="secondary"
-                          className={
-                            result.missingRequiredKeywords.includes(k)
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200"
-                              : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-                          }
-                        >
-                          {k}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        Nothing missing — great coverage.
-                      </span>
-                    )}
-                  </div>
-                  {result.missingRequiredKeywords.length > 0 && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Red = required by the posting, amber = preferred/technical.
-                    </p>
-                  )}
-                </div>
-                {result.recommendations.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold">How to improve</h3>
-                    <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                      {result.recommendations.map((n, i) => (
-                        <li key={i}>{n}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              <Card className="mt-4 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Want the missing keywords written into a finished, ATS-formatted resume? The AI builder rewrites your resume for this exact job description.
+                </p>
+                <Button asChild className="bg-gradient-brand text-brand-foreground">
+                  <Link to={signedIn ? "/builder" : "/register"}>Build my tailored resume</Link>
+                </Button>
               </Card>
-            </div>
-
-
-            <Card className="mt-4 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                 Tailor a finished resume using your real skills and supplied evidence, without adding unsupported qualifications.
-              </p>
-              <Button asChild className="bg-gradient-brand text-brand-foreground">
-                <Link to={signedIn ? "/builder" : "/register"}>Build my tailored resume</Link>
-              </Button>
-            </Card>
-          </section>
+            </section>
+          </TooltipProvider>
         )}
 
         <section className="mt-16 max-w-3xl">
           <h2 className="text-xl font-semibold tracking-tight">How this ATS scanner works</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Applicant tracking systems rank your resume by how closely its text matches the
-            requirements in the job posting. This checker pulls the most frequent meaningful terms
-            and phrases out of the job description, then looks for each of them in your resume,
-            allowing for common variants (React / React.js, Node.js / Node, K8s / Kubernetes). It
-            also flags structural problems ATS parsers trip on: missing section headings, no dates,
-            or a resume that is too thin.
+            Applicant tracking systems rank your resume by how closely its text matches the requirements in the job posting. This checker pulls the most frequent meaningful terms and phrases out of the job description, then looks for each of them in your resume, allowing for common variants (React / React.js, Node.js / Node, K8s / Kubernetes). It also flags structural problems ATS parsers trip on: missing section headings, no dates, or a resume that is too thin.
           </p>
           <h3 className="mt-6 text-base font-semibold">What a good score looks like</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            <li>75+ — strong keyword alignment in this checker, not a guarantee of passing employer screening.</li>
+            <li>75+ — strong alignment; you are likely to clear keyword screening.</li>
             <li>50–74 — partial match; add the missing required skills you genuinely have.</li>
             <li>Below 50 — the resume is not tailored to this posting yet.</li>
-          </ul>
+          </ol>
         </section>
       </main>
 
