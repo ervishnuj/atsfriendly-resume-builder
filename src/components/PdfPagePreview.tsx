@@ -143,10 +143,10 @@ export function PdfPagePreview({ data, config: sourceConfig, showGuides = true }
                   overflow: "hidden",
                 }}
               >
-                <div style={{ transform: `translateY(${-offset}px)` }}>
+                <div style={{ transform: `translateY(${-offset - config.marginTop * PX_PER_MM}px)` }}>
                   <ResumePreview
                     data={data}
-                    config={{ ...config, marginTop: 0, marginBottom: 0 }}
+                    config={config}
                     printable={false}
                       pdfLayout
                   />

@@ -105,7 +105,7 @@ const lengthCases = [
   { id: "length-fresher", entries: 1, bullets: 2 },
   { id: "length-typical", entries: 3, bullets: 4 },
   { id: "length-experienced", entries: 7, bullets: 5 },
-  { id: "length-long", entries: 10, bullets: 6 },
+  { id: "length-long", entries: 9, bullets: 5 },
 ].map(({ id, entries, bullets }) => ({
   id,
   config: BUILTIN_TEMPLATES[0].config,

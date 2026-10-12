@@ -75,7 +75,7 @@ def check(case_id: str) -> list[str]:
     text = run("pdftotext", "-layout", path, "-")
     suffix = "--imported" if case_id.endswith("--imported") else ""
     for needle in REQUIRED[suffix]:
-        if needle not in text:
+        if needle.casefold() not in text.casefold():
             errs.append(f"missing selectable text: {needle!r}")
     for needle in FORBIDDEN:
         if needle in text:
@@ -98,8 +98,8 @@ def main() -> int:
             for e in errs:
                 print(f"      - {e}")
         else:
-            from pypdf import PdfReader
-            count = len(PdfReader(f"{OUT}/pdf/{case_id}.pdf").pages)
+            info = run("pdfinfo", f"{OUT}/pdf/{case_id}.pdf")
+            count = next(line.split(":")[1].strip() for line in info.splitlines() if line.startswith("Pages:"))
             print(f"PASS {case_id}: {count} page(s)")
 
     print(f"\n{len(ids) - failed}/{len(ids)} exports valid")

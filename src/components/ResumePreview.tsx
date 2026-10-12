@@ -27,8 +27,8 @@ const clampContact = (body: number) => Math.min(9, Math.max(8, body - 0.5));
  */
 export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true, pdfLayout = false }: Props) {
   const isPrintTarget = printable && !scale;
-  const c = pdfLayout ? resumePrintConfig(config) : config;
   const printConfig = resumePrintConfig(config);
+  const c = pdfLayout || isPrintTarget ? printConfig : config;
   const p = data.optimizedProfile.personal;
   const fontFamily = safeFontFamily(c.fontFamily);
   const contacts = [p.phone, p.email, p.linkedin, p.github, p.portfolio].filter(Boolean);
@@ -226,7 +226,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
   }
   #resume-print-area h1 { font-size: ${printConfig.nameFontSize}pt !important; }
   #resume-print-area h2 { font-size: ${printConfig.headingFontSize}pt !important; }
-  #resume-print-area header p:last-of-type { font-size: ${clampContact(printConfig.bodyFontSize)}pt !important; }
+  #resume-print-area [data-resume-contacts] { font-size: ${clampContact(printConfig.bodyFontSize)}pt !important; }
   #resume-print-area footer {
     break-inside: avoid;
   }
@@ -258,6 +258,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
         )}
         {contacts.length > 0 && (
           <p
+            data-resume-contacts
             style={{
               margin: "4px 0 0",
               color: c.accentColor,
