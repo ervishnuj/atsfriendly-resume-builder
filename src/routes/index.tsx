@@ -125,7 +125,7 @@ function Landing() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/ats-checker">Check My Free ATS Score </Link>
+                <Link to="/ats-checker">Free ATS Resume Checker</Link>
               </Button>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
@@ -174,7 +174,7 @@ function Landing() {
             icon={Gauge}
             title="ATS Score & Optimization"
             description="Analyze your resume against a job description and identify keywords, skills and areas that need improvement."
-            cta={{ label: "Check My ATS Score", to: buildTo }}
+            cta={{ label: "Check My Resume for Free", to: "/ats-checker" }}
           >
             <div className="rounded-xl border border-border bg-muted/40 p-4">
               <p className="text-sm font-semibold">
