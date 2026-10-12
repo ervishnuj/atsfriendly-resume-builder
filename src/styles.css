@@ -148,18 +148,22 @@
   html,
   body {
     background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
   }
-  body * {
-    visibility: hidden !important;
+  /* Remove app chrome from layout, not merely from visibility. Keep the
+     resume in normal document flow so Chromium can fragment it into pages. */
+  body *:not(:has(#resume-print-area)):not(#resume-print-area):not(#resume-print-area *) {
+    display: none !important;
   }
-  #resume-print-area,
-  #resume-print-area * {
-    visibility: visible !important;
+  body *:has(#resume-print-area) {
+    display: contents !important;
   }
   #resume-print-area {
-    position: absolute !important;
-    left: 0;
-    top: 0;
+    position: static !important;
+    transform: none !important;
+    overflow: visible !important;
     box-shadow: none !important;
   }
 }

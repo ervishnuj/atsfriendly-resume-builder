@@ -22,3 +22,5 @@ Resume optimization keeps the source-backed candidate whenever a validated rewri
 Generation prepares a deterministic evidence-backed skills inventory and ranks source bullets before rewriting; one-to-one bullet validation and inflection-only action alternatives preserve factual scope while permitting useful edits.
 
 Optimization derives editing actions from the existing score breakdown and source-classified keyword gaps, then reports guidance from the final artifact; this targets real omissions without reusing stale recommendations or changing scoring formulas.
+
+PDF export stays browser-native selectable HTML in normal print flow; PDF-only typography bounds and leaf-level pagination are shared with the A4 preview, leaving stored templates, DOCX, candidate data, and entitlements unchanged.
