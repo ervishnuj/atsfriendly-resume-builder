@@ -77,6 +77,6 @@
 
 # Focused ATS checker SEO improvements
 
-- [ ] Link existing contextual checker mentions in guides and articles
-- [ ] Clarify checker score limitations without changing scoring
-- [ ] Verify contextual navigation and checker analysis without AI or credits
+- [x] Link existing contextual checker mentions in guides and articles
+- [x] Clarify checker score limitations without changing scoring
+- [x] Verify contextual navigation, pasted-resume analysis, clean browser errors, and preview build without AI or credits
