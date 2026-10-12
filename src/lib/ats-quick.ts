@@ -161,11 +161,7 @@ function localExtraction(resumeText: string, jobDescription: string): AtsExtract
     candidateYearsExperience: yearsFrom(resumeText),
     candidateTitles: resumeLines.filter((l) => TITLE_WORDS.test(l) && l.length <= 80).slice(0, 6),
     candidateEducation: resumeLines.filter((l) => DEGREE_WORDS.test(l)).slice(0, 4),
-    skillEvidence: keywords.map(kw => ({
-      term: kw,
-      present: resumeNorm.includes(` ${kw} `),
-      evidence: resumeLines.find(l => normalizeText(l).includes(` ${kw} `))?.trim() ?? ""
-    })),
+    skillEvidence: [],
     responsibilityEvidence,
     strengths: [],
     weaknesses: [],
@@ -180,10 +176,9 @@ export function quickAtsCheck(resumeText: string, jobDescription: string): Quick
   const scored = computeAtsScores(resumeText, jobDescription, extraction);
   
   const evidence: Record<string, string> = {};
-  for (const item of extraction.skillEvidence) {
-    if (item.present && item.evidence) {
-      evidence[normalizeTerm(item.term)] = item.evidence;
-    }
+  for (const term of scored.matchedKeywords) {
+    const snippet = lines(resumeText).find(line => normalizeText(line).includes(` ${normalizeTerm(term)} `));
+    if (snippet) evidence[normalizeTerm(term)] = snippet;
   }
 
   return {

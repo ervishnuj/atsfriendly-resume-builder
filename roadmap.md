@@ -71,6 +71,6 @@
 
 # ATS checker file submission and keyword guidance
 
-- [ ] Add local PDF/DOCX upload, replacement/removal, progress, errors, and preserved paste workflow
-- [ ] Show evidence-aware keyword actions and potential gaps without changing scoring
-- [ ] Test file/paste analysis, errors, replacement/removal, mobile/desktop, and preview build without AI or credits
+- [x] Add local PDF/DOCX upload, replacement/removal, progress, errors, and preserved paste workflow
+- [x] Show evidence-aware keyword actions and potential gaps without changing scoring
+- [x] Test file/paste analysis, unsupported/blank PDFs, replacement/removal, mobile/desktop, and 63 regressions without AI or credits
