@@ -68,3 +68,9 @@
 - [x] Fix print isolation and natural section/bullet pagination without changing content or DOCX
 - [x] Align A4 page preview with export flow and readable print typography
 - [x] Inspect actual PDFs: fresher 1 page, typical 1 page, experienced 2 pages, long 3 pages; 16 export checks and 2 layout tests pass, preview build OK
+
+# ATS checker file submission and keyword guidance
+
+- [x] Add local PDF/DOCX upload, replacement/removal, progress, errors, and preserved paste workflow
+- [x] Show evidence-aware keyword actions and potential gaps without changing scoring
+- [x] Test file/paste analysis, unsupported/blank PDFs, replacement/removal, mobile/desktop, and 63 regressions without AI or credits
