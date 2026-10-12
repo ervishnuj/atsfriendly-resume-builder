@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,13 +9,16 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 import { AtsBreakdownPanel } from "@/components/AtsBreakdown";
 import { quickAtsCheck, type QuickAtsResult } from "@/lib/ats-quick";
 import { normalizeTerm } from "@/lib/ats-scoring";
+import { AtsResumeUpload } from "@/components/AtsResumeUpload";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { atsKeywordGuidance } from "@/lib/ats-keyword-guidance";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Info } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Loader2, Upload, ClipboardPaste } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TITLE = "Free ATS Resume Checker & Score Scanner | Resume Rocket";
 const DESCRIPTION =
-  "Paste your resume and a job description to get a free ATS score in seconds. See matched and missing keywords, formatting warnings and fixes — no sign-up, no upload.";
+  "Upload a PDF or DOCX resume, or paste text, for a free job-description match score and evidence-aware keyword guidance. Processed locally without sign-up.";
 const PAGE_URL = "https://theresumerocket.com/ats-checker";
 
 export const Route = createFileRoute("/ats-checker")({
@@ -56,13 +59,37 @@ function AtsCheckerPage() {
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState<QuickAtsResult | null>(null);
 
+  const [mode, setMode] = useState("upload");
+  const [uploadedText, setUploadedText] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
+  const [guidance, setGuidance] = useState<ReturnType<typeof atsKeywordGuidance>>([]);
+  const analysisRequest = useRef(0);
+  const activeText = mode === "upload" ? uploadedText : resumeText;
+  const invalidate = () => {
+    analysisRequest.current += 1;
+    setResult(null); setGuidance([]); setAnalyzing(false); setAnalysisError("");
+  };
+  const analyze = async () => {
+    if (analyzing || extracting || !ready) return;
+    const request = ++analysisRequest.current;
+    setAnalyzing(true);
+    await new Promise(resolve => window.setTimeout(resolve, 40));
+    if (request !== analysisRequest.current) return;
+    try {
+      const next = quickAtsCheck(activeText, jobDescription);
+      setGuidance(atsKeywordGuidance(activeText, next)); setResult(next);
+    } catch { setAnalysisError("Could not analyze this text. Check both inputs and try again."); }
+    finally { if (request === analysisRequest.current) setAnalyzing(false); }
+  };
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
     const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const ready = resumeText.trim().length > 80 && jobDescription.trim().length > 80;
+  const ready = activeText.trim().length > 80 && jobDescription.trim().length > 80;
   const scoreColor = useMemo(() => {
     if (!result) return "";
     if (result.atsMatchScore >= 75) return "text-emerald-600";
@@ -83,10 +110,7 @@ function AtsCheckerPage() {
             Free ATS Resume Checker
           </h1>
           <p className="mt-3 text-muted-foreground">
-            Paste your resume text and the job description you are targeting. You will get an instant
-            ATS match score, the keywords the job asks for that your resume already covers, and the
-            ones you are missing. The check runs entirely in your browser — nothing is uploaded or
-            stored.
+            Upload a PDF or DOCX resume, or paste its text, then add a target job description. Files and analysis stay in your browser; nothing is uploaded or stored.
           </p>
           <p className="mt-3 text-sm">
             <Link to="/how-it-works" hash="ats-score" className="font-medium hover:underline">
@@ -95,24 +119,30 @@ function AtsCheckerPage() {
           </p>
         </div>
 
-        <h2 className="mt-12 text-xl font-semibold tracking-tight">Scan your resume</h2>
+        <h2 className="mt-12 text-xl font-semibold tracking-tight">Check Your Resume Against a Job Description</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <Card className="p-4">
-            <label htmlFor="ats-resume" className="text-sm font-medium">Your resume text</label>
-            <Textarea
-              id="ats-resume"
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              placeholder="Paste the full text of your resume here…"
-              className="mt-2 min-h-[280px] font-mono text-xs"
-            />
-          </Card>
+          <div className="min-w-0 border-t border-border py-4">
+            <Tabs value={mode} onValueChange={value => { invalidate(); setMode(value); }}>
+              <TabsList className="mb-4 grid h-auto w-full grid-cols-2">
+                <TabsTrigger value="upload" className="gap-1 whitespace-normal"><Upload className="h-4 w-4 shrink-0" />Upload Resume</TabsTrigger>
+                <TabsTrigger value="paste" className="gap-1 whitespace-normal"><ClipboardPaste className="h-4 w-4 shrink-0" />Paste Resume Text</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div hidden={mode !== "upload"}>
+              <AtsResumeUpload onText={text => { invalidate(); setUploadedText(text); }} onBusy={setExtracting} />
+              {uploadedText && <details className="mt-3"><summary className="cursor-pointer text-sm font-medium">Review extracted text</summary><Textarea aria-label="Extracted resume text" value={uploadedText} onChange={e => { invalidate(); setUploadedText(e.target.value); }} className="mt-2 min-h-48 text-sm" /></details>}
+            </div>
+            <div hidden={mode !== "paste"}>
+              <label htmlFor="ats-resume" className="text-sm font-medium">Your resume text</label>
+              <Textarea id="ats-resume" value={resumeText} onChange={e => { invalidate(); setResumeText(e.target.value); }} placeholder="Paste the full text of your resume here…" className="mt-2 min-h-[280px] text-sm" />
+            </div>
+          </div>
           <Card className="p-4">
             <label htmlFor="ats-jd" className="text-sm font-medium">Target job description</label>
             <Textarea
               id="ats-jd"
               value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              onChange={(e) => { invalidate(); setJobDescription(e.target.value); }}
               placeholder="Paste the job description you are applying for…"
               className="mt-2 min-h-[280px] font-mono text-xs"
             />
@@ -122,23 +152,26 @@ function AtsCheckerPage() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button
             size="lg"
-            disabled={!ready}
-            onClick={() => setResult(quickAtsCheck(resumeText, jobDescription))}
+            disabled={!ready || extracting || analyzing}
+            onClick={() => { void analyze(); }}
             className="gap-2"
           >
-            <Sparkles className="h-4 w-4" /> Check ATS score
+            {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} {analyzing ? "Analyzing…" : "Analyze Resume"}
           </Button>
           {!ready && (
             <span className="text-xs text-muted-foreground">
-              Paste at least a few lines in both boxes to run the check.
+              Add a few lines of resume text and a job description to run the check.
             </span>
           )}
         </div>
 
+        {analysisError && <p role="alert" className="mt-3 text-sm text-destructive">{analysisError}</p>}
         {result && (
           <TooltipProvider>
             <section className="mt-10" aria-live="polite">
               <h2 className="text-xl font-semibold tracking-tight">Your ATS results</h2>
+              <p role="status" className="mt-2 text-sm text-primary">Analysis complete.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Resume Rocket estimates, not an employer ATS guarantee. Keyword presence alone does not verify a qualification.</p>
               <div className="mt-4 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
                 <div className="space-y-4">
                   <Card className="flex flex-col items-center justify-center p-6 text-center">
@@ -212,6 +245,19 @@ function AtsCheckerPage() {
                       <p className="mt-2 text-xs text-muted-foreground">Red = required by the posting, amber = preferred/technical.</p>
                     )}
                   </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">Suggested keywords & potential skill gaps</h3>
+                    <div className="mt-2 divide-y divide-border">
+                      {guidance.filter(item => item.status === "potentialGap" || item.status === "currentlyLearning" || item.status === "currentlyTraining" || result.missingKeywords.includes(item.term)).map(item => (
+                        <div key={item.term} className="py-3 text-sm">
+                          <p className="font-semibold">{item.term}</p>
+                          <p className="mt-1 text-xs font-medium text-muted-foreground">{item.label}</p>
+                          {item.status !== "potentialGap" && <p className="mt-1 break-words text-xs text-muted-foreground">Supplied evidence: {item.evidence}</p>}
+                          <p className="mt-1 text-muted-foreground">{item.action}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   {result.recommendations.length > 0 && (
                     <div>
                       <h3 className="mb-2 text-sm font-semibold">How to improve</h3>
@@ -225,7 +271,7 @@ function AtsCheckerPage() {
 
               <Card className="mt-4 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Want the missing keywords written into a finished, ATS-formatted resume? The AI builder rewrites your resume for this exact job description.
+                  Tailor a finished resume using your real skills and supplied evidence, without adding unsupported qualifications.
                 </p>
                 <Button asChild className="bg-gradient-brand text-brand-foreground">
                   <Link to={signedIn ? "/builder" : "/register"}>Build my tailored resume</Link>
@@ -242,10 +288,10 @@ function AtsCheckerPage() {
           </p>
           <h3 className="mt-6 text-base font-semibold">What a good score looks like</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            <li>75+ — strong alignment; you are likely to clear keyword screening.</li>
+            <li>75+ — strong keyword alignment in this checker, not a guarantee of passing employer screening.</li>
             <li>50–74 — partial match; add the missing required skills you genuinely have.</li>
             <li>Below 50 — the resume is not tailored to this posting yet.</li>
-          </ol>
+          </ul>
         </section>
       </main>
 
