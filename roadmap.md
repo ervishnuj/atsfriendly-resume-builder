@@ -84,5 +84,5 @@
 # ATS checker search visibility and indexing baseline
 
 - [x] Read URL Inspection, checker-specific performance, and sitemap status from the verified Google property
-- [ ] Apply any focused discoverability gaps confirmed against the current and published pages
-- [ ] Verify checker navigation and analysis, and provide a dated indexing baseline with follow-up steps
+- [x] Make the homepage checker link descriptive and direct its free-check CTA to the public checker instead of sign-in
+- [x] Verify homepage-to-checker navigation and pasted analysis without AI charges; record the 2026-10-12 indexing baseline and manual follow-up in seo-indexing.md
