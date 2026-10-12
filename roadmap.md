@@ -62,3 +62,9 @@
 - [x] Drive rewriting from the measured breakdown and source-backed missing evidence
 - [x] Report unresolved final gaps and distinguish study evidence from strong matches
 - [x] Verify 60 synthetic tests, successful preview build, and signed-in job-description entry and optimizer controls without paid AI or credits
+
+# PDF export layout and pagination
+
+- [x] Fix print isolation and natural section/bullet pagination without changing content or DOCX
+- [x] Align A4 page preview with export flow and readable print typography
+- [x] Inspect actual PDFs: fresher 1 page, typical 1 page, experienced 2 pages, long 3 pages; 16 export checks and 2 layout tests pass, preview build OK

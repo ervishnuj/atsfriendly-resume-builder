@@ -43,7 +43,7 @@ async def print_pdfs(ids):
         page = await context.new_page()
         for case_id in ids:
             await page.goto(f"file://{OUT}/html/{case_id}.html", wait_until="load")
-            await page.pdf(path=f"{OUT}/pdf/{case_id}.pdf", format="A4", print_background=True)
+            await page.pdf(path=f"{OUT}/pdf/{case_id}.pdf", format="A4", prefer_css_page_size=True, print_background=True)
         await browser.close()
 
 
@@ -75,11 +75,26 @@ def check(case_id: str) -> list[str]:
     text = run("pdftotext", "-layout", path, "-")
     suffix = "--imported" if case_id.endswith("--imported") else ""
     for needle in REQUIRED[suffix]:
-        if needle not in text:
+        if case_id == "length-fresher" and needle == "Senior Software Engineer":
+            needle = "Developer — Personal Project"
+        if needle.casefold() not in text.casefold():
             errs.append(f"missing selectable text: {needle!r}")
     for needle in FORBIDDEN:
         if needle in text:
             errs.append(f"non-resume content leaked into PDF: {needle!r}")
+
+    if case_id.startswith("length-"):
+        expected = {"length-fresher": 1, "length-typical": 1, "length-experienced": 2, "length-long": 3}[case_id]
+        info = run("pdfinfo", path)
+        count = int(next(line.split(":")[1].strip() for line in info.splitlines() if line.startswith("Pages:")))
+        if count != expected:
+            errs.append(f"expected {expected} pages, got {count}")
+        import re
+        source = open(f"{OUT}/html/{case_id}.html").read()
+        markers = re.findall(r"Built TypeScript service (\d+\.\d+)", source)
+        for marker in markers:
+            if f"service {marker} " not in text:
+                errs.append(f"missing bullet {marker}")
 
     return errs
 
@@ -98,7 +113,9 @@ def main() -> int:
             for e in errs:
                 print(f"      - {e}")
         else:
-            print(f"PASS {case_id}")
+            info = run("pdfinfo", f"{OUT}/pdf/{case_id}.pdf")
+            count = next(line.split(":")[1].strip() for line in info.splitlines() if line.startswith("Pages:"))
+            print(f"PASS {case_id}: {count} page(s)")
 
     print(f"\n{len(ids) - failed}/{len(ids)} exports valid")
     return 1 if failed else 0

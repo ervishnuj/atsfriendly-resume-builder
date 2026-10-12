@@ -100,9 +100,43 @@ const cases = BUILTIN_TEMPLATES.flatMap((t) => [
   { id: `${t.id}--imported`, config: t.config, data: imported },
 ]);
 
+// Synthetic length cases exercise the actual renderer without AI or credits.
+const lengthCases = [
+  { id: "length-fresher", entries: 1, bullets: 2 },
+  { id: "length-typical", entries: 3, bullets: 4 },
+  { id: "length-experienced", entries: 7, bullets: 5 },
+  { id: "length-long", entries: 9, bullets: 5 },
+].map(({ id, entries, bullets }) => ({
+  id,
+  config: BUILTIN_TEMPLATES[0].config,
+  data: {
+    optimizedProfile: {
+      ...generated.optimizedProfile,
+      personal: {
+        ...generated.optimizedProfile.personal,
+        title: id === "length-fresher" ? "Graduate Software Engineer" : "Full-Stack Engineer",
+        summary: id === "length-fresher"
+          ? "Computer science graduate with TypeScript coursework and a personal project building reliable document processing tools."
+          : id === "length-typical"
+            ? "Full-stack engineer with 3 years building TypeScript services and improving document processing reliability."
+            : generated.optimizedProfile.personal.summary,
+      },
+      experience: Array.from({ length: entries }, (_, i) => ({
+        company: id === "length-fresher" || i % 3 === 2 ? `Personal Project ${i + 1}` : `Example Company ${i + 1}`,
+        title: id === "length-fresher" ? "Developer — Personal Project" : "Senior Software Engineer",
+        dateRange: "2021 - Present",
+        bullets: Array.from({ length: bullets }, (_, j) =>
+          `Built TypeScript service ${i + 1}.${j + 1} improving processing efficiency by 42% through query tuning and automated validation. Partnered with product teams to document reliable release procedures and monitor production quality.`,
+        ),
+      })),
+    },
+  },
+}));
+cases.push(...lengthCases);
+
 for (const c of cases) {
   const body = renderToStaticMarkup(<ResumePreview data={c.data} config={c.config} />);
-  const html = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}${printCss}</style></head><body><div class="no-print">dashboard chrome that must not appear in the PDF</div>${body}</body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}*{box-sizing:border-box}h1,h2,p,ul{margin:0} ${printCss}</style></head><body><header style="height:150px">dashboard chrome that must not appear in the PDF</header><main style="display:grid;padding:24px"><aside style="height:1600px">dashboard chrome</aside><div style="overflow:hidden"><div style="height:200px">dashboard chrome</div>${body}</div></main></body></html>`;
   writeFileSync(`${OUT}/html/${c.id}.html`, html);
 }
 

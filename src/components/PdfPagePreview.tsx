@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ResumePreview } from "@/components/ResumePreview";
 import type { OptimizedResume } from "@/lib/resume.functions";
 import type { TemplateConfig } from "@/lib/resume-templates";
+import { resumePrintConfig } from "@/lib/resume-print-layout";
 
 const PX_PER_MM = 96 / 25.4;
 const A4_H = 297 * PX_PER_MM;
@@ -19,7 +20,8 @@ type Props = {
  * template's page margins, and page breaks computed with the same
  * "don't split a block" rules the print stylesheet uses.
  */
-export function PdfPagePreview({ data, config, showGuides = true }: Props) {
+export function PdfPagePreview({ data, config: sourceConfig, showGuides = true }: Props) {
+  const config = resumePrintConfig(sourceConfig);
   const measureRef = useRef<HTMLDivElement>(null);
   const [offsets, setOffsets] = useState<number[]>([0]);
 
@@ -33,33 +35,27 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
     if (!root) return;
     const contentTop = root.getBoundingClientRect().top + config.marginTop * PX_PER_MM;
 
-    // Atomic blocks: a section stays whole when it fits, otherwise it is split
-    // at its own children (heading, entries, bullets).
-    const blocks: HTMLElement[] = [];
-    Array.from(root.children).forEach((child) => {
-      const el = child as HTMLElement;
-      if (el.tagName === "STYLE") return;
-      const h = el.getBoundingClientRect().height;
-      if (el.tagName === "SECTION" && h > contentHeight) {
-        Array.from(el.children).forEach((sub) => {
-          const subEl = sub as HTMLElement;
-          if (subEl.children.length && subEl.getBoundingClientRect().height > contentHeight) {
-            Array.from(subEl.children).forEach((leaf) => blocks.push(leaf as HTMLElement));
-          } else {
-            blocks.push(subEl);
-          }
-        });
-      } else {
-        blocks.push(el);
-      }
-    });
+    // Match print fragmentation: sections/entries may continue, while headings,
+    // entry headers, skill rows and individual bullets are atomic.
+    const blocks = Array.from(root.querySelectorAll<HTMLElement>(
+      "[data-resume-block], section > h2, section > p, footer",
+    ));
 
     const breaks = [0];
     let pageStart = 0;
-    blocks.forEach((el) => {
+    blocks.forEach((el, index) => {
       const rect = el.getBoundingClientRect();
       const top = rect.top - contentTop;
-      const bottom = rect.bottom - contentTop;
+      let bottom = rect.bottom - contentTop;
+      let nextIndex = index;
+      while (blocks[nextIndex]?.hasAttribute("data-resume-keep-next") && blocks[nextIndex + 1]) {
+        nextIndex += 1;
+        bottom = blocks[nextIndex].getBoundingClientRect().bottom - contentTop;
+      }
+      while (top - pageStart >= contentHeight) {
+        pageStart += contentHeight;
+        breaks.push(pageStart);
+      }
       if (bottom - pageStart > contentHeight && top > pageStart) {
         pageStart = top;
         breaks.push(pageStart);
@@ -85,7 +81,7 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
     );
   };
 
-  useLayoutEffect(paginate, [data, config]);
+  useLayoutEffect(paginate, [data, sourceConfig]);
 
   useEffect(() => {
     const id = window.setTimeout(paginate, 250); // re-measure after webfonts settle
@@ -95,7 +91,7 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
       window.removeEventListener("resize", paginate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, config]);
+  }, [data, sourceConfig]);
 
   return (
     <div className="print:hidden">
@@ -112,7 +108,7 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
           pointerEvents: "none",
         }}
       >
-        <ResumePreview data={data} config={config} printable={false} />
+        <ResumePreview data={data} config={config} printable={false} pdfLayout />
       </div>
 
       <div className="flex flex-col items-center gap-6">
@@ -143,15 +139,16 @@ export function PdfPagePreview({ data, config, showGuides = true }: Props) {
                   top: `${config.marginTop * PX_PER_MM}px`,
                   left: 0,
                   right: 0,
-                  height: `${contentHeight}px`,
+                  height: `${Math.min(contentHeight, (offsets[i + 1] ?? offset + contentHeight) - offset)}px`,
                   overflow: "hidden",
                 }}
               >
-                <div style={{ transform: `translateY(${-offset}px)` }}>
+                <div style={{ transform: `translateY(${-offset - config.marginTop * PX_PER_MM}px)` }}>
                   <ResumePreview
                     data={data}
-                    config={{ ...config, marginTop: 0, marginBottom: 0 }}
+                    config={config}
                     printable={false}
+                      pdfLayout
                   />
                 </div>
               </div>

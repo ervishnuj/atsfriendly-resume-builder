@@ -1,4 +1,5 @@
 import type { OptimizedResume } from "@/lib/resume.functions";
+import { resumePrintConfig } from "@/lib/resume-print-layout";
 import {
   ATS_CLASSIC,
   SECTION_LABELS,
@@ -14,15 +15,20 @@ type Props = {
   scale?: number;
   /** When false, the copy is decorative (preview/measuring) and carries no print id/styles. */
   printable?: boolean;
+  /** Use PDF typography in non-printable measuring/page-preview copies. */
+  pdfLayout?: boolean;
 };
+
+const clampContact = (body: number) => Math.min(9, Math.max(8, body - 0.5));
 
 /**
  * Template-driven A4 resume renderer. Everything is real HTML text — no
  * images, tables, skill bars or graphics — so the export stays ATS-readable.
  */
-export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true }: Props) {
+export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true, pdfLayout = false }: Props) {
   const isPrintTarget = printable && !scale;
-  const c = config;
+  const printConfig = resumePrintConfig(config);
+  const c = pdfLayout || isPrintTarget ? printConfig : config;
   const p = data.optimizedProfile.personal;
   const fontFamily = safeFontFamily(c.fontFamily);
   const contacts = [p.phone, p.email, p.linkedin, p.github, p.portfolio].filter(Boolean);
@@ -44,6 +50,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
 
   const heading = (title: string) => (
     <h2
+      data-resume-keep-next
       style={{
         fontSize: `${c.headingFontSize}pt`,
         fontWeight: c.headingWeight,
@@ -53,6 +60,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
         borderBottom: c.showDividers ? `1px solid ${c.dividerColor}` : "none",
         paddingBottom: c.showDividers ? 2 : 0,
         marginBottom: 5,
+        marginTop: 0,
       }}
     >
       {title}
@@ -60,7 +68,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
   );
 
   const sectionWrap = (key: string, title: string, body: React.ReactNode) => (
-    <section key={key} style={{ marginTop: c.sectionSpacing, breakInside: "avoid" }}>
+    <section key={key} style={{ marginTop: c.sectionSpacing }}>
       {heading(title)}
       {body}
     </section>
@@ -80,7 +88,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
         SECTION_LABELS.skills,
         <div>
           {prof.skills.map((s, i) => (
-            <div key={i} style={{ marginBottom: c.bulletSpacing }}>
+            <div data-resume-block key={i} style={{ marginBottom: c.bulletSpacing }}>
               <span style={{ fontWeight: 700 }}>{s.category}: </span>
               <span>{s.items.join(", ")}</span>
             </div>
@@ -98,8 +106,9 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
             <div
               key={i}
               data-resume-item
-              style={{ marginBottom: i === prof.experience.length - 1 ? 0 : c.itemSpacing, breakInside: "avoid" }}
+              style={{ marginBottom: i === prof.experience.length - 1 ? 0 : c.itemSpacing }}
             >
+              <div data-resume-block data-resume-keep-next={e.bullets.length ? "" : undefined}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <span style={{ fontWeight: 700, textTransform: "uppercase", color: c.headingColor }}>
                   {e.company}
@@ -107,10 +116,11 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
                 <span style={{ whiteSpace: "nowrap", color: c.accentColor }}>{e.dateRange}</span>
               </div>
               <div style={{ fontStyle: "italic", color: c.accentColor }}>{e.title}</div>
+              </div>
               {e.bullets.length > 0 && (
                 <ul style={{ margin: "3px 0 0", paddingLeft: "4.5mm", listStyleType: "disc" }}>
                   {e.bullets.map((b, j) => (
-                    <li key={j} style={{ marginBottom: c.bulletSpacing }}>
+                    <li data-resume-block key={j} style={{ marginBottom: c.bulletSpacing }}>
                       {b}
                     </li>
                   ))}
@@ -130,6 +140,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
           <div
             key={i}
             data-resume-item
+            data-resume-block
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -163,7 +174,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
 @media print {
   @page {
     size: A4 portrait;
-    margin: ${c.marginTop}mm ${c.marginRight}mm ${c.marginBottom}mm ${c.marginLeft}mm;
+    margin: ${printConfig.marginTop}mm ${printConfig.marginRight}mm ${printConfig.marginBottom}mm ${printConfig.marginLeft}mm;
   }
   #resume-print-area {
     width: auto !important;
@@ -171,8 +182,8 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
     padding: 0 !important;
     margin: 0 !important;
     font-family: ${fontFamily};
-    font-size: ${c.bodyFontSize}pt !important;
-    line-height: ${c.lineHeight} !important;
+    font-size: ${printConfig.bodyFontSize}pt !important;
+    line-height: ${printConfig.lineHeight} !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -192,15 +203,30 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
     page-break-after: avoid;
     break-inside: avoid;
   }
-  #resume-print-area section,
+  #resume-print-area header,
   #resume-print-area li,
-  #resume-print-area [data-resume-item] {
+  #resume-print-area [data-resume-block] {
     break-inside: avoid;
     page-break-inside: avoid;
   }
   #resume-print-area section {
-    margin-top: ${c.sectionSpacing}px;
+    break-inside: auto;
+    page-break-inside: auto;
+    margin-top: ${printConfig.sectionSpacing}px !important;
   }
+  #resume-print-area [data-resume-item] {
+    break-inside: auto;
+    margin-bottom: ${printConfig.itemSpacing}px !important;
+  }
+  #resume-print-area [data-resume-item]:last-child { margin-bottom: 0 !important; }
+  #resume-print-area li { margin-bottom: ${printConfig.bulletSpacing}px !important; }
+  #resume-print-area [data-resume-keep-next] {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  #resume-print-area h1 { font-size: ${printConfig.nameFontSize}pt !important; }
+  #resume-print-area h2 { font-size: ${printConfig.headingFontSize}pt !important; }
+  #resume-print-area [data-resume-contacts] { font-size: ${clampContact(printConfig.bodyFontSize)}pt !important; }
   #resume-print-area footer {
     break-inside: avoid;
   }
@@ -214,7 +240,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
     >
       {isPrintTarget && <style dangerouslySetInnerHTML={{ __html: printCss }} />}
 
-      <header style={{ textAlign: c.headerAlignment }}>
+      <header data-resume-block style={{ textAlign: c.headerAlignment }}>
         <h1
           style={{
             fontSize: `${c.nameFontSize}pt`,
@@ -232,10 +258,11 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
         )}
         {contacts.length > 0 && (
           <p
+            data-resume-contacts
             style={{
               margin: "4px 0 0",
               color: c.accentColor,
-              fontSize: `${Math.max(8, c.bodyFontSize - 0.5)}pt`,
+              fontSize: `${pdfLayout ? clampContact(c.bodyFontSize) : Math.max(8, c.bodyFontSize - 0.5)}pt`,
               display: c.contactLayout === "stacked" ? "block" : undefined,
             }}
           >
