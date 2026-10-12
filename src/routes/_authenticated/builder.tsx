@@ -353,6 +353,7 @@ function Index() {
   const handleClearProfile = async () => {
     await clearRemote().catch(() => undefined);
     setProfile(emptyProfile);
+    setCurrentResumeText("");
     setSavedLocally(false);
     setProfileOpen(true);
     setImportIssues([]);
