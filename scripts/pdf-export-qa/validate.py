@@ -43,7 +43,7 @@ async def print_pdfs(ids):
         page = await context.new_page()
         for case_id in ids:
             await page.goto(f"file://{OUT}/html/{case_id}.html", wait_until="load")
-            await page.pdf(path=f"{OUT}/pdf/{case_id}.pdf", format="A4", print_background=True)
+            await page.pdf(path=f"{OUT}/pdf/{case_id}.pdf", format="A4", prefer_css_page_size=True, print_background=True)
         await browser.close()
 
 
@@ -98,7 +98,9 @@ def main() -> int:
             for e in errs:
                 print(f"      - {e}")
         else:
-            print(f"PASS {case_id}")
+            from pypdf import PdfReader
+            count = len(PdfReader(f"{OUT}/pdf/{case_id}.pdf").pages)
+            print(f"PASS {case_id}: {count} page(s)")
 
     print(f"\n{len(ids) - failed}/{len(ids)} exports valid")
     return 1 if failed else 0
