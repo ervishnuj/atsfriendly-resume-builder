@@ -6,7 +6,9 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 export function resumePrintConfig(config: TemplateConfig): TemplateConfig {
   return {
     ...config,
-    fontFamily: config.fontFamily.replace(/\b(serif|sans-serif)\s*$/, '"DejaVu Sans", $1'),
+    fontFamily: config.fontFamily.includes('"DejaVu Sans"')
+      ? config.fontFamily
+      : config.fontFamily.replace(/\b(serif|sans-serif)\s*$/, '"DejaVu Sans", $1'),
     bodyFontSize: clamp(config.bodyFontSize, 9, 10.5),
     nameFontSize: clamp(config.nameFontSize, 18, 22),
     headingFontSize: clamp(config.headingFontSize, 10, 12),

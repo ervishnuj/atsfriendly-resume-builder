@@ -75,11 +75,26 @@ def check(case_id: str) -> list[str]:
     text = run("pdftotext", "-layout", path, "-")
     suffix = "--imported" if case_id.endswith("--imported") else ""
     for needle in REQUIRED[suffix]:
+        if case_id == "length-fresher" and needle == "Senior Software Engineer":
+            needle = "Developer — Personal Project"
         if needle.casefold() not in text.casefold():
             errs.append(f"missing selectable text: {needle!r}")
     for needle in FORBIDDEN:
         if needle in text:
             errs.append(f"non-resume content leaked into PDF: {needle!r}")
+
+    if case_id.startswith("length-"):
+        expected = {"length-fresher": 1, "length-typical": 1, "length-experienced": 2, "length-long": 3}[case_id]
+        info = run("pdfinfo", path)
+        count = int(next(line.split(":")[1].strip() for line in info.splitlines() if line.startswith("Pages:")))
+        if count != expected:
+            errs.append(f"expected {expected} pages, got {count}")
+        import re
+        source = open(f"{OUT}/html/{case_id}.html").read()
+        markers = re.findall(r"Built TypeScript service (\d+\.\d+)", source)
+        for marker in markers:
+            if f"service {marker} " not in text:
+                errs.append(f"missing bullet {marker}")
 
     return errs
 

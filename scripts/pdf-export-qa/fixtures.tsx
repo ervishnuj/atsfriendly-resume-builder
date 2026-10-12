@@ -112,9 +112,18 @@ const lengthCases = [
   data: {
     optimizedProfile: {
       ...generated.optimizedProfile,
+      personal: {
+        ...generated.optimizedProfile.personal,
+        title: id === "length-fresher" ? "Graduate Software Engineer" : "Full-Stack Engineer",
+        summary: id === "length-fresher"
+          ? "Computer science graduate with TypeScript coursework and a personal project building reliable document processing tools."
+          : id === "length-typical"
+            ? "Full-stack engineer with 3 years building TypeScript services and improving document processing reliability."
+            : generated.optimizedProfile.personal.summary,
+      },
       experience: Array.from({ length: entries }, (_, i) => ({
-        company: i % 3 === 2 ? `Personal Project ${i + 1}` : `Example Company ${i + 1}`,
-        title: "Senior Software Engineer",
+        company: id === "length-fresher" || i % 3 === 2 ? `Personal Project ${i + 1}` : `Example Company ${i + 1}`,
+        title: id === "length-fresher" ? "Developer — Personal Project" : "Senior Software Engineer",
         dateRange: "2021 - Present",
         bullets: Array.from({ length: bullets }, (_, j) =>
           `Built TypeScript service ${i + 1}.${j + 1} improving processing efficiency by 42% through query tuning and automated validation. Partnered with product teams to document reliable release procedures and monitor production quality.`,
