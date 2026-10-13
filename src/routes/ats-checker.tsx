@@ -251,7 +251,8 @@ function AtsCheckerPage() {
                       {guidance.filter(item => item.status === "potentialGap" || item.status === "currentlyLearning" || item.status === "currentlyTraining" || result.missingKeywords.includes(item.term)).map(item => (
                         <div key={item.term} className="py-3 text-sm">
                           <p className="font-semibold">{item.term}</p>
-                          <p className="mt-1 text-xs font-medium text-muted-foreground">{item.label}</p>
+                          <p className="mt-1 text-xs font-medium text-muted-foreground">{item.importance} · {item.category} · {item.label}</p>
+                          {item.context && <p className="mt-1 break-words text-xs text-muted-foreground">Job description: “{item.context}”</p>}
                           {item.status !== "potentialGap" && <p className="mt-1 break-words text-xs text-muted-foreground">Supplied evidence: {item.evidence}</p>}
                           <p className="mt-1 text-muted-foreground">{item.action}</p>
                         </div>
@@ -266,6 +267,7 @@ function AtsCheckerPage() {
                       </ul>
                     </div>
                   )}
+                  <p className="text-xs text-muted-foreground">Job match weights: required/core skills 40 points, technical coverage 25, responsibilities 15, experience 10, education 5, title 5. Within technical coverage, explicit mandatory requirements carry weight 1, other relevant skills 0.75, and preferred skills 0.35. Generic phrases are excluded. Evidence of a keyword is not proof of proficiency.</p>
                 </Card>
               </div>
 
