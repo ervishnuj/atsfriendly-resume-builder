@@ -232,6 +232,7 @@ export function computeAtsScores(
   jobDescription: string,
   raw: AtsExtraction,
   skillWeights?: ReadonlyMap<string, number>,
+  requirementImportance?: ReadonlyMap<string, number>,
 ): AtsScoreResult {
   const resumeNorm = normalizeText(resumeText);
   const has = buildPresence(resumeNorm, raw);
@@ -246,7 +247,13 @@ export function computeAtsScores(
   const tech = coverage(technical, has);
   const pref = coverage(preferred, has);
   // Structured, source-verified evidence affects JD fit only. Generic ATS checks keep their historical formula.
-  const weightedCoverage = (terms: string[]) => terms.length ? terms.reduce((sum, term) => sum + (has(term) ? (skillWeights?.get(normalizeTerm(term)) ?? 1) : 0), 0) / terms.length : 0;
+  // Optional requirement importance is supplied only by the public checker.
+  // Builder evidence weights and historical default scoring remain unchanged.
+  const weightedCoverage = (terms: string[]) => {
+    const importance = (term: string) => requirementImportance?.get(normalizeTerm(term)) ?? 1;
+    const total = terms.reduce((sum, term) => sum + importance(term), 0);
+    return total ? terms.reduce((sum, term) => sum + (has(term) ? importance(term) * (skillWeights?.get(normalizeTerm(term)) ?? 1) : 0), 0) / total : 0;
+  };
 
   /* ---- ATS Match Score (JD fit) ---- */
   const responsibilities = dedupe(raw.responsibilities || []);
