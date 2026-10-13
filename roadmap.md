@@ -86,3 +86,10 @@
 - [x] Read URL Inspection, checker-specific performance, and sitemap status from the verified Google property
 - [x] Make the homepage checker link descriptive and direct its free-check CTA to the public checker instead of sign-in
 - [x] Verify homepage-to-checker navigation and pasted analysis without AI charges; record the 2026-10-12 indexing baseline and manual follow-up in seo-indexing.md
+
+# ATS checker requirement relevance
+
+- [ ] Replace frequency-only keywords with contextual, classified job requirements
+- [ ] Weight optional requirements lower in public checker fit scoring, preserving builder defaults
+- [ ] Show requirement importance and JD context with truthful evidence guidance
+- [ ] Verify multiple role descriptions, matching boundaries, uploads/paste, and regression tests without AI charges
