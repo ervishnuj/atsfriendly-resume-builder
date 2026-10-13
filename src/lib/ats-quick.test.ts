@@ -75,4 +75,18 @@ describe("contextual public ATS checker", () => {
     const result = quickAtsCheck("SKILLS\nJava\nEDUCATION\nSchool 2010\nBachelor degree 2024", "Java Developer\nRequired: Java.\nMinimum 5 years experience.");
     expect(result.matchBreakdown.experience).toBe(0);
   });
+  it("checks public Java and DevOps description excerpts without generic overlap", () => {
+    // Public excerpts reviewed October 13, 2026; candidate text remains synthetic.
+    // https://www.linkedin.com/jobs/view/full-stack-java-21-developer-angular-19-at-general-dynamics-information-technology-4451071972
+    const java = extractJobRequirements("Full Stack Developer\n7+ years of Java/J2EE work experience.\n5+ years of AWS experience with ECS and ECR (Docker).\n2+ years of Oracle 19 (SQL and PL/SQL) and/or PostgreSQL experience.");
+    expect(java.requirements.map(item => item.term)).toEqual(expect.arrayContaining(["java", "aws", "docker", "oracle", "sql", "postgresql"]));
+    // https://job-boards.greenhouse.io/ensono/jobs/4696866005
+    const devops = extractJobRequirements("Senior DevOps Engineer\nDesign, build, and manage cloud infrastructure primarily on GCP (70%) and partially on AWS (30%).\nDeep hands-on experience in Terraform-based infrastructure automation.\nWrite and maintain automation scripts using Python, Bash.");
+    expect(devops.requirements.map(item => item.term)).toEqual(expect.arrayContaining(["google cloud", "aws", "python", "bash"]));
+  });
+  it("does not report a bachelor degree missing when a recognized equivalent is supplied", () => {
+    const result = quickAtsCheck("EDUCATION\nB.Tech Computer Science", "Developer\nRequired: Bachelor degree.");
+    expect(result.matchBreakdown.education).toBe(5);
+    expect(result.missingKeywords).not.toContain("bachelor degree");
+  });
 });

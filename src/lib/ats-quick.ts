@@ -80,16 +80,15 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
       const importance = REQUIRED.test(context) ? "Required" : PREFERRED.test(context) ? "Preferred" : section;
       if (TITLE.test(context) && context.length <= 80 && !/[:,]|\b(using|with|skills|required|preferred)\b/i.test(context)) continue;
       let remaining = context;
-      // Keep genuine multi-word requirements containing otherwise generic words.
-      const contextualPhrases = /\b(?:[a-z]+\s+engineering|[a-z]+\s+(?:testing|management|analysis|reporting|certification))\b/gi;
-      remaining = remaining.replace(contextualPhrases, match => {
-        if (match.split(/\s+/).every(token => GENERIC.has(token.toLowerCase()))) return match;
-        add(match, /testing/i.test(match) ? "Job responsibilities" : "Core technical skills", importance, context);
-        return " ".repeat(match.length);
-      });
       for (const [pattern, canonical, category] of PHRASES) {
         remaining = remaining.replace(pattern, match => { add(canonical || match, category, importance, context); return " ".repeat(match.length); });
       }
+      // Preserve unlisted domain phrases containing otherwise generic words.
+      remaining = remaining.replace(/\b(?:[a-z]+\s+engineering|[a-z]+\s+(?:testing|management|analysis|reporting|certification))\b/gi, match => {
+        if (match.split(/\s+/).every(token => GENERIC.has(token.toLowerCase()))) return match;
+        add(match, /testing/i.test(match) ? "Job responsibilities" : /certification/i.test(match) ? "Required qualifications" : "Core technical skills", importance, context);
+        return " ".repeat(match.length);
+      });
       if (DEGREE.test(context) && /\b(degree|bachelor|master|diploma|b\.?tech|m\.?tech|phd|b\.?sc|m\.?sc)\b/i.test(context)) {
         const degree = context.match(/(?:bachelor'?s?|master'?s?|b\.?tech|m\.?tech|b\.?sc|m\.?sc|phd|diploma)(?:\s+degree)?(?:\s+in\s+[a-z &]+?(?=\s+(?:or|is|required|preferred)|[,.;]|$))?/i)?.[0];
         if (degree) add(degree, "Required qualifications", importance, context);
@@ -131,7 +130,11 @@ function evidenceFor(text: string, term: string): string | undefined {
     "software development": ["developed software", "developing software"],
     "test automation": ["automated testing", "automated tests"],
     "data analysis": ["analyzed data", "analysed data"],
-    "cicd": ["ci/cd", "continuous integration", "continuous delivery"],
+    "cicd": ["ci/cd", "continuous integration and continuous delivery", "continuous integration and delivery"],
+    "bachelor": ["bachelors", "bachelor degree", "bachelor's degree", "b.tech", "btech", "bca", "b.sc", "bsc"],
+    "bachelor degree": ["bachelors", "bachelor's degree", "b.tech", "btech", "bca", "b.sc", "bsc"],
+    "bachelors degree": ["bachelor degree", "b.tech", "btech", "bca", "b.sc", "bsc"],
+    "master degree": ["master's degree", "m.tech", "mtech", "msc", "mca", "mba"],
   };
   return lines(text).find(line => !/\b(no experience|never used|not familiar|do not know|don't know|without experience)\b/i.test(line) && [term, ...(equivalents[term] ?? [])].some(variant => containsTerm(normalizeText(line), variant)));
 }
@@ -166,7 +169,7 @@ export function quickAtsCheck(resumeText: string, jobDescription: string): Quick
     responsibilities: responsibilities.filter(item => item.importance !== "Preferred").map(item => item.term),
     minYearsExperience: yearsFrom(jobDescription),
     candidateYearsExperience: yearsFrom(resumeText, true),
-    educationRequirements: qualifications.filter(item => item.importance !== "Preferred").map(item => item.term.replace(/\s+in\s+.*$/i, "")),
+    educationRequirements: qualifications.filter(item => item.importance !== "Preferred").map(item => item.term.replace(/\s+in\s+.*$/i, "").replace(/^bachelor'?s? degree$/, "bachelor").replace(/^master'?s? degree$/, "master")),
     candidateEducation: resumeLines.filter(line => DEGREE.test(line)),
     candidateTitles: resumeLines.filter(line => TITLE.test(line) && line.length <= 80).slice(0, 6),
     skillEvidence: skills.filter(item => evidence[item.term]).map(item => ({ term: item.term, present: true, evidence: evidence[item.term] })),
