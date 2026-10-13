@@ -18,7 +18,7 @@ export type KeywordGuidance = {
 /** Presentation-only evidence review: never modifies inputs or score weights. */
 export function atsKeywordGuidance(text: string, result: QuickAtsResult): KeywordGuidance[] {
   const profile = parseResumeText(text).profile;
-  const terms = [...new Set([...result.matchedKeywords, ...result.missingKeywords])];
+  const terms = result.requirements.map(item => item.term);
   return classifyJobSkills(profile, terms).map((item) => {
     const requirement = result.requirements.find(requirement => requirement.term === normalizeTerm(item.term));
     const quoted = result.evidence[normalizeTerm(item.term)];

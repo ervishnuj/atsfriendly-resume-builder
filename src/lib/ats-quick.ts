@@ -64,7 +64,7 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
   let section: "Required" | "Relevant" | "Preferred" = "Relevant";
   const add = (term: string, category: RequirementCategory, importance: JobRequirement["importance"], context: string) => {
     const key = normalizeTerm(term);
-    if (!key || key.length < 2 || GENERIC.has(key)) return;
+    if (!key || key.length < 2 || (GENERIC.has(key) && category !== "Job responsibilities" && category !== "Required qualifications")) return;
     const prior = found.get(key);
     const rank = { Required: 0, Relevant: 1, Preferred: 2 };
     if (!prior || rank[importance] < rank[prior.importance]) found.set(key, { term: key, category, importance, context });
@@ -80,6 +80,13 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
       const importance = REQUIRED.test(context) ? "Required" : PREFERRED.test(context) ? "Preferred" : section;
       if (TITLE.test(context) && context.length <= 80 && !/[:,]|\b(using|with|skills|required|preferred)\b/i.test(context)) continue;
       let remaining = context;
+      // Keep genuine multi-word requirements containing otherwise generic words.
+      const contextualPhrases = /\b(?:[a-z]+\s+engineering|[a-z]+\s+(?:testing|management|analysis|reporting|certification))\b/gi;
+      remaining = remaining.replace(contextualPhrases, match => {
+        if (match.split(/\s+/).every(token => GENERIC.has(token.toLowerCase()))) return match;
+        add(match, /testing/i.test(match) ? "Job responsibilities" : "Core technical skills", importance, context);
+        return " ".repeat(match.length);
+      });
       for (const [pattern, canonical, category] of PHRASES) {
         remaining = remaining.replace(pattern, match => { add(canonical || match, category, importance, context); return " ".repeat(match.length); });
       }
@@ -88,7 +95,7 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
         if (degree) add(degree, "Required qualifications", importance, context);
         remaining = remaining.replace(/(?:bachelor'?s?|master'?s?|b\.?tech|m\.?tech|b\.?sc|m\.?sc|phd|diploma)(?:\s+degree)?/gi, " ");
       }
-      const tokens = remaining.match(/[a-zA-Z][a-zA-Z0-9.+#-]*/g) ?? [];
+      const tokens = remaining.match(/[a-zA-Z][a-zA-Z0-9.+#-]*|[,/()]/g) ?? [];
       const contextual = importance !== "Relevant" || /\b(skills?|experience|knowledge|proficiency|familiarity|using|tools?|technologies|frameworks?|libraries|databases?|certification|certified)\b/i.test(context);
       let chunk: string[] = [];
       const flush = () => {
@@ -98,6 +105,7 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
         chunk = [];
       };
       for (const token of tokens) {
+        if (/^[,/()]$/.test(token)) { flush(); continue; }
         const key = normalizeTerm(token);
         if (CORE.has(key) || FRAMEWORKS.has(key) || DATABASES.has(key)) { flush(); add(key, categoryFor(key), importance, context); }
         else if (GENERIC.has(key) || /^\d/.test(key) || /^(?:ing|ed)$/.test(key)) { flush(); if (["including", "activities", "engineering", "backlogs", "active"].includes(key)) ignored.add(key); }
@@ -171,10 +179,16 @@ export function quickAtsCheck(resumeText: string, jobDescription: string): Quick
   const analysisText = resumeText.split(/\r?\n/).map(line => /\b(no experience|never used|not familiar|do not know|don't know|without experience)\b/i.test(line) ? line.replace(/[a-zA-Z][a-zA-Z0-9.+#-]*/g, " ") : line).join("\n");
   const scored = computeAtsScores(analysisText, jobDescription, extraction, undefined, importance);
   const readiness = computeAtsScores(resumeText, jobDescription, extraction);
+  const supplementary = requirements.filter(item => item.category === "Job responsibilities" || item.category === "Required qualifications");
+  const missingSupplementary = supplementary.filter(item => !evidence[item.term]);
   return {
     ...scored, atsScore: readiness.atsScore, breakdown: readiness.breakdown,
     recommendations: [...new Set([...scored.recommendations, ...readiness.recommendations])].slice(0, 8),
-    keywordsChecked: skills.length, wordCount: resumeText.trim().split(/\s+/).filter(Boolean).length,
+    matchedKeywords: [...scored.matchedKeywords, ...supplementary.filter(item => evidence[item.term]).map(item => item.term)],
+    missingKeywords: [...scored.missingKeywords, ...missingSupplementary.map(item => item.term)],
+    missingRequiredKeywords: [...scored.missingRequiredKeywords, ...missingSupplementary.filter(item => item.importance !== "Preferred").map(item => item.term)],
+    missingPreferredKeywords: [...scored.missingPreferredKeywords, ...missingSupplementary.filter(item => item.importance === "Preferred").map(item => item.term)],
+    keywordsChecked: requirements.length, wordCount: resumeText.trim().split(/\s+/).filter(Boolean).length,
     evidence, requirements, ignoredPhrases,
   };
 }
