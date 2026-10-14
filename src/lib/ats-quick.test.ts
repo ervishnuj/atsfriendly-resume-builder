@@ -82,11 +82,16 @@ describe("contextual public ATS checker", () => {
     expect(java.requirements.map(item => item.term)).toEqual(expect.arrayContaining(["java", "aws", "docker", "oracle", "sql", "postgresql"]));
     // https://job-boards.greenhouse.io/ensono/jobs/4696866005
     const devops = extractJobRequirements("Senior DevOps Engineer\nDesign, build, and manage cloud infrastructure primarily on GCP (70%) and partially on AWS (30%).\nDeep hands-on experience in Terraform-based infrastructure automation.\nWrite and maintain automation scripts using Python, Bash.");
-    expect(devops.requirements.map(item => item.term)).toEqual(expect.arrayContaining(["google cloud", "aws", "python", "bash"]));
+    expect(devops.requirements.map(item => item.term)).toEqual(expect.arrayContaining(["google cloud", "aws", "terraform", "python", "bash"]));
   });
   it("does not report a bachelor degree missing when a recognized equivalent is supplied", () => {
     const result = quickAtsCheck("EDUCATION\nB.Tech Computer Science", "Developer\nRequired: Bachelor degree.");
     expect(result.matchBreakdown.education).toBe(5);
     expect(result.missingKeywords).not.toContain("bachelor degree");
+  });
+  it("keeps required and optional clauses separate on the same line", () => {
+    const { requirements } = extractJobRequirements("Developer\nJava required, Python preferred.");
+    expect(requirements.find(item => item.term === "java")?.importance).toBe("Required");
+    expect(requirements.find(item => item.term === "python")?.importance).toBe("Preferred");
   });
 });
