@@ -76,7 +76,7 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
     if (/^(?:responsibilities|duties|about us|benefits|what you.ll do)\s*:?$/i.test(line)) { section = "Relevant"; continue; }
     if (/^(?:benefits|about (?:us|the company)|we offer|salary|equal opportunity)\b/i.test(line)) continue;
     // Split optional tails separately so 'Java required; Python preferred' is never all optional.
-    for (const context of line.split(/;\s*|(?<=[.!?])\s+(?=[A-Z])/).filter(Boolean)) {
+    for (const context of line.split(/;\s*|(?<=[.!?])\s+(?=[A-Z])|,\s*(?=(?:[a-z0-9.+# -]+\s+)?(?:preferred|optional|nice.to.have)\b)/i).filter(Boolean)) {
       const importance = REQUIRED.test(context) ? "Required" : PREFERRED.test(context) ? "Preferred" : section;
       if (TITLE.test(context) && context.length <= 80 && !/[:,]|\b(using|with|skills|required|preferred)\b/i.test(context)) continue;
       let remaining = context;
@@ -105,7 +105,7 @@ export function extractJobRequirements(jd: string): { requirements: JobRequireme
       };
       for (const token of tokens) {
         if (/^[,/()]$/.test(token)) { flush(); continue; }
-        const key = normalizeTerm(token);
+        const key = normalizeTerm(token.replace(/-(?:based|driven)$/i, ""));
         if (CORE.has(key) || FRAMEWORKS.has(key) || DATABASES.has(key)) { flush(); add(key, categoryFor(key), importance, context); }
         else if (GENERIC.has(key) || /^\d/.test(key) || /^(?:ing|ed)$/.test(key)) { flush(); if (["including", "activities", "engineering", "backlogs", "active"].includes(key)) ignored.add(key); }
         else chunk.push(token);

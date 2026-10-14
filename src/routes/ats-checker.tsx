@@ -253,7 +253,7 @@ function AtsCheckerPage() {
                           <p className="font-semibold">{item.term}</p>
                           <p className="mt-1 text-xs font-medium text-muted-foreground">{item.importance} · {item.category} · {item.label}</p>
                           {item.context && <p className="mt-1 break-words text-xs text-muted-foreground">Job description: “{item.context}”</p>}
-                          {item.status !== "potentialGap" && <p className="mt-1 break-words text-xs text-muted-foreground">Supplied evidence: {item.evidence}</p>}
+                          {(item.status !== "potentialGap" || result.evidence[normalizeTerm(item.term)]) && <p className="mt-1 break-words text-xs text-muted-foreground">Supplied evidence: {item.evidence}</p>}
                           <p className="mt-1 text-muted-foreground">{item.action}</p>
                         </div>
                       ))}
