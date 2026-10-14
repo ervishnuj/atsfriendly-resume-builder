@@ -93,3 +93,9 @@
 - [x] Weight optional requirements lower in public checker fit scoring, preserving builder defaults
 - [x] Show requirement importance and JD context with truthful evidence guidance
 - [x] Verify Java, data/finance and public Java/DevOps excerpts, matching boundaries, PDF/DOCX/paste, and 74 regression tests; clean preview build and no browser errors or AI charges
+
+# ATS checker file extraction repair
+
+- [x] Reproduce older-browser PDF API failure and inspect bundled worker configuration
+- [ ] Use matching compatibility PDF reader/worker, release resources, and report accurate extraction failures
+- [ ] Verify PDF/DOCX, multipage, invalid/password/scanned files, replacement and analysis on Chromium and iPhone WebKit without AI
