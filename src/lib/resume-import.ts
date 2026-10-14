@@ -43,16 +43,26 @@ async function extractPdfText(file: File): Promise<string> {
     for (let i = 1; i <= doc.numPages; i += 1) {
     const page = await doc.getPage(i);
     try {
-    const content = await page.getTextContent();
+    // PDF.js 6 getTextContent uses ReadableStream async iteration, absent in Safari.
+    // The public stream reader API supports those browsers without global polyfills.
+    const reader = page.streamTextContent().getReader();
+    const items: Awaited<ReturnType<typeof page.getTextContent>>["items"] = [];
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        items.push(...value.items);
+      }
+    } finally { reader.releaseLock(); }
     const lines = new Map<number, string[]>();
-    for (const item of content.items) {
+    for (const item of items) {
       if (!("str" in item)) continue;
       const transform = "transform" in item ? item.transform : undefined;
       const y = Array.isArray(transform) && typeof transform[5] === "number" ? Math.round(transform[5] / 3) * 3 : 0;
       lines.set(y, [...(lines.get(y) ?? []), item.str]);
     }
     pages.push([...lines.entries()].sort((a, b) => b[0] - a[0]).map(([, values]) => values.join(" ").replace(/\s+/g, " ").trim()).filter(Boolean).join("\n"));
-    if (!content.items.some(item => "str" in item && item.str.trim())) {
+    if (!items.some(item => "str" in item && item.str.trim())) {
       const ops = await page.getOperatorList();
       hasImages ||= ops.fnArray.some(op => [pdfjs.OPS.paintImageXObject, pdfjs.OPS.paintInlineImageXObject, pdfjs.OPS.paintImageMaskXObject].includes(op));
     }
