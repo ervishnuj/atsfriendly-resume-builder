@@ -35,7 +35,7 @@ async function extractPdfText(file: File): Promise<string> {
   const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
   const buffer = await file.arrayBuffer();
-  const task = pdfjs.getDocument({ data: new Uint8Array(buffer), isEvalSupported: false });
+  const task = pdfjs.getDocument({ data: new Uint8Array(buffer) });
   const pages: string[] = [];
   let hasImages = false;
   try {

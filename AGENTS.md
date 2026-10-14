@@ -27,6 +27,6 @@ PDF export stays browser-native selectable HTML in normal print flow; PDF-only t
 
 Public ATS file submission reuses browser-local extraction; contextual requirements and optional importance weights feed the existing scoring engine only in the public checker, preserving builder defaults without uploading files, persisting resume text, or adding AI requests.
 
-Resume extraction uses the matching bundled PDF.js legacy reader and worker, releases documents after every attempt, and distinguishes browser loading, password, malformed, image-only and empty-text errors so older Safari and repeated uploads remain supported without a second parser.
+Resume extraction uses the matching bundled PDF.js legacy reader/worker and stream getReader API, releases documents after every attempt, and distinguishes browser loading, password, malformed, image-only and empty-text errors so Safari without async stream iteration and repeated uploads remain supported without a second parser.
 
 Guide and article renderers link existing contextual checker mentions using typed internal links, not injected HTML; this makes the tool discoverable while keeping editorial text safe.
