@@ -89,7 +89,7 @@
 
 # ATS checker requirement relevance
 
-- [ ] Replace frequency-only keywords with contextual, classified job requirements
-- [ ] Weight optional requirements lower in public checker fit scoring, preserving builder defaults
-- [ ] Show requirement importance and JD context with truthful evidence guidance
-- [ ] Verify multiple role descriptions, matching boundaries, uploads/paste, and regression tests without AI charges
+- [x] Replace frequency-only keywords with contextual, classified job requirements
+- [x] Weight optional requirements lower in public checker fit scoring, preserving builder defaults
+- [x] Show requirement importance and JD context with truthful evidence guidance
+- [x] Verify Java, data/finance and public Java/DevOps excerpts, matching boundaries, PDF/DOCX/paste, and 74 regression tests; clean preview build and no browser errors or AI charges
