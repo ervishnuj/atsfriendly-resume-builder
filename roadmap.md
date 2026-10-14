@@ -97,5 +97,5 @@
 # ATS checker file extraction repair
 
 - [x] Reproduce older-browser PDF API failure and inspect bundled worker configuration
-- [ ] Use matching compatibility PDF reader/worker, release resources, and report accurate extraction failures
-- [ ] Verify PDF/DOCX, multipage, invalid/password/scanned files, replacement and analysis on Chromium and iPhone WebKit without AI
+- [x] Use matching compatibility PDF reader/worker and explicit stream reader, release resources, and report accurate extraction failures
+- [x] Verify PDF/DOCX, multipage, invalid/password/scanned files, replacement and analysis on Chromium and iPhone WebKit without AI; 78 tests pass and preview build OK
