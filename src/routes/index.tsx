@@ -128,7 +128,7 @@ function Landing() {
                 <Link to="/ats-checker">Free ATS Resume Checker</Link>
               </Button>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Includes 1 free ATS analysis per account.</p>
+            <p className="mt-3 text-xs text-muted-foreground">Free ATS checker: upload PDF/DOCX or paste text — no sign-up required.</p>
             <p className="mt-2 text-sm text-muted-foreground">Starting from ₹39</p>
 
             <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
@@ -243,8 +243,8 @@ function Landing() {
                 formatting gaps.
               </p>
               <p className="mt-3 text-sm text-muted-foreground">
-                Your saved profile and the pasted job description are analyzed together — resume file upload is not
-                supported yet.
+                Upload a PDF or DOCX resume, or paste your resume text, then add a target job description. The free
+                checker needs no sign-up; files and analysis stay in your browser.
               </p>
               <Button asChild size="lg" className="mt-7 bg-gradient-brand text-brand-foreground">
                 <Link to="/ats-checker">Check My ATS Score</Link>
@@ -460,15 +460,15 @@ function Landing() {
               ],
               [
                 "Is ATS analysis free?",
-                "Yes. Every account includes one free ATS analysis. Additional ATS analyses require an applicable paid plan.",
+                "Yes. The public ATS checker is free with no sign-up required: upload a PDF or DOCX resume, or paste its text, and add a job description. Account-based AI analysis has separate allowances: every account includes one free ATS analysis, and additional account-based analyses require an applicable paid plan.",
               ],
               [
                 "How many AI resumes can I generate?",
                 "Free users receive one free resume PDF. The Single Resume plan includes one AI-generated resume. The 7-Day and 30-Day plans include up to 5 new AI resume generations per day.",
               ],
               [
-                "How many ATS analyses are included?",
-                "Free users receive one ATS analysis. The 7-Day Job Pass includes up to 5 ATS analyses per day, while the 30-Day Pro Pass includes up to 10 ATS analyses per day.",
+                "How many account-based ATS analyses are included?",
+                "Free users receive one account-based ATS analysis. The 7-Day Job Pass includes up to 5 ATS analyses per day, while the 30-Day Pro Pass includes up to 10 ATS analyses per day. These allowances are separate from the free, no-sign-up public ATS checker.",
               ],
               [
                 "Does a higher ATS score guarantee an interview?",
