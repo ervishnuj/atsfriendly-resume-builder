@@ -119,7 +119,7 @@ function BlogIndex() {
             Prefer step-by-step reference material? The guides cover formatting and keywords in
             depth.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
               <Link to="/guides">Read the guides</Link>
             </Button>

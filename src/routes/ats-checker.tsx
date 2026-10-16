@@ -124,8 +124,8 @@ function AtsCheckerPage() {
           <div className="min-w-0 border-t border-border py-4">
             <Tabs value={mode} onValueChange={value => { invalidate(); setMode(value); }}>
               <TabsList className="mb-4 grid h-auto w-full grid-cols-2">
-                <TabsTrigger value="upload" className="gap-1 whitespace-normal"><Upload className="h-4 w-4 shrink-0" />Upload Resume</TabsTrigger>
-                <TabsTrigger value="paste" className="gap-1 whitespace-normal"><ClipboardPaste className="h-4 w-4 shrink-0" />Paste Resume Text</TabsTrigger>
+                <TabsTrigger value="upload" className="min-h-11 gap-1 whitespace-normal"><Upload className="h-4 w-4 shrink-0" />Upload Resume</TabsTrigger>
+                <TabsTrigger value="paste" className="min-h-11 gap-1 whitespace-normal"><ClipboardPaste className="h-4 w-4 shrink-0" />Paste Resume Text</TabsTrigger>
               </TabsList>
             </Tabs>
             <div hidden={mode !== "upload"}>

@@ -62,9 +62,9 @@ function PlansPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <h1 className="text-lg font-semibold tracking-tight">Choose your plan</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button asChild variant="ghost">
               <Link to="/subscription">My subscription</Link>
             </Button>

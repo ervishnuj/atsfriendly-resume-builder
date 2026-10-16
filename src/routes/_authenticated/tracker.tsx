@@ -232,7 +232,7 @@ function TrackerPage() {
     <div className="min-h-screen bg-muted/30">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
             <h1 className="text-lg font-semibold tracking-tight">Job Application Tracker</h1>
             <Link
@@ -243,7 +243,7 @@ function TrackerPage() {
               Learn how to track applications →
             </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-1">
               <Link to="/dashboard">
                 <ArrowLeft className="h-4 w-4" /> Dashboard
