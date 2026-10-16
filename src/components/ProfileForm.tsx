@@ -80,15 +80,15 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
           </span>
         </AccordionTrigger>
         <AccordionContent className="space-y-3 pt-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field path="personal.fullName" error={err("personal.fullName")} label="Full Name" value={p.personal.fullName} onChange={(v) => setPersonal("fullName", v)} />
             <Field path="personal.title" error={err("personal.title")} label="Professional Title" value={p.personal.title} onChange={(v) => setPersonal("title", v)} />
-            <Field path="personal.email" error={err("personal.email")} label="Email" value={p.personal.email} onChange={(v) => setPersonal("email", v)} />
-            <Field path="personal.phone" error={err("personal.phone")} label="Phone" value={p.personal.phone} onChange={(v) => setPersonal("phone", v)} />
-            <Field path="personal.linkedin" error={err("personal.linkedin")} label="LinkedIn URL" value={p.personal.linkedin} onChange={(v) => setPersonal("linkedin", v)} />
-            <Field path="personal.github" error={err("personal.github")} label="GitHub URL" value={p.personal.github} onChange={(v) => setPersonal("github", v)} />
-            <div className="col-span-2">
-              <Field path="personal.portfolio" error={err("personal.portfolio")} label="Portfolio / Website" value={p.personal.portfolio} onChange={(v) => setPersonal("portfolio", v)} />
+            <Field type="email" autoComplete="email" path="personal.email" error={err("personal.email")} label="Email" value={p.personal.email} onChange={(v) => setPersonal("email", v)} />
+            <Field type="tel" autoComplete="tel" path="personal.phone" error={err("personal.phone")} label="Phone" value={p.personal.phone} onChange={(v) => setPersonal("phone", v)} />
+            <Field type="url" path="personal.linkedin" error={err("personal.linkedin")} label="LinkedIn URL" value={p.personal.linkedin} onChange={(v) => setPersonal("linkedin", v)} />
+            <Field type="url" path="personal.github" error={err("personal.github")} label="GitHub URL" value={p.personal.github} onChange={(v) => setPersonal("github", v)} />
+            <div className="sm:col-span-2">
+              <Field type="url" path="personal.portfolio" error={err("personal.portfolio")} label="Portfolio / Website" value={p.personal.portfolio} onChange={(v) => setPersonal("portfolio", v)} />
             </div>
           </div>
           <div>
@@ -206,7 +206,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field
                   path={`experience.${i}.title`}
                   error={err(`experience.${i}.title`)}
@@ -317,7 +317,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field path={`education.${i}.degree`} error={err(`education.${i}.degree`)} label="Degree" value={ed.degree} onChange={(v) => updateEd(setProfile, i, "degree", v)} />
                 <Field path={`education.${i}.major`} error={err(`education.${i}.major`)} label="Major" value={ed.major} onChange={(v) => updateEd(setProfile, i, "major", v)} />
                 <div className="col-span-2">
@@ -368,20 +368,26 @@ function Field({
   onChange,
   path,
   error,
+  type = "text",
+  autoComplete,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   path?: string;
   error?: string;
+  type?: string;
+  autoComplete?: string;
 }) {
   return (
     <div>
-      <Label className={`mb-1 block text-xs ${error ? "text-destructive" : ""}`}>{label}</Label>
+      <Label htmlFor={path ? `field-${path}` : undefined} className={`mb-1 block text-xs ${error ? "text-destructive" : ""}`}>{label}</Label>
       <Input
         id={path ? `field-${path}` : undefined}
+        type={type}
+        autoComplete={autoComplete}
+        className={error ? `min-h-11 sm:min-h-0 ${ERROR_RING}` : "min-h-11 sm:min-h-0"}
         aria-invalid={!!error}
-        className={error ? ERROR_RING : undefined}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />

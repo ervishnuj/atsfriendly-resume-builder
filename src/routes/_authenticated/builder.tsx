@@ -522,7 +522,7 @@ function Index() {
     <div className="min-h-screen bg-muted/30">
       <Toaster richColors position="top-right" />
       <header className="border-b border-border bg-background print:hidden">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2">
             <BrandLogo className="h-9 sm:h-10" />
             <div className="hidden sm:block">
@@ -530,7 +530,7 @@ function Index() {
               <p className="text-xs text-muted-foreground">AI-tailored resumes for any job description</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto [&>a]:min-h-11 [&>button]:min-h-11 sm:[&>a]:min-h-0 sm:[&>button]:min-h-0">
             {subscription && (
               <Link to="/subscription">
                 <Badge
@@ -627,8 +627,8 @@ function Index() {
         </div>
       </header>
 
-      {loading && <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-6 pt-5 print:hidden"><div className="flex items-center gap-3 border-b border-border pb-4 text-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Analyzing the role and your profile, optimizing verified content, then validating and scoring the finished resume…</span></div></div>}
-      <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
+      {loading && <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-5 sm:px-6 print:hidden"><div className="flex items-center gap-3 border-b border-border pb-4 text-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Analyzing the role and your profile, optimizing verified content, then validating and scoring the finished resume…</span></div></div>}
+      <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-3 py-4 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
         <section className="space-y-4 print:hidden">
           {!isSubscribed && !isAdminAccess && gateStatus && (
             <PaymentGateBanner
@@ -673,7 +673,7 @@ function Index() {
             />
           </Card>
           <Card className="p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold">Your Profile</h2>
                 {savedLocally && (
