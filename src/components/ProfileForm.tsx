@@ -233,7 +233,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                     })
                   }
                 />
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Field
                     path={`experience.${i}.dateRange`}
                     error={err(`experience.${i}.dateRange`)}
@@ -320,7 +320,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field path={`education.${i}.degree`} error={err(`education.${i}.degree`)} label="Degree" value={ed.degree} onChange={(v) => updateEd(setProfile, i, "degree", v)} />
                 <Field path={`education.${i}.major`} error={err(`education.${i}.major`)} label="Major" value={ed.major} onChange={(v) => updateEd(setProfile, i, "major", v)} />
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Field path={`education.${i}.institution`} error={err(`education.${i}.institution`)} label="Institution" value={ed.institution} onChange={(v) => updateEd(setProfile, i, "institution", v)} />
                 </div>
                 <Field path={`education.${i}.year`} error={err(`education.${i}.year`)} label="Graduation Year" value={ed.year} onChange={(v) => updateEd(setProfile, i, "year", v)} />
