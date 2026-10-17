@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 export function HeroResumeCard() {
   return (
     <div className="relative">
-      <div aria-hidden className="absolute -inset-y-6 inset-x-0 rounded-[2rem] bg-gradient-brand opacity-15 blur-2xl sm:-inset-6" />
+      <div aria-hidden className="absolute -inset-y-6 inset-x-0 rounded-[2rem] bg-gradient-brand opacity-15 blur-2xl" />
       <div className="relative animate-float rounded-2xl border border-border/70 bg-card p-6 shadow-soft">
         <div className="border-b border-border pb-4">
           <p className="text-lg font-semibold tracking-tight">Vigneshprabu</p>

@@ -30,12 +30,12 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3 lg:flex lg:justify-between">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3 xl:flex xl:justify-between">
         <Link to="/" aria-label="Resume Rocket home" className="flex min-w-0 items-center">
           <BrandLogo className="h-8 sm:h-10" />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-1 xl:flex">
           {NAV.map((n) => (
             <a
               key={n.label}
@@ -47,7 +47,7 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           {signedIn ? (
             <>
               <Button asChild variant="ghost" size="sm">
@@ -83,14 +83,14 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border lg:hidden"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border xl:hidden"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-border bg-background lg:hidden">
+        <div className="border-t border-border bg-background xl:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col px-5 py-3">
             {NAV.map((n) => (
               <a

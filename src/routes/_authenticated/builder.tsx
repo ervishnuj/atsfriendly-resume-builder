@@ -113,6 +113,7 @@ function Index() {
   const [downloading, setDownloading] = useState(false);
   const [pdfConfirmationOpen, setPdfConfirmationOpen] = useState(false);
   const [pdfMode, setPdfMode] = useState(false);
+  const [mobileStep, setMobileStep] = useState<"job" | "profile" | "resume">("job");
   const [gateStatus, setGateStatus] = useState<PaymentGateStatus | null>(null);
   const [templateId, setTemplateId] = useState<string>("ats-classic");
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(ATS_CLASSIC);
@@ -427,6 +428,7 @@ function Index() {
     try {
       const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
       setResult(res.resume);
+      setMobileStep("resume");
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success(
         `Resume generated · ATS Score ${res.resume.atsScore}/100 · ${res.usage.remaining} of ${res.usage.limit} AI generations left today`,
@@ -628,8 +630,24 @@ function Index() {
       </header>
 
       {loading && <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-5 sm:px-6 print:hidden"><div className="flex items-center gap-3 border-b border-border pb-4 text-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Analyzing the role and your profile, optimizing verified content, then validating and scoring the finished resume…</span></div></div>}
+      <nav aria-label="Resume steps" className="sticky top-0 z-30 border-b border-border bg-background/95 px-3 py-2 backdrop-blur lg:hidden print:hidden">
+        <ol className="grid grid-cols-3 gap-1">
+          {([["job", "1. Job"], ["profile", "2. Profile"], ["resume", "3. Resume"]] as const).map(([id, label]) => (
+            <li key={id}>
+              <button
+                type="button"
+                onClick={() => { setMobileStep(id); window.scrollTo({ top: 0 }); }}
+                aria-current={mobileStep === id ? "step" : undefined}
+                className={`min-h-11 w-full rounded-lg px-2 text-sm font-medium transition-colors ${mobileStep === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              >
+                {label}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-3 py-4 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
-        <section className="space-y-4 print:hidden">
+        <section className={`space-y-4 print:hidden ${mobileStep === "resume" ? "hidden lg:block" : ""}`}>
           {!isSubscribed && !isAdminAccess && gateStatus && (
             <PaymentGateBanner
               status={gateStatus}
@@ -649,7 +667,7 @@ function Index() {
               </p>
             </Card>
           )}
-          <Card className="p-4">
+          <Card className={`p-4 ${mobileStep !== "job" ? "hidden lg:block" : ""}`}>
             <div className="mb-2 flex items-center justify-between">
               <h2 id="jd-heading" className="text-sm font-semibold">
                 Target Job Description
@@ -672,7 +690,10 @@ function Index() {
               autoFocus={savedLocally}
             />
           </Card>
-          <Card className="p-4">
+          <Button type="button" className="h-11 w-full lg:hidden" hidden={mobileStep !== "job"} onClick={() => { setMobileStep("profile"); window.scrollTo({ top: 0 }); }}>
+            Next: your profile
+          </Button>
+          <Card className={`p-4 ${mobileStep !== "profile" ? "hidden lg:block" : ""}`}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold">Your Profile</h2>
@@ -772,14 +793,19 @@ function Index() {
             )}
           </Card>
           <LearningPlanPanel userId={userId} onAddToProfile={(apply) => setProfile((p) => apply(p) as Profile)} />
+          <div className={mobileStep !== "profile" ? "hidden lg:block" : ""}>
           <AiInsightsPanel
             profile={profile}
             jobDescription={jd}
             onSubscriptionRequired={() => void navigate({ to: "/payment" })}
           />
+          </div>
+          <Button type="button" variant="outline" className="h-11 w-full lg:hidden" hidden={mobileStep !== "profile"} onClick={() => { setMobileStep("resume"); window.scrollTo({ top: 0 }); }}>
+            Next: see your resume
+          </Button>
         </section>
 
-        <section className="space-y-4">
+        <section className={`space-y-4 ${mobileStep !== "resume" ? "hidden lg:block print:block" : ""}`}>
           <TemplateStudio
             data={result}
             templateId={templateId}
@@ -933,7 +959,7 @@ function Index() {
                   </div>
                 </div>
                 {pdfMode && (
-                  <div className="overflow-x-auto rounded-lg bg-muted/40 p-4">
+                  <div className="overflow-x-auto rounded-lg bg-muted/40 p-2 sm:p-4">
                     <PdfPagePreview data={result} config={templateConfig} />
                   </div>
                 )}
