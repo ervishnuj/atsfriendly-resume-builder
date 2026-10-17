@@ -175,10 +175,10 @@ function LoginPage() {
           </form>
 
           <div className="mt-4 flex items-center justify-between text-sm">
-            <Link to="/forgot-password" className="text-muted-foreground hover:text-foreground">
+            <Link to="/forgot-password" className="inline-flex min-h-11 items-center px-1 text-muted-foreground hover:text-foreground">
               Forgot Password
             </Link>
-            <Link to="/register" className="font-medium text-brand hover:underline">
+            <Link to="/register" className="inline-flex min-h-11 items-center px-1 font-medium text-brand hover:underline">
               Create Account
             </Link>
           </div>

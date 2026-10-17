@@ -957,7 +957,7 @@ function Cta({ question, label, to }: { question: string; label: string; to: str
 function NextStep({ to, label }: { to: string; label: string }) {
   return (
     <p className="mt-4 text-sm">
-      <a href={to} className="inline-flex items-center gap-1 font-medium hover:underline">
+      <a href={to} className="inline-flex min-h-11 items-center gap-1 py-2 font-medium hover:underline">
         {label} <ArrowRight className="h-3.5 w-3.5" />
       </a>
     </p>
