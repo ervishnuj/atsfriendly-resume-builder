@@ -959,7 +959,7 @@ function Index() {
                   </div>
                 </div>
                 {pdfMode && (
-                  <div className="overflow-x-auto rounded-lg bg-muted/40 p-4">
+                  <div className="overflow-x-auto rounded-lg bg-muted/40 p-2 sm:p-4">
                     <PdfPagePreview data={result} config={templateConfig} />
                   </div>
                 )}

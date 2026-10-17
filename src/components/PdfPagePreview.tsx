@@ -24,6 +24,18 @@ export function PdfPagePreview({ data, config: sourceConfig, showGuides = true }
   const config = resumePrintConfig(sourceConfig);
   const measureRef = useRef<HTMLDivElement>(null);
   const [offsets, setOffsets] = useState<number[]>([0]);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const update = () => setScale(Math.min(1, el.clientWidth / A4_W));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const contentHeight = Math.max(
     120,
@@ -111,15 +123,16 @@ export function PdfPagePreview({ data, config: sourceConfig, showGuides = true }
         <ResumePreview data={data} config={config} printable={false} pdfLayout />
       </div>
 
-      <div className="flex flex-col items-center gap-6">
+      <div ref={frameRef} className="flex flex-col items-center gap-6">
         {offsets.map((offset, i) => (
           <div key={i} className="w-full">
             <div className="mb-1 text-center text-xs text-muted-foreground">
               Page {i + 1} of {offsets.length} · A4 210 × 297 mm
             </div>
+            <div className="mx-auto" style={{ width: `${A4_W * scale}px`, height: `${A4_H * scale}px` }}>
             <div
-              className="relative mx-auto overflow-hidden bg-white shadow-md ring-1 ring-border"
-              style={{ width: `${A4_W}px`, height: `${A4_H}px` }}
+              className="relative overflow-hidden bg-white shadow-md ring-1 ring-border"
+              style={{ width: `${A4_W}px`, height: `${A4_H}px`, transform: `scale(${scale})`, transformOrigin: "top left" }}
             >
               {showGuides && (
                 <div
@@ -152,6 +165,7 @@ export function PdfPagePreview({ data, config: sourceConfig, showGuides = true }
                   />
                 </div>
               </div>
+            </div>
             </div>
           </div>
         ))}
