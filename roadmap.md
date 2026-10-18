@@ -99,3 +99,10 @@
 - [x] Reproduce older-browser PDF API failure and inspect bundled worker configuration
 - [x] Use matching compatibility PDF reader/worker and explicit stream reader, release resources, and report accurate extraction failures
 - [x] Verify PDF/DOCX, multipage, invalid/password/scanned files, replacement and analysis on Chromium and iPhone WebKit without AI; 78 tests pass and preview build OK
+
+# Mobile improvements
+
+- [x] Step-by-step (Job → Profile → Resume) builder on phones/tablets
+- [x] PDF page preview fits phone width
+- [x] Checked 360/390/768/1024 widths, signed in, no sideways scroll or errors
+- [ ] Real-device testing (needs the owner's physical phones)
