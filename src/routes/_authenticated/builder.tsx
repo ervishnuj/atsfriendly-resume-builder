@@ -345,7 +345,12 @@ function Index() {
       const { added } = await addPlans({ data: { jobTitle: result?.ats?.jobTitle ?? "", items: steps.map((s) => ({ skill: s.skill, priority: s.priority, why: s.why })) } });
       await queryClient.invalidateQueries({ queryKey: ["learning-plans", userId] });
       toast.success(added ? `Added ${added} skill${added > 1 ? "s" : ""} to your learning plan.` : "These skills are already in your learning plan.");
-      document.getElementById("learning-plan")?.scrollIntoView({ behavior: "smooth" });
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        document.getElementById("learning-plan")?.scrollIntoView({ behavior: "smooth" });
+      } else {
+        setMobileStep("profile");
+        requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById("learning-plan")?.scrollIntoView({ behavior: "smooth" })));
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not save your learning plan.");
     }
@@ -693,7 +698,7 @@ function Index() {
           <Button type="button" className="h-11 w-full lg:hidden" hidden={mobileStep !== "job"} onClick={() => { setMobileStep("profile"); window.scrollTo({ top: 0 }); }}>
             Next: your profile
           </Button>
-          <Card className={`p-4 ${mobileStep !== "profile" ? "hidden lg:block" : ""}`}>
+          <Card id="profile-card" className={`p-4 ${mobileStep !== "profile" ? "hidden lg:block" : ""}`}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold">Your Profile</h2>
@@ -862,7 +867,7 @@ function Index() {
                    <p className="text-xs text-muted-foreground">The job description, source profile and {currentResumeText ? "imported resume" : "current profile resume"} were compared; verified content was prioritized, readability checked and the final alignment calculated. PDF and DOCX depend on your chosen layout and should be reviewed before sharing.</p>
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => document.getElementById("resume-print-area")?.scrollIntoView({ behavior: "smooth" })}>Review resume</Button>
-                    <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); }}>Edit source profile</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); if (window.matchMedia("(min-width: 1024px)").matches) { document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); } else { setMobileStep("profile"); requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById("profile-card")?.scrollIntoView({ behavior: "smooth" }))); } }}>Edit source profile</Button>
                      <Button variant="outline" size="sm" onClick={() => { setEditingResume((value) => !value); setResumeDraft(editingResume ? null : structuredClone(result.optimizedProfile)); }}>{editingResume ? "Cancel edits" : "Edit resume"}</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
                      <Button variant="outline" size="sm" onClick={() => void handleExportDocx()} disabled={exportingDocx}>Export DOCX</Button>
