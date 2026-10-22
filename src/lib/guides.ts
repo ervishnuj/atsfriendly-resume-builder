@@ -51,14 +51,36 @@ export const GUIDES: Guide[] = [
         ],
       },
       {
-        heading: "Write dates in one consistent format",
+        heading: "ATS-friendly date format for your resume",
         paragraphs: [
           "Date ranges drive the tenure and gap calculations recruiters filter on. Mixed formats often parse as missing dates, which quietly drops you out of experience filters.",
+          "The safest ATS-friendly date format is a short month name plus a four-digit year, such as \"Mar 2023 – Present\". A numeric \"03/2023 – Present\" also parses well. Choose one format and use it for every role, degree and certification.",
         ],
         bullets: [
-          "Use \"Mar 2023 – Present\" or \"03/2023 – Present\" — pick one and repeat it.",
+          "Good: \"Mar 2023 – Present\", \"Jun 2020 – Feb 2023\", \"03/2023 – 11/2024\".",
+          "Avoid: \"2023 – now\", \"Spring '22\", \"3.23 – 11.24\", or a month with no year.",
           "Always include the year. Month-only or year-only ranges cause tenure errors.",
-          "Put the date on the same line as the role or immediately below it, never in a margin.",
+          "Write \"Present\" for a current role rather than leaving the end date blank.",
+          "Put the date on the same line as the role or immediately below it, never in a margin, table or text box.",
+        ],
+      },
+      {
+        heading: "Short example of an ATS-friendly experience entry",
+        paragraphs: [
+          "Here is how one role looks when the title, employer, location and dates are plain text in a single column:",
+        ],
+        bullets: [
+          "Software Engineer — Acme Technologies, Bengaluru | Mar 2023 – Present",
+          "Built REST APIs in Java and Spring Boot that handled 2M requests per day.",
+          "Reduced page load time by 35% by moving reports to cached SQL views.",
+          "Education: B.Tech, Computer Science — Example Institute of Technology | Aug 2018 – May 2022",
+          "(This is a fictional example. Use only your own real roles, dates and results.)",
+        ],
+      },
+      {
+        heading: "Check your format before you apply",
+        paragraphs: [
+          "Upload your PDF or DOCX, or paste the text, into the free checker with a target job description. It runs in your browser with no sign-up and shows whether your sections, dates and keywords are readable. It is an estimate, not an employer's screening decision.",
         ],
       },
       {
