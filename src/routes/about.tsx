@@ -39,7 +39,7 @@ function AboutPage() {
   return (
     <PublicPage
       eyebrow="One Job Description. One Tailored Resume."
-      title="About TheResumeRocket"
+      title="About TheResumeRocket: Honest ATS Resume Builder & Checker"
       intro="TheResumeRocket is built to help job seekers create resumes that are more relevant to the jobs they apply for."
     >
       <PolicySection heading="Why it exists">

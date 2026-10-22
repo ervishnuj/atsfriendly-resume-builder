@@ -43,6 +43,8 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
+      { property: "og:image", content: "https://theresumerocket.com/og-image.jpg" },
+      { name: "twitter:image", content: "https://theresumerocket.com/og-image.jpg" },
     ],
     links: [{ rel: "canonical", href: URL }],
     scripts: [
