@@ -24,7 +24,7 @@ export const GUIDES: Guide[] = [
     description:
       "A practical, parser-tested resume format: section order, headings, dates, fonts and file types that applicant tracking systems read without errors.",
     readingMinutes: 6,
-    updated: "September 2026",
+    updated: "October 2026",
     intro:
       "Most resumes are rejected before a human reads them because the applicant tracking system could not reliably extract the text. Formatting is the cheapest problem to fix, and this guide covers the layout rules that hold across Workday, Greenhouse, Lever, Taleo and iCIMS.",
     sections: [
