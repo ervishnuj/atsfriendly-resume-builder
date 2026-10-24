@@ -256,8 +256,10 @@ export type Database = {
       job_applications: {
         Row: {
           applied_at: string | null
+          client_request_id: string | null
           company: string
           created_at: string
+          custom_platform: string
           encrypted_job_description: string | null
           id: string
           job_description: string
@@ -265,16 +267,20 @@ export type Database = {
           job_url: string
           location: string
           notes: string
+          platform: string
           resume_version_id: string | null
           salary: string
           status: string
+          status_history: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           applied_at?: string | null
+          client_request_id?: string | null
           company?: string
           created_at?: string
+          custom_platform?: string
           encrypted_job_description?: string | null
           id?: string
           job_description?: string
@@ -282,16 +288,20 @@ export type Database = {
           job_url?: string
           location?: string
           notes?: string
+          platform?: string
           resume_version_id?: string | null
           salary?: string
           status?: string
+          status_history?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           applied_at?: string | null
+          client_request_id?: string | null
           company?: string
           created_at?: string
+          custom_platform?: string
           encrypted_job_description?: string | null
           id?: string
           job_description?: string
@@ -299,9 +309,11 @@ export type Database = {
           job_url?: string
           location?: string
           notes?: string
+          platform?: string
           resume_version_id?: string | null
           salary?: string
           status?: string
+          status_history?: Json
           updated_at?: string
           user_id?: string
         }

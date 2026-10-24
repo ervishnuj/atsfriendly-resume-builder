@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Briefcase,
@@ -11,28 +11,27 @@ import {
   Pencil,
   ExternalLink,
   ArrowLeft,
+  CheckCircle2,
+  FileText,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   createJobApplication,
   deleteJobApplication,
@@ -40,16 +39,31 @@ import {
   updateJobApplication,
 } from "@/lib/applications.functions";
 import {
-  APPLICATION_STATUSES,
   APPLICATION_STATUS_LABELS,
+  PLATFORM_FILTERS,
+  PLATFORM_FILTER_LABELS,
+  TRACKER_STATUSES,
   computeApplicationStats,
+  filterApplications,
+  isSubmitted,
+  monthlySummary,
+  platformBreakdown,
+  platformLabel,
+  trackedDate,
   type ApplicationStatus,
+  type DateRange,
   type JobApplication,
+  type PlatformFilter,
 } from "@/lib/applications-shared";
 import { listResumeVersions, type ResumeVersion } from "@/lib/versions.functions";
 import { track } from "@/lib/analytics-events";
 import { formatDate } from "@/lib/billing-shared";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import {
+  ApplicationDetailsDialog,
+  blankApplicationDraft,
+  type ApplicationDraft,
+} from "@/components/ApplicationDetailsDialog";
 
 export const Route = createFileRoute("/_authenticated/tracker")({
   head: () => ({
@@ -58,12 +72,12 @@ export const Route = createFileRoute("/_authenticated/tracker")({
       {
         name: "description",
         content:
-          "Track every job application in one place: status, resume used, interviews, offers and response rate.",
+          "Track every job application in one place: platform, status, resume used, interviews, offers and responses.",
       },
       { property: "og:title", content: "Job Application Tracker — Resume Rocket" },
       {
         property: "og:description",
-        content: "Track applications from saved to offer, linked to your job-specific resumes.",
+        content: "Track applications from resume generated to offer, linked to your job-specific resumes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -72,43 +86,22 @@ export const Route = createFileRoute("/_authenticated/tracker")({
   component: TrackerPage,
 });
 
-type Draft = {
-  company: string;
-  jobTitle: string;
-  jobDescription: string;
-  appliedAt: string;
-  resumeVersionId: string;
-  jobUrl: string;
-  location: string;
-  salary: string;
-  status: ApplicationStatus;
-  notes: string;
-};
-
-const emptyDraft: Draft = {
-  company: "",
-  jobTitle: "",
-  jobDescription: "",
-  appliedAt: "",
-  resumeVersionId: "",
-  jobUrl: "",
-  location: "",
-  salary: "",
-  status: "SAVED",
-  notes: "",
-};
-
-const STATUS_TONE: Record<ApplicationStatus, string> = {
-  SAVED: "bg-muted text-muted-foreground",
-  APPLIED: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200",
-  ASSESSMENT: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200",
-  INTERVIEW: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
-  TECHNICAL_ROUND: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
-  HR_ROUND: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
-  OFFER: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-  REJECTED: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
-  WITHDRAWN: "bg-muted text-muted-foreground",
-};
+function toDraft(app: JobApplication): ApplicationDraft {
+  return {
+    company: app.company,
+    jobTitle: app.jobTitle,
+    appliedAt: trackedDate(app),
+    platform: (app.platform as ApplicationDraft["platform"]) || "",
+    customPlatform: app.customPlatform,
+    jobDescription: app.jobDescription,
+    jobUrl: app.jobUrl,
+    status: app.status,
+    notes: app.notes,
+    location: app.location,
+    salary: app.salary,
+    resumeVersionId: app.resumeVersionId ?? "",
+  };
+}
 
 function TrackerPage() {
   const { user } = Route.useRouteContext();
@@ -119,7 +112,7 @@ function TrackerPage() {
   const updateApp = useServerFn(updateJobApplication);
   const deleteApp = useServerFn(deleteJobApplication);
 
-  const { data: apps = [], isLoading } = useQuery({
+  const { data: apps = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["job-applications", user.id],
     queryFn: () => fetchApps(),
   });
@@ -130,45 +123,58 @@ function TrackerPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<JobApplication | null>(null);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [initialDraft, setInitialDraft] = useState<ApplicationDraft>(blankApplicationDraft());
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<JobApplication | null>(null);
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+
+  const [search, setSearch] = useState("");
+  const [platforms, setPlatforms] = useState<PlatformFilter[]>([]);
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">("all");
+  const [range, setRange] = useState<DateRange>("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [sort, setSort] = useState<"newest" | "oldest" | "updated">("newest");
 
   const stats = computeApplicationStats(apps);
+  const visible = useMemo(
+    () =>
+      filterApplications(apps, {
+        search,
+        platforms,
+        statuses: statusFilter === "all" ? [] : [statusFilter],
+        range,
+        from,
+        to,
+        sort,
+      }),
+    [apps, search, platforms, statusFilter, range, from, to, sort],
+  );
+  const months = monthlySummary(apps).slice(0, 6);
+  const byPlatform = platformBreakdown(apps);
+  const filtersActive = search || platforms.length || statusFilter !== "all" || range !== "all";
+
   const versionLabel = (v: ResumeVersion) =>
     `${v.jobTitle || "Untitled"}${v.company ? ` @ ${v.company}` : ""} · v${v.version}`;
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["job-applications", user.id] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["job-applications", user.id] });
 
   const openNew = () => {
     setEditing(null);
-    setDraft(emptyDraft);
+    setInitialDraft({ ...blankApplicationDraft(), status: "APPLIED" });
+    setRequestId(crypto.randomUUID());
     setDialogOpen(true);
   };
 
   const openEdit = (app: JobApplication) => {
     setEditing(app);
-    setDraft({
-      company: app.company,
-      jobTitle: app.jobTitle,
-      jobDescription: app.jobDescription,
-      appliedAt: app.appliedAt ?? "",
-      resumeVersionId: app.resumeVersionId ?? "",
-      jobUrl: app.jobUrl,
-      location: app.location,
-      salary: app.salary,
-      status: app.status,
-      notes: app.notes,
-    });
+    setInitialDraft(toDraft(app));
     setDialogOpen(true);
   };
 
-  const handleSave = async () => {
-    if (!draft.jobTitle.trim()) {
-      toast.error("Job title is required.");
-      return;
-    }
+  const handleSave = async (draft: ApplicationDraft) => {
+    if (saving) return;
     setSaving(true);
     const payload = {
       company: draft.company.trim(),
@@ -179,6 +185,8 @@ function TrackerPage() {
       jobUrl: draft.jobUrl.trim(),
       location: draft.location.trim(),
       salary: draft.salary.trim(),
+      platform: draft.platform,
+      customPlatform: draft.customPlatform.trim(),
       status: draft.status,
       notes: draft.notes,
     };
@@ -187,14 +195,14 @@ function TrackerPage() {
         await updateApp({ data: { id: editing.id, updates: payload } });
         toast.success("Application updated.");
       } else {
-        await createApp({ data: payload });
+        await createApp({ data: { ...payload, clientRequestId: requestId } });
         track("APPLICATION_CREATED", { status: payload.status });
         toast.success("Application added.");
       }
       setDialogOpen(false);
       await invalidate();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save the application.");
+      toast.error(err instanceof Error ? err.message : "Could not save the application. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -207,6 +215,7 @@ function TrackerPage() {
       await updateApp({ data: { id: app.id, updates: { status } } });
       track("APPLICATION_STATUS_UPDATED", { from: app.status, to: status });
       await invalidate();
+      toast.success(`Status changed to ${APPLICATION_STATUS_LABELS[status]}.`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update the status.");
     } finally {
@@ -225,8 +234,12 @@ function TrackerPage() {
       toast.error(err instanceof Error ? err.message : "Could not delete the application.");
     } finally {
       setBusyId(null);
+      setConfirmDelete(null);
     }
   };
+
+  const togglePlatform = (p: PlatformFilter) =>
+    setPlatforms((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -235,24 +248,17 @@ function TrackerPage() {
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
             <h1 className="text-lg font-semibold tracking-tight">Job Application Tracker</h1>
-            <Link
-              to="/how-it-works"
-              hash="tracker"
-              className="text-xs text-muted-foreground hover:text-foreground hover:underline"
-            >
-              Learn how to track applications →
-            </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="gap-1">
+            <Button asChild variant="ghost" size="sm" className="min-h-11 gap-1 sm:min-h-0">
               <Link to="/dashboard">
                 <ArrowLeft className="h-4 w-4" /> Dashboard
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="min-h-11 sm:min-h-0">
               <Link to="/builder">Builder</Link>
             </Button>
-            <Button size="sm" className="gap-1" onClick={openNew}>
+            <Button size="sm" className="min-h-11 gap-1 sm:min-h-0" onClick={openNew}>
               <Plus className="h-4 w-4" /> Add Application
             </Button>
           </div>
@@ -260,263 +266,283 @@ function TrackerPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           <Stat label="Total" value={stats.total} />
+          <Stat label="Resumes generated" value={stats.resumesGenerated} />
           <Stat label="Applied" value={stats.applied} />
           <Stat label="Interviews" value={stats.interviews} />
           <Stat label="Offers" value={stats.offers} />
           <Stat label="Rejected" value={stats.rejected} />
-          <Stat label="Response rate" value={`${stats.responseRate}%`} />
+          <Stat label="No response" value={stats.noResponse} />
         </div>
+        <p className="-mt-3 text-xs text-muted-foreground">
+          "Applied" counts only entries marked Applied or a later stage — a generated resume alone is not counted as an application.
+        </p>
+
+        {apps.length > 0 && (
+          <div className="grid gap-3 md:grid-cols-2">
+            <Card className="p-4">
+              <h2 className="text-sm font-semibold">Monthly summary</h2>
+              <ul className="mt-2 space-y-1 text-sm">
+                {months.map((m) => (
+                  <li key={m.month} className="flex justify-between gap-2">
+                    <span>{new Date(`${m.month}-01T00:00:00`).toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
+                    <span className="text-muted-foreground">{m.submitted} applied · {m.total} tracked</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <Card className="p-4">
+              <h2 className="text-sm font-semibold">By platform</h2>
+              <ul className="mt-2 space-y-1 text-sm">
+                {byPlatform.map((p) => (
+                  <li key={p.label} className="flex justify-between gap-2">
+                    <span className="truncate">{p.label}</span>
+                    <span className="text-muted-foreground">{p.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+        )}
+
+        {apps.length > 0 && (
+          <Card className="space-y-3 p-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Search by company or job role"
+                className="h-11 pl-9 sm:h-10"
+                placeholder="Search company or job role"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by platform">
+              {PLATFORM_FILTERS.map((p) => {
+                const on = platforms.includes(p);
+                return (
+                  <Button
+                    key={p}
+                    type="button"
+                    size="sm"
+                    variant={on ? "default" : "outline"}
+                    aria-pressed={on}
+                    className="min-h-11 rounded-full sm:min-h-0"
+                    onClick={() => togglePlatform(p)}
+                  >
+                    {PLATFORM_FILTER_LABELS[p]}
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1">
+                <Label htmlFor="flt-range" className="text-xs">Application date</Label>
+                <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
+                  <SelectTrigger id="flt-range" className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any date</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="7d">Last 7 days</SelectItem>
+                    <SelectItem value="30d">Last 30 days</SelectItem>
+                    <SelectItem value="custom">Custom range</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="flt-status" className="text-xs">Status</Label>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ApplicationStatus | "all")}>
+                  <SelectTrigger id="flt-status" className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    {TRACKER_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="flt-sort" className="text-xs">Sort</Label>
+                <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
+                  <SelectTrigger id="flt-sort" className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest application date</SelectItem>
+                    <SelectItem value="oldest">Oldest application date</SelectItem>
+                    <SelectItem value="updated">Recently updated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {range === "custom" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="flt-from" className="text-xs">From</Label>
+                  <Input id="flt-from" type="date" className="h-11 sm:h-10" value={from} onChange={(e) => setFrom(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="flt-to" className="text-xs">To</Label>
+                  <Input id="flt-to" type="date" className="h-11 sm:h-10" value={to} onChange={(e) => setTo(e.target.value)} />
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
+        ) : isError ? (
+          <Card className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">Your applications couldn't be loaded.</p>
+            <Button className="mt-3" variant="outline" onClick={() => void refetch()}>Try again</Button>
+          </Card>
         ) : apps.length === 0 ? (
           <Card className="p-8 text-center">
             <Briefcase className="mx-auto h-8 w-8 text-muted-foreground" />
             <h2 className="mt-3 text-base font-semibold">No applications yet</h2>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-              Track every job you apply to — link the resume version you used and follow each
-              application from saved to offer.
+              Generate a job-specific resume and save the job details, or add an application you made elsewhere. Mark it Applied once you actually submit it.
             </p>
-            <Button className="mt-4 gap-1" onClick={openNew}>
-              <Plus className="h-4 w-4" /> Add your first application
-            </Button>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button asChild className="min-h-11 gap-1">
+                <Link to="/builder"><Sparkles className="h-4 w-4" /> Generate Resume and Track Application</Link>
+              </Button>
+              <Button variant="outline" className="min-h-11 gap-1" onClick={openNew}>
+                <Plus className="h-4 w-4" /> Add manually
+              </Button>
+            </div>
+          </Card>
+        ) : visible.length === 0 ? (
+          <Card className="p-8 text-center text-sm text-muted-foreground">
+            No applications match these filters.
+            {filtersActive && (
+              <Button variant="link" onClick={() => { setSearch(""); setPlatforms([]); setStatusFilter("all"); setRange("all"); }}>Clear filters</Button>
+            )}
           </Card>
         ) : (
-          <ul className="space-y-3">
-            {apps.map((app) => (
-              <li key={app.id}>
-                <Card className="p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-sm font-semibold">{app.jobTitle}</h2>
-                        <Badge variant="secondary" className={STATUS_TONE[app.status]}>
-                          {APPLICATION_STATUS_LABELS[app.status]}
-                        </Badge>
-                      </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {app.company || "Company not set"}
-                        {app.location ? ` · ${app.location}` : ""}
-                        {app.salary ? ` · ${app.salary}` : ""}
-                        {app.appliedAt ? ` · Applied ${formatDate(app.appliedAt)}` : ""}
-                      </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        {app.resumeVersionId && (
-                          <span>
-                            Resume:{" "}
-                            {(() => {
-                              const v = versions.find((x) => x.id === app.resumeVersionId);
-                              return v ? versionLabel(v) : "Linked version";
-                            })()}
-                          </span>
-                        )}
-                        {app.jobUrl && (
-                          <a
-                            href={app.jobUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-primary hover:underline"
-                          >
-                            Job posting <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                      {app.notes && (
-                        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                          {app.notes}
+          <ul className="space-y-3" aria-label="Applications">
+            {visible.map((app) => {
+              const version = app.resumeVersionId ? versions.find((x) => x.id === app.resumeVersionId) : undefined;
+              return (
+                <li key={app.id} data-testid="application-row">
+                  <Card className="p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-sm font-semibold">{app.jobTitle}</h2>
+                          <Badge variant={isSubmitted(app.status) ? "default" : "secondary"}>
+                            {APPLICATION_STATUS_LABELS[app.status]}
+                          </Badge>
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {app.company || "Company not set"} · {platformLabel(app)} · {formatDate(trackedDate(app))}
+                          {app.location ? ` · ${app.location}` : ""}
                         </p>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 flex-wrap items-center gap-2">
-                      <Select
-                        value={app.status}
-                        onValueChange={(v) => void handleStatus(app, v as ApplicationStatus)}
-                        disabled={busyId === app.id}
-                      >
-                        <SelectTrigger
-                          className="h-8 w-[150px] text-xs"
-                          aria-label={`Update status for ${app.jobTitle}`}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {APPLICATION_STATUSES.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {APPLICATION_STATUS_LABELS[s]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Edit ${app.jobTitle}`}
-                        onClick={() => openEdit(app)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Delete ${app.jobTitle}`}
-                        className="text-destructive hover:text-destructive"
-                        disabled={busyId === app.id}
-                        onClick={() => void handleDelete(app)}
-                      >
-                        {busyId === app.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                          {app.resumeVersionId && (
+                            <Link
+                              to="/builder"
+                              search={{ version: app.resumeVersionId }}
+                              className="inline-flex min-h-8 items-center gap-1 text-primary hover:underline"
+                            >
+                              <FileText className="h-3 w-3" />
+                              {version ? versionLabel(version) : "Linked resume"}
+                            </Link>
+                          )}
+                          {app.jobUrl && (
+                            <a href={app.jobUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center gap-1 text-primary hover:underline">
+                              Job posting <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                          <span>Updated {formatDate(app.updatedAt)}</span>
+                        </div>
+                        {app.statusHistory.length > 0 && (
+                          <ol className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground" aria-label="Status timeline">
+                            {app.statusHistory.map((h, i) => (
+                              <li key={`${h.status}-${i}`}>
+                                {i > 0 && "→ "}
+                                {APPLICATION_STATUS_LABELS[h.status] ?? h.status} ({formatDate(h.at)})
+                              </li>
+                            ))}
+                          </ol>
                         )}
-                      </Button>
+                        {app.notes && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{app.notes}</p>}
+                      </div>
+                      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+                        {!isSubmitted(app.status) && app.status !== "WITHDRAWN" && (
+                          <Button size="sm" className="min-h-11 gap-1 sm:min-h-0" disabled={busyId === app.id} onClick={() => void handleStatus(app, "APPLIED")}>
+                            <CheckCircle2 className="h-4 w-4" /> Mark as Applied
+                          </Button>
+                        )}
+                        <Select value={app.status} onValueChange={(v) => void handleStatus(app, v as ApplicationStatus)} disabled={busyId === app.id}>
+                          <SelectTrigger className="h-11 w-[170px] text-xs sm:h-8" aria-label={`Update status for ${app.jobTitle}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(TRACKER_STATUSES as readonly ApplicationStatus[]).concat(TRACKER_STATUSES.includes(app.status as never) ? [] : [app.status]).map((s) => (
+                              <SelectItem key={s} value={s}>{APPLICATION_STATUS_LABELS[s]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" aria-label={`Edit ${app.jobTitle}`} onClick={() => openEdit(app)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" aria-label={`Delete ${app.jobTitle}`} className="min-h-11 text-destructive hover:text-destructive sm:min-h-0" disabled={busyId === app.id} onClick={() => setConfirmDelete(app)}>
+                          {busyId === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </li>
-            ))}
+                  </Card>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Edit application" : "Add application"}</DialogTitle>
-            <DialogDescription>
-              Track a job from saved to offer. Only the job title is required.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-title">Job title *</Label>
-              <Input
-                id="trk-title"
-                value={draft.jobTitle}
-                onChange={(e) => setDraft((d) => ({ ...d, jobTitle: e.target.value }))}
-                placeholder="Java Backend Developer"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-company">Company</Label>
-              <Input
-                id="trk-company"
-                value={draft.company}
-                onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))}
-                placeholder="Acme Corp"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-date">Application date</Label>
-              <Input
-                id="trk-date"
-                type="date"
-                value={draft.appliedAt}
-                onChange={(e) => setDraft((d) => ({ ...d, appliedAt: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-status">Status</Label>
-              <Select
-                value={draft.status}
-                onValueChange={(v) => setDraft((d) => ({ ...d, status: v as ApplicationStatus }))}
-              >
-                <SelectTrigger id="trk-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {APPLICATION_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {APPLICATION_STATUS_LABELS[s]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-location">Location</Label>
-              <Input
-                id="trk-location"
-                value={draft.location}
-                onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
-                placeholder="Bengaluru / Remote"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="trk-salary">Salary / CTC</Label>
-              <Input
-                id="trk-salary"
-                value={draft.salary}
-                onChange={(e) => setDraft((d) => ({ ...d, salary: e.target.value }))}
-                placeholder="₹12 LPA"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="trk-url">Job URL</Label>
-              <Input
-                id="trk-url"
-                type="url"
-                value={draft.jobUrl}
-                onChange={(e) => setDraft((d) => ({ ...d, jobUrl: e.target.value }))}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="trk-resume">Resume used</Label>
-              <Select
-                value={draft.resumeVersionId || "none"}
-                onValueChange={(v) =>
-                  setDraft((d) => ({ ...d, resumeVersionId: v === "none" ? "" : v }))
-                }
-              >
-                <SelectTrigger id="trk-resume">
-                  <SelectValue placeholder="Link a generated resume (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No resume linked</SelectItem>
-                  {versions.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {versionLabel(v)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="trk-jd">Job description</Label>
-              <Textarea
-                id="trk-jd"
-                rows={4}
-                value={draft.jobDescription}
-                onChange={(e) => setDraft((d) => ({ ...d, jobDescription: e.target.value }))}
-                placeholder="Paste the job description to reuse it for analysis and interview prep…"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="trk-notes">Notes</Label>
-              <Textarea
-                id="trk-notes"
-                rows={2}
-                value={draft.notes}
-                onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
-                placeholder="Referral contact, interview dates, follow-ups…"
-              />
-            </div>
+      <ApplicationDetailsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initial={initialDraft}
+        title={editing ? "Edit application" : "Add application"}
+        description="Company, role and date are required. Mark it Applied only after you submit it."
+        saveLabel={editing ? "Save changes" : "Add application"}
+        cancelLabel="Cancel"
+        saving={saving}
+        onSave={(d) => void handleSave(d)}
+        showLocationSalary
+        extra={(draft, set) => (
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="app-resume">Resume used</Label>
+            <Select value={draft.resumeVersionId || "none"} onValueChange={(v) => set({ resumeVersionId: v === "none" ? "" : v })}>
+              <SelectTrigger id="app-resume" className="h-11 sm:h-10"><SelectValue placeholder="Link a generated resume (optional)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No resume linked</SelectItem>
+                {versions.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>{versionLabel(v)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
-              Cancel
-            </Button>
-            <Button onClick={() => void handleSave()} disabled={saving} className="gap-1">
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {editing ? "Save changes" : "Add application"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      />
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this application?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDelete ? `${confirmDelete.jobTitle} at ${confirmDelete.company || "this company"}` : ""} will be removed from your tracker. The linked resume version is kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmDelete && void handleDelete(confirmDelete)}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <LandingFooter signedIn />
     </div>
   );
@@ -526,9 +552,7 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <Card className="p-3 text-center">
       <p className="text-xl font-bold">{value}</p>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
     </Card>
   );
 }
