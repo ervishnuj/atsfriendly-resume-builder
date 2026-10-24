@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  APPLICATION_PLATFORMS,
   APPLICATION_STATUSES,
   mapApplicationRow,
   type JobApplication,
@@ -48,11 +49,23 @@ const inputSchema = z.object({
     .nullable()
     .optional(),
   resumeVersionId: z.string().uuid().nullable().optional(),
-  jobUrl: z.string().max(500).default(""),
+  jobUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => v === "" || /^https?:\/\/\S+$/i.test(v), "Job URL must start with http:// or https://")
+    .default(""),
+  platform: z.union([z.enum(APPLICATION_PLATFORMS), z.literal("")]).default(""),
+  customPlatform: z.string().trim().max(120).default(""),
   location: z.string().max(200).default(""),
   salary: z.string().max(100).default(""),
   status: z.enum(APPLICATION_STATUSES).default("SAVED"),
   notes: z.string().max(5000).default(""),
+});
+
+const createSchema = inputSchema.extend({
+  /** Per-save idempotency key so repeated clicks never create duplicates. */
+  clientRequestId: z.string().min(8).max(100).optional(),
 });
 
 export const listJobApplications = createServerFn({ method: "GET" })
@@ -89,9 +102,18 @@ export const listJobApplications = createServerFn({ method: "GET" })
 
 export const createJobApplication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => inputSchema.parse(input))
+  .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }): Promise<JobApplication> => {
     await assertOwnedResumeVersion(context.supabase, context.userId, data.resumeVersionId);
+    if (data.clientRequestId) {
+      const { data: existing } = await context.supabase
+        .from("job_applications")
+        .select("*")
+        .eq("user_id", context.userId)
+        .eq("client_request_id", data.clientRequestId)
+        .maybeSingle();
+      if (existing) return mapProtectedApplication(existing, context.userId);
+    }
     const { data: row, error } = await context.supabase
       .from("job_applications")
       .insert({
@@ -109,11 +131,23 @@ export const createJobApplication = createServerFn({ method: "POST" })
         location: data.location,
         salary: data.salary,
         status: data.status,
+        platform: data.platform,
+        custom_platform: data.customPlatform,
+        client_request_id: data.clientRequestId ?? null,
         notes: data.notes,
       })
       .select("*")
       .single();
-    if (error) throw new Error("Could not save the application.");
+    if (error?.code === "23505" && data.clientRequestId) {
+      const { data: existing } = await context.supabase
+        .from("job_applications")
+        .select("*")
+        .eq("user_id", context.userId)
+        .eq("client_request_id", data.clientRequestId)
+        .single();
+      if (existing) return mapProtectedApplication(existing, context.userId);
+    }
+    if (error || !row) throw new Error("Could not save the application.");
     return mapProtectedApplication(row, context.userId);
   });
 
@@ -145,6 +179,8 @@ export const updateJobApplication = createServerFn({ method: "POST" })
       ...(u.location !== undefined ? { location: u.location } : {}),
       ...(u.salary !== undefined ? { salary: u.salary } : {}),
       ...(u.status !== undefined ? { status: u.status } : {}),
+      ...(u.platform !== undefined ? { platform: u.platform } : {}),
+      ...(u.customPlatform !== undefined ? { custom_platform: u.customPlatform } : {}),
       ...(u.notes !== undefined ? { notes: u.notes } : {}),
     };
     const { data: row, error } = await context.supabase
