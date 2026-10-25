@@ -433,7 +433,7 @@ function Index() {
     try {
       let versionId = savedVersionRef.current?.key === key ? savedVersionRef.current.id : null;
       if (!versionId) {
-        const saved = await saveVersion({ data: { company: draft.company.trim(), jobTitle: draft.jobTitle.trim(), jobDescription: draft.jobDescription, atsScore: result.atsScore, matchScore: result.atsMatchScore ?? null, templateId, resume: result, templateConfig } });
+        const saved = await saveVersion({ data: { company: draft.company.trim(), jobTitle: draft.jobTitle.trim(), jobDescription: draft.jobDescription, atsScore: Math.round(result.atsScore), matchScore: result.atsMatchScore == null ? null : Math.round(result.atsMatchScore), templateId, resume: result, templateConfig } });
         versionId = saved.id;
         savedVersionRef.current = { key, id: saved.id };
       }
