@@ -59,6 +59,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
 import { clearBrowserUserData } from "@/lib/profile-storage";
+import { listResumeVersions, saveResumeVersion } from "@/lib/versions.functions";
+import { createJobApplication } from "@/lib/applications.functions";
+import { ApplicationDetailsDialog, blankApplicationDraft, type ApplicationDraft } from "@/components/ApplicationDetailsDialog";
 
 export const Route = createFileRoute("/_authenticated/builder")({
   head: () => ({
@@ -78,6 +81,8 @@ export const Route = createFileRoute("/_authenticated/builder")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { version?: string } =>
+    typeof search.version === "string" && /^[0-9a-f-]{36}$/i.test(search.version) ? { version: search.version } : {},
   component: Index,
 });
 
@@ -87,6 +92,18 @@ function Index() {
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<OptimizedResume | null>(null);
+  const { version: versionParam } = Route.useSearch();
+  const saveVersion = useServerFn(saveResumeVersion);
+  const fetchVersions = useServerFn(listResumeVersions);
+  const createApplication = useServerFn(createJobApplication);
+  const [trackOpen, setTrackOpen] = useState(false);
+  const [trackSaving, setTrackSaving] = useState(false);
+  const [trackDraft, setTrackDraft] = useState<ApplicationDraft>(blankApplicationDraft());
+  const [trackedResultKey, setTrackedResultKey] = useState<string | null>(null);
+  // One tracker save per generated resume: the key is reused on retries so the
+  // server returns the existing record instead of creating a duplicate.
+  const trackKeyRef = useRef<string>("");
+  const savedVersionRef = useRef<{ key: string; id: string } | null>(null);
   const [currentResumeText, setCurrentResumeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingScore, setCheckingScore] = useState(false);
@@ -403,6 +420,55 @@ function Index() {
     }
   };
 
+  const openTrackerDialog = () => {
+    if (!trackKeyRef.current) trackKeyRef.current = crypto.randomUUID();
+    setTrackDraft((d) => ({ ...d, jobDescription: d.jobDescription || jd, jobTitle: d.jobTitle || result?.ats?.jobTitle || "" }));
+    setTrackOpen(true);
+  };
+
+  const handleTrackSave = async (draft: ApplicationDraft) => {
+    if (!result || trackSaving) return;
+    setTrackSaving(true);
+    const key = trackKeyRef.current || (trackKeyRef.current = crypto.randomUUID());
+    try {
+      let versionId = savedVersionRef.current?.key === key ? savedVersionRef.current.id : null;
+      if (!versionId) {
+        const saved = await saveVersion({ data: { company: draft.company.trim(), jobTitle: draft.jobTitle.trim(), jobDescription: draft.jobDescription, atsScore: result.atsScore, matchScore: result.atsMatchScore ?? null, templateId, resume: result, templateConfig } });
+        versionId = saved.id;
+        savedVersionRef.current = { key, id: saved.id };
+      }
+      await createApplication({ data: { company: draft.company.trim(), jobTitle: draft.jobTitle.trim(), jobDescription: draft.jobDescription, appliedAt: draft.appliedAt, resumeVersionId: versionId, jobUrl: draft.jobUrl.trim(), location: "", salary: "", platform: draft.platform, customPlatform: draft.customPlatform.trim(), status: draft.status, notes: draft.notes, clientRequestId: key } });
+      setTrackedResultKey(key);
+      setTrackOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["job-applications", userId] });
+      await queryClient.invalidateQueries({ queryKey: ["resume-versions", userId] });
+      toast.success("Saved to your Job Application Tracker.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save to the tracker. Please try again.");
+    } finally {
+      setTrackSaving(false);
+    }
+  };
+
+  // Open a saved resume version from the tracker (?version=<id>).
+  useEffect(() => {
+    if (!versionParam) return;
+    let cancelled = false;
+    void fetchVersions().then((versions) => {
+      const v = versions.find((x) => x.id === versionParam);
+      if (cancelled) return;
+      if (!v) { toast.error("That resume version is no longer available."); return; }
+      setResult(v.resume);
+      if (v.templateConfig) setTemplateConfig(v.templateConfig);
+      setJd((cur) => cur || v.jobDescription);
+      trackKeyRef.current = `version-${v.id}`;
+      setTrackedResultKey(`version-${v.id}`);
+      setMobileStep("resume");
+    }).catch(() => toast.error("Could not open that resume version."));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versionParam]);
+
   const handleGenerate = async () => {
     if (!isSubscribed) {
       // Never send a paying user back to pricing on stale client state —
@@ -434,6 +500,10 @@ function Index() {
       const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
       setResult(res.resume);
       setMobileStep("resume");
+      trackKeyRef.current = crypto.randomUUID();
+      savedVersionRef.current = null;
+      setTrackDraft({ ...blankApplicationDraft(), jobTitle: res.resume.ats?.jobTitle ?? "", jobDescription: jd });
+      setTrackOpen(true);
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success(
         `Resume generated · ATS Score ${res.resume.atsScore}/100 · ${res.usage.remaining} of ${res.usage.limit} AI generations left today`,
@@ -870,6 +940,11 @@ function Index() {
                     <Button variant="outline" size="sm" onClick={() => { setProfileOpen(true); if (window.matchMedia("(min-width: 1024px)").matches) { document.getElementById("jd-heading")?.scrollIntoView({ behavior: "smooth" }); } else { setMobileStep("profile"); requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById("profile-card")?.scrollIntoView({ behavior: "smooth" }))); } }}>Edit source profile</Button>
                      <Button variant="outline" size="sm" onClick={() => { setEditingResume((value) => !value); setResumeDraft(editingResume ? null : structuredClone(result.optimizedProfile)); }}>{editingResume ? "Cancel edits" : "Edit resume"}</Button>
                     <Button variant="outline" size="sm" onClick={() => setPdfConfirmationOpen(true)}>Download PDF</Button>
+                    {trackedResultKey !== trackKeyRef.current || !trackKeyRef.current ? (
+                      <Button variant="outline" size="sm" onClick={openTrackerDialog}>Add to tracker</Button>
+                    ) : (
+                      <Button asChild variant="outline" size="sm"><Link to="/tracker">View in tracker</Link></Button>
+                    )}
                      <Button variant="outline" size="sm" onClick={() => void handleExportDocx()} disabled={exportingDocx}>Export DOCX</Button>
                       <Button variant="outline" size="sm" onClick={() => void handleRecheck()} disabled={checkingScore || editingResume}>{checkingScore ? "Re-checking…" : "Re-check score"}</Button>
                   </div>
@@ -996,6 +1071,17 @@ function Index() {
           </div>
         </section>
       </main>
+      <ApplicationDetailsDialog
+        open={trackOpen}
+        onOpenChange={(o) => { if (!trackSaving) setTrackOpen(o); }}
+        initial={trackDraft}
+        title="Save Job Application Details?"
+        description="Your resume is ready either way. Saving adds it to your tracker; generating a resume does not mean you've applied."
+        saveLabel="Save to Tracker"
+        cancelLabel="Skip for Now"
+        saving={trackSaving}
+        onSave={(d) => { setTrackDraft(d); void handleTrackSave(d); }}
+      />
       <div className="print:hidden">
         <LandingFooter signedIn />
       </div>
