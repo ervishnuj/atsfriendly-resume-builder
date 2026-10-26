@@ -106,3 +106,8 @@
 - [x] PDF page preview fits phone width
 - [x] Checked 360/390/768/1024 widths, signed in, no sideways scroll or errors
 - [ ] Real-device testing (needs the owner's physical phones)
+
+## Job application tracker
+- [x] Save-details popup after generation, platforms, statuses, filters, dashboard
+- [ ] Browser test of the builder popup with a real generated resume
+- [ ] Two-account isolation test in the browser
