@@ -30,3 +30,4 @@ Public ATS file submission reuses browser-local extraction; contextual requireme
 Resume extraction uses the matching bundled PDF.js legacy reader/worker and stream getReader API, releases documents after every attempt, and distinguishes browser loading, password, malformed, image-only and empty-text errors so Safari without async stream iteration and repeated uploads remain supported without a second parser.
 
 Guide and article renderers link existing contextual checker mentions using typed internal links, not injected HTML; this makes the tool discoverable while keeping editorial text safe.
+- Job tracker reuses job_applications (platform, custom platform, DB-trigger status history, per-save idempotency key) and links resume_versions; a generated resume counts as applied only at Applied or later — keeps one tracker and honest counts.
