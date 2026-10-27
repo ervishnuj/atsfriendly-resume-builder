@@ -22,9 +22,9 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "why-ats-rejects-resumes",
     title: "Why an ATS Rejects a Good Resume (and How to Tell if Yours Is at Risk)",
-    metaTitle: "Why an ATS Rejects Good Resumes | Resume Rocket Blog",
+    metaTitle: "Why ATS Rejects Your Resume: 4 Fixable Reasons + Free Check",
     description:
-      "Applicant tracking systems reject strong candidates for mechanical reasons. Here are the failure modes we see most often and a quick self-test for your own resume.",
+      "Rejected by an ATS despite being qualified? Learn the 4 common reasons (unreadable PDFs, odd headings, dates, missing keywords), a 5-minute self-test and a free ATS checker.",
     category: "ATS basics",
     readingMinutes: 6,
     published: "5 September 2026",
@@ -66,6 +66,7 @@ export const BLOG_POSTS: BlogPost[] = [
         heading: "Failure four: the words do not match the requisition",
         paragraphs: [
           "Screening scores are largely term overlap. If the posting says \"CI/CD\" and your resume only says \"automated deployment pipelines\", a strict matcher scores nothing for that requirement. Write their term and your natural phrasing together.",
+          "To see which of the job's terms your resume is missing, paste both into the free checker — no sign-up needed. Only add a missing term if you genuinely have that skill or experience.",
         ],
       },
       {
