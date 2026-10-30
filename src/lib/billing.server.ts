@@ -176,6 +176,39 @@ export async function hasPremiumAccess(userId: string): Promise<PremiumAccess> {
   return { allowed: false, isAdmin: false, kind: "none", creditsRemaining: 0, subscription: null };
 }
 
+/** Lifetime cap on AI resume generations for users on the free first-resume allowance. */
+export const FREE_TIER_RESUME_GENERATIONS = 3;
+
+/**
+ * Server-side gate for AI features. The free first-resume allowance only
+ * unlocks a small, lifetime-capped number of resume generations; every other
+ * AI feature (cover letter, interview prep, LinkedIn) requires a purchase.
+ */
+export async function assertAiAccess(userId: string, feature: "RESUME" | "PREMIUM") {
+  const access = await hasPremiumAccess(userId);
+  if (!access.allowed) {
+    throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
+  }
+  if (access.kind !== "free") return access;
+  if (feature !== "RESUME") {
+    throw new Error("SUBSCRIPTION_REQUIRED: This feature is included with a paid plan.");
+  }
+  const { count, error } = await supabaseAdmin
+    .from("ai_generation_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("kind", "RESUME")
+    .in("status", ["IN_PROGRESS", "SUCCESS"]);
+  if (error) throw new Error("Unable to verify your plan right now. Please try again.");
+  if ((count ?? 0) >= FREE_TIER_RESUME_GENERATIONS) {
+    throw new Error(
+      "SUBSCRIPTION_REQUIRED: You've used your free resume generations. Choose a plan to continue.",
+    );
+  }
+  return access;
+}
+
+
 /**
  * Consume one PDF credit for a one-time purchase. Admins and pass holders
  * download without consuming anything. Returns whether the download is allowed.
