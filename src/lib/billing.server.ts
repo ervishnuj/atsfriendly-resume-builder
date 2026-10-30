@@ -174,6 +174,7 @@ export async function hasPremiumAccess(userId: string): Promise<PremiumAccess> {
     return { allowed: true, isAdmin: false, kind: "free", creditsRemaining: 1, subscription: null };
   }
   return { allowed: false, isAdmin: false, kind: "none", creditsRemaining: 0, subscription: null };
+}
 
 /** Lifetime cap on AI resume generations for users on the free first-resume allowance. */
 export const FREE_TIER_RESUME_GENERATIONS = 3;
