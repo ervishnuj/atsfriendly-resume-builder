@@ -39,11 +39,8 @@ export const generateResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<GeneratedResumeResponse> => {
-    const { hasPremiumAccess } = await import("./billing.server");
-    const access = await hasPremiumAccess(context.userId);
-    if (!access.allowed) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
-    }
+    const { assertAiAccess } = await import("./billing.server");
+    const access = await assertAiAccess(context.userId, "RESUME");
 
     const { reserveAiGeneration, finishAiGeneration, getAiUsage, adminBypassEnabled } =
       await import("./ai-usage.server");
@@ -157,11 +154,8 @@ export const generateCoverLetter = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }): Promise<CoverLetterResult> => {
-    const { hasPremiumAccess } = await import("./billing.server");
-    const access = await hasPremiumAccess(context.userId);
-    if (!access.allowed) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
-    }
+    const { assertAiAccess } = await import("./billing.server");
+    await assertAiAccess(context.userId, "PREMIUM");
     const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
     const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as CoverLetterResult;
@@ -181,11 +175,8 @@ export const prepareInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<InterviewPrep> => {
-    const { hasPremiumAccess } = await import("./billing.server");
-    const access = await hasPremiumAccess(context.userId);
-    if (!access.allowed) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
-    }
+    const { assertAiAccess } = await import("./billing.server");
+    await assertAiAccess(context.userId, "PREMIUM");
     const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
     const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as InterviewPrep;
@@ -210,11 +201,8 @@ export const optimizeLinkedInProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => LinkedInInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<LinkedInOptimization> => {
-    const { hasPremiumAccess } = await import("./billing.server");
-    const access = await hasPremiumAccess(context.userId);
-    if (!access.allowed) {
-      throw new Error("SUBSCRIPTION_REQUIRED: Please choose a subscription plan to continue.");
-    }
+    const { assertAiAccess } = await import("./billing.server");
+    await assertAiAccess(context.userId, "PREMIUM");
     const { reserveAiGeneration, finishAiGeneration } = await import("./ai-usage.server");
     const reservation = await reserveAiGeneration(context.userId, data.requestId, "ANALYSIS");
     if (reservation.cached) return reservation.cached as LinkedInOptimization;
