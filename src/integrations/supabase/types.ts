@@ -134,6 +134,39 @@ export type Database = {
         }
         Relationships: []
       }
+      business_tax_settings: {
+        Row: {
+          business_address: string
+          business_contact: string
+          business_name: string
+          gst_collection_enabled: boolean
+          gst_registered: boolean
+          gstin: string | null
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          business_address?: string
+          business_contact?: string
+          business_name?: string
+          gst_collection_enabled?: boolean
+          gst_registered?: boolean
+          gstin?: string | null
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          business_address?: string
+          business_contact?: string
+          business_name?: string
+          gst_collection_enabled?: boolean
+          gst_registered?: boolean
+          gstin?: string | null
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           category: string
@@ -360,6 +393,425 @@ export type Database = {
           updated_at?: string
           user_id?: string
           why?: string
+        }
+        Relationships: []
+      }
+      partner_commission_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          owner_share: number
+          partner_id: string
+          sale_id: string
+          settlement_month: string
+          share_percent: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_share: number
+          partner_id: string
+          sale_id: string
+          settlement_month: string
+          share_percent: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_share?: number
+          partner_id?: string
+          sale_id?: string
+          settlement_month?: string
+          share_percent?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_commission_ledger_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_commission_ledger_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: true
+            referencedRelation: "partner_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_credit_transactions: {
+        Row: {
+          amount_inr: number | null
+          created_at: string
+          credits: number
+          id: string
+          idempotency_key: string | null
+          invoice_id: string | null
+          kind: string
+          note: string
+          partner_id: string
+          sale_id: string | null
+        }
+        Insert: {
+          amount_inr?: number | null
+          created_at?: string
+          credits: number
+          id?: string
+          idempotency_key?: string | null
+          invoice_id?: string | null
+          kind: string
+          note?: string
+          partner_id: string
+          sale_id?: string | null
+        }
+        Update: {
+          amount_inr?: number | null
+          created_at?: string
+          credits?: number
+          id?: string
+          idempotency_key?: string | null
+          invoice_id?: string | null
+          kind?: string
+          note?: string
+          partner_id?: string
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_credit_transactions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_credit_wallets: {
+        Row: {
+          avg_cost_per_credit: number
+          balance: number
+          lifetime_consumed: number
+          lifetime_purchased: number
+          partner_id: string
+          updated_at: string
+        }
+        Insert: {
+          avg_cost_per_credit?: number
+          balance?: number
+          lifetime_consumed?: number
+          lifetime_purchased?: number
+          partner_id: string
+          updated_at?: string
+        }
+        Update: {
+          avg_cost_per_credit?: number
+          balance?: number
+          lifetime_consumed?: number
+          lifetime_purchased?: number
+          partner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_credit_wallets_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_daily_usage: {
+        Row: {
+          partner_id: string
+          usage_date: string
+          used: number
+        }
+        Insert: {
+          partner_id: string
+          usage_date: string
+          used?: number
+        }
+        Update: {
+          partner_id?: string
+          usage_date?: string
+          used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_daily_usage_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_invoices: {
+        Row: {
+          created_at: string
+          credits: number
+          id: string
+          idempotency_key: string | null
+          invoice_number: string
+          package_id: string | null
+          package_name: string
+          paid_at: string | null
+          partner_id: string
+          payment_reference: string | null
+          payment_status: string
+          subtotal: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          credits: number
+          id?: string
+          idempotency_key?: string | null
+          invoice_number: string
+          package_id?: string | null
+          package_name: string
+          paid_at?: string | null
+          partner_id: string
+          payment_reference?: string | null
+          payment_status?: string
+          subtotal: number
+          total: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          id?: string
+          idempotency_key?: string | null
+          invoice_number?: string
+          package_id?: string | null
+          package_name?: string
+          paid_at?: string | null
+          partner_id?: string
+          payment_reference?: string | null
+          payment_status?: string
+          subtotal?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_invoices_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "partner_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_package_prices: {
+        Row: {
+          created_at: string
+          id: string
+          package_id: string
+          partner_id: string
+          price_inr: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          package_id: string
+          partner_id: string
+          price_inr: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          package_id?: string
+          partner_id?: string
+          price_inr?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_package_prices_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "partner_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_package_prices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_packages: {
+        Row: {
+          active: boolean
+          created_at: string
+          credits: number
+          id: string
+          name: string
+          price_inr: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          credits: number
+          id?: string
+          name: string
+          price_inr: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          credits?: number
+          id?: string
+          name?: string
+          price_inr?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_sales: {
+        Row: {
+          attribution_source: string
+          client_request_id: string
+          created_at: string
+          gross_margin: number
+          id: string
+          owner_share: number
+          partner_id: string
+          selling_price: number
+          status: string
+          wholesale_cost: number
+        }
+        Insert: {
+          attribution_source?: string
+          client_request_id: string
+          created_at?: string
+          gross_margin: number
+          id?: string
+          owner_share: number
+          partner_id: string
+          selling_price: number
+          status?: string
+          wholesale_cost: number
+        }
+        Update: {
+          attribution_source?: string
+          client_request_id?: string
+          created_at?: string
+          gross_margin?: number
+          id?: string
+          owner_share?: number
+          partner_id?: string
+          selling_price?: number
+          status?: string
+          wholesale_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_sales_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_settings: {
+        Row: {
+          estimated_generation_cost: number
+          id: boolean
+          max_selling_price: number
+          min_selling_price: number
+          owner_share_percent: number
+          updated_at: string
+        }
+        Insert: {
+          estimated_generation_cost?: number
+          id?: boolean
+          max_selling_price?: number
+          min_selling_price?: number
+          owner_share_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          estimated_generation_cost?: number
+          id?: boolean
+          max_selling_price?: number
+          min_selling_price?: number
+          owner_share_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          business_name: string
+          category: string
+          contact_person: string
+          created_at: string
+          daily_credit_limit: number
+          email: string
+          id: string
+          location: string
+          partner_code: string
+          phone: string
+          selling_price: number | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          business_name: string
+          category?: string
+          contact_person?: string
+          created_at?: string
+          daily_credit_limit?: number
+          email?: string
+          id?: string
+          location?: string
+          partner_code: string
+          phone?: string
+          selling_price?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          business_name?: string
+          category?: string
+          contact_person?: string
+          created_at?: string
+          daily_credit_limit?: number
+          email?: string
+          id?: string
+          location?: string
+          partner_code?: string
+          phone?: string
+          selling_price?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -769,8 +1221,37 @@ export type Database = {
         Returns: undefined
       }
       get_ai_usage: { Args: { _kind: string; _user_id: string }; Returns: Json }
+      get_partner_usage: { Args: { _partner_id: string }; Returns: Json }
       grant_free_entitlement: { Args: { _user_id: string }; Returns: boolean }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      partner_consume_credit: {
+        Args: { _partner_id: string; _request_id: string }
+        Returns: Json
+      }
+      partner_record_purchase: {
+        Args: {
+          _idempotency_key: string
+          _package_id: string
+          _partner_id: string
+          _payment_reference: string
+        }
+        Returns: Json
+      }
+      partner_release_credit: {
+        Args: { _partner_id: string; _request_id: string }
+        Returns: boolean
+      }
+      partner_verify_invoice: {
+        Args: { _invoice_id: string }
+        Returns: boolean
+      }
       start_ai_generation: {
         Args: {
           _cooldown_seconds: number
@@ -783,7 +1264,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "partner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -911,7 +1392,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "partner"],
     },
   },
 } as const
