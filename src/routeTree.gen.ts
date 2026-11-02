@@ -37,6 +37,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin/partners'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
 import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authenticated/admin/upi-config'
 import { Route as AuthenticatedPaymentIndexRouteImport } from './routes/_authenticated/payment/index'
@@ -182,6 +183,12 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminPartnersRoute =
+  AuthenticatedAdminPartnersRouteImport.update({
+    id: '/admin/partners',
+    path: '/admin/partners',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPaymentsRoute =
   AuthenticatedAdminPaymentsRouteImport.update({
     id: '/admin/payments',
@@ -235,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/payment/': typeof AuthenticatedPaymentIndexRoute
@@ -268,6 +276,7 @@ export interface FileRoutesByTo {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/guides': typeof GuidesIndexRoute
+  '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/payment': typeof AuthenticatedPaymentIndexRoute
@@ -303,6 +312,7 @@ export interface FileRoutesById {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/_authenticated/payment/': typeof AuthenticatedPaymentIndexRoute
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog/'
     | '/guides/'
+    | '/admin/partners'
     | '/admin/payments'
     | '/admin/upi-config'
     | '/payment/'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog'
     | '/guides'
+    | '/admin/partners'
     | '/admin/payments'
     | '/admin/upi-config'
     | '/payment'
@@ -405,6 +417,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog/'
     | '/guides/'
+    | '/_authenticated/admin/partners'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/upi-config'
     | '/_authenticated/payment/'
@@ -637,6 +650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/partners': {
+      id: '/_authenticated/admin/partners'
+      path: '/admin/partners'
+      fullPath: '/admin/partners'
+      preLoaderRoute: typeof AuthenticatedAdminPartnersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/payments': {
       id: '/_authenticated/admin/payments'
       path: '/admin/payments'
@@ -672,6 +692,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTrackerRoute: typeof AuthenticatedTrackerRoute
+  AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminUpiConfigRoute: typeof AuthenticatedAdminUpiConfigRoute
   AuthenticatedPaymentIndexRoute: typeof AuthenticatedPaymentIndexRoute
@@ -682,6 +703,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTrackerRoute: AuthenticatedTrackerRoute,
+  AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminUpiConfigRoute: AuthenticatedAdminUpiConfigRoute,
   AuthenticatedPaymentIndexRoute: AuthenticatedPaymentIndexRoute,

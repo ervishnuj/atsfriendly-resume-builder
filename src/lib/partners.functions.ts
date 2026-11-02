@@ -377,7 +377,7 @@ export const adminPartnerReports = createServerFn({ method: "GET" })
     const [partners, sales, invoices, commissions, settings] = await Promise.all([
       supabaseAdmin.from("partners").select("id, status"),
       supabaseAdmin.from("partner_sales").select("partner_id, selling_price, wholesale_cost, gross_margin, owner_share, status"),
-      supabaseAdmin.from("partner_invoices").select("partner_id, total, payment_status"),
+      supabaseAdmin.from("partner_invoices").select("partner_id, total, credits, payment_status"),
       supabaseAdmin.from("partner_commission_ledger").select("partner_id, owner_share, status"),
       supabaseAdmin.from("partner_settings").select("estimated_generation_cost").eq("id", true).maybeSingle(),
     ]);
@@ -410,7 +410,7 @@ export const adminPartnerReports = createServerFn({ method: "GET" })
     return {
       activePartners: (partners.data ?? []).filter((p) => p.status === "active").length,
       totalPartners: (partners.data ?? []).length,
-      creditsSold: sum(paidInvoices, "total") > 0 ? undefined : undefined, // placeholder removed below
+      creditsSold: sum(paidInvoices, "credits"),
       creditsConsumed,
       revenueCollected,
       outstandingPayments: outstanding,
