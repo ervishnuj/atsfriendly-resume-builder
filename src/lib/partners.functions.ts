@@ -410,7 +410,7 @@ export const adminPartnerReports = createServerFn({ method: "GET" })
     return {
       activePartners: (partners.data ?? []).filter((p) => p.status === "active").length,
       totalPartners: (partners.data ?? []).length,
-      creditsSold: sum(paidInvoices, "total") > 0 ? undefined : undefined, // placeholder removed below
+      creditsSold: sum(paidInvoices, "credits"),
       creditsConsumed,
       revenueCollected,
       outstandingPayments: outstanding,
