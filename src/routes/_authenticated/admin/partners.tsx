@@ -36,7 +36,6 @@ import {
   adminListPartners,
   adminCreatePartner,
   adminUpdatePartner,
-  amIAdminPartners,
 } from "@/lib/partners.functions";
 import { amIAdmin } from "@/lib/billing.functions";
 import { formatINR, formatDate } from "@/lib/billing-shared";
@@ -430,6 +429,3 @@ function AdminPartners() {
     </div>
   );
 }
-
-// Re-exported so the route tree has a single import site for the admin check.
-export { amIAdminPartners };
