@@ -43,7 +43,10 @@ import { Route as AuthenticatedAdminPartnerReportsRouteImport } from './routes/_
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin/partners'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
 import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authenticated/admin/upi-config'
+import { Route as AuthenticatedPartnerCreditsRouteImport } from './routes/_authenticated/partner/credits'
+import { Route as AuthenticatedPartnerDashboardRouteImport } from './routes/_authenticated/partner/dashboard'
 import { Route as AuthenticatedPaymentIndexRouteImport } from './routes/_authenticated/payment/index'
+import { Route as AuthenticatedPartnerInvoiceIdRouteImport } from './routes/_authenticated/partner/invoice.$id'
 import { Route as AuthenticatedPaymentCheckoutPlanIdRouteImport } from './routes/_authenticated/payment/checkout.$planId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -222,10 +225,28 @@ const AuthenticatedAdminUpiConfigRoute =
     path: '/admin/upi-config',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPartnerCreditsRoute =
+  AuthenticatedPartnerCreditsRouteImport.update({
+    id: '/partner/credits',
+    path: '/partner/credits',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPartnerDashboardRoute =
+  AuthenticatedPartnerDashboardRouteImport.update({
+    id: '/partner/dashboard',
+    path: '/partner/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaymentIndexRoute =
   AuthenticatedPaymentIndexRouteImport.update({
     id: '/payment/',
     path: '/payment/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPartnerInvoiceIdRoute =
+  AuthenticatedPartnerInvoiceIdRouteImport.update({
+    id: '/partner/invoice/$id',
+    path: '/partner/invoice/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPaymentCheckoutPlanIdRoute =
@@ -269,7 +290,10 @@ export interface FileRoutesByFullPath {
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/partner/credits': typeof AuthenticatedPartnerCreditsRoute
+  '/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
   '/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/partner/invoice/$id': typeof AuthenticatedPartnerInvoiceIdRoute
   '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesByTo {
@@ -306,7 +330,10 @@ export interface FileRoutesByTo {
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/partner/credits': typeof AuthenticatedPartnerCreditsRoute
+  '/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
   '/payment': typeof AuthenticatedPaymentIndexRoute
+  '/partner/invoice/$id': typeof AuthenticatedPartnerInvoiceIdRoute
   '/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRoutesById {
@@ -345,7 +372,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
+  '/_authenticated/partner/credits': typeof AuthenticatedPartnerCreditsRoute
+  '/_authenticated/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
   '/_authenticated/payment/': typeof AuthenticatedPaymentIndexRoute
+  '/_authenticated/partner/invoice/$id': typeof AuthenticatedPartnerInvoiceIdRoute
   '/_authenticated/payment/checkout/$planId': typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 export interface FileRouteTypes {
@@ -384,7 +414,10 @@ export interface FileRouteTypes {
     | '/admin/partners'
     | '/admin/payments'
     | '/admin/upi-config'
+    | '/partner/credits'
+    | '/partner/dashboard'
     | '/payment/'
+    | '/partner/invoice/$id'
     | '/payment/checkout/$planId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -421,7 +454,10 @@ export interface FileRouteTypes {
     | '/admin/partners'
     | '/admin/payments'
     | '/admin/upi-config'
+    | '/partner/credits'
+    | '/partner/dashboard'
     | '/payment'
+    | '/partner/invoice/$id'
     | '/payment/checkout/$planId'
   id:
     | '__root__'
@@ -459,7 +495,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/partners'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/upi-config'
+    | '/_authenticated/partner/credits'
+    | '/_authenticated/partner/dashboard'
     | '/_authenticated/payment/'
+    | '/_authenticated/partner/invoice/$id'
     | '/_authenticated/payment/checkout/$planId'
   fileRoutesById: FileRoutesById
 }
@@ -731,11 +770,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUpiConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/partner/credits': {
+      id: '/_authenticated/partner/credits'
+      path: '/partner/credits'
+      fullPath: '/partner/credits'
+      preLoaderRoute: typeof AuthenticatedPartnerCreditsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/partner/dashboard': {
+      id: '/_authenticated/partner/dashboard'
+      path: '/partner/dashboard'
+      fullPath: '/partner/dashboard'
+      preLoaderRoute: typeof AuthenticatedPartnerDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/payment/': {
       id: '/_authenticated/payment/'
       path: '/payment'
       fullPath: '/payment/'
       preLoaderRoute: typeof AuthenticatedPaymentIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/partner/invoice/$id': {
+      id: '/_authenticated/partner/invoice/$id'
+      path: '/partner/invoice/$id'
+      fullPath: '/partner/invoice/$id'
+      preLoaderRoute: typeof AuthenticatedPartnerInvoiceIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payment/checkout/$planId': {
@@ -758,7 +818,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminUpiConfigRoute: typeof AuthenticatedAdminUpiConfigRoute
+  AuthenticatedPartnerCreditsRoute: typeof AuthenticatedPartnerCreditsRoute
+  AuthenticatedPartnerDashboardRoute: typeof AuthenticatedPartnerDashboardRoute
   AuthenticatedPaymentIndexRoute: typeof AuthenticatedPaymentIndexRoute
+  AuthenticatedPartnerInvoiceIdRoute: typeof AuthenticatedPartnerInvoiceIdRoute
   AuthenticatedPaymentCheckoutPlanIdRoute: typeof AuthenticatedPaymentCheckoutPlanIdRoute
 }
 
@@ -773,7 +836,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminUpiConfigRoute: AuthenticatedAdminUpiConfigRoute,
+  AuthenticatedPartnerCreditsRoute: AuthenticatedPartnerCreditsRoute,
+  AuthenticatedPartnerDashboardRoute: AuthenticatedPartnerDashboardRoute,
   AuthenticatedPaymentIndexRoute: AuthenticatedPaymentIndexRoute,
+  AuthenticatedPartnerInvoiceIdRoute: AuthenticatedPartnerInvoiceIdRoute,
   AuthenticatedPaymentCheckoutPlanIdRoute:
     AuthenticatedPaymentCheckoutPlanIdRoute,
 }
