@@ -143,7 +143,7 @@ export const adminUpdatePartner = createServerFn({ method: "POST" })
     if (data.status !== undefined) update.status = data.status;
     if (data.sellingPrice !== undefined) update.selling_price = data.sellingPrice;
 
-    const { error } = await supabaseAdmin.from("partners").update(update).eq("id", data.id);
+    const { error } = await supabaseAdmin.from("partners").update(update as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
