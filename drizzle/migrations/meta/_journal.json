@@ -15,6 +15,13 @@
       "when": 1793504685760,
       "tag": "0001_partner_reseller_module",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793849656429,
+      "tag": "0002_restrict_partner_function_execute",
+      "breakpoints": true
     }
   ]
 }
