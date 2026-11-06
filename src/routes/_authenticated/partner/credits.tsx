@@ -65,7 +65,7 @@ function PartnerCredits() {
   const [reference, setReference] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { data: packages, isLoading } = useQuery({
+  const { data: packages, isLoading, error } = useQuery({
     queryKey: ["partner-packages", user.id],
     queryFn: () => listPackages(),
     retry: false,
@@ -117,6 +117,18 @@ function PartnerCredits() {
           <div className="flex justify-center py-10">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
+        )}
+
+        {error && (
+          <Card className="mx-auto max-w-md p-8 text-center">
+            <h2 className="text-xl font-semibold">No partner account linked</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Credit packages are only available to linked partner accounts.
+            </p>
+            <Button asChild className="mt-4">
+              <Link to="/partner/dashboard">Partner dashboard</Link>
+            </Button>
+          </Card>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

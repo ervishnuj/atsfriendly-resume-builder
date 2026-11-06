@@ -472,9 +472,13 @@ export const adminSettleCommission = createServerFn({ method: "POST" })
 export const getMyPartnerDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { requirePartner } = await import("./partners.server");
+    const { getPartnerForUser } = await import("./partners.server");
     const email = (context.claims?.email as string | undefined) ?? null;
-    const partner = await requirePartner(context.userId, email);
+    const partner = await getPartnerForUser(context.userId, email);
+    if (!partner) return { linked: false as const, reason: "no_partner" as const };
+    if (partner.status !== "active") {
+      return { linked: false as const, reason: "inactive" as const, status: partner.status };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [usage, wallet, sales, transactions, settings] = await Promise.all([
@@ -499,6 +503,7 @@ export const getMyPartnerDashboard = createServerFn({ method: "GET" })
     const usageData = (usage.data ?? {}) as { used?: number; limit?: number; balance?: number };
 
     return {
+      linked: true as const,
       partner: {
         id: partner.id,
         businessName: partner.business_name,
