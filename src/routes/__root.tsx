@@ -134,6 +134,10 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    capturePartnerRef();
+  }, []);
+
+  useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       // Query data may contain profile, billing, or admin information. Remove it
