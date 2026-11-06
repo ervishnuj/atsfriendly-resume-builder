@@ -119,6 +119,18 @@ function PartnerCredits() {
           </div>
         )}
 
+        {error && (
+          <Card className="mx-auto max-w-md p-8 text-center">
+            <h2 className="text-xl font-semibold">No partner account linked</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Credit packages are only available to linked partner accounts.
+            </p>
+            <Button asChild className="mt-4">
+              <Link to="/partner/dashboard">Partner dashboard</Link>
+            </Button>
+          </Card>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(packages ?? []).map((p) => (
             <Card key={p.id} className="flex flex-col p-5">
