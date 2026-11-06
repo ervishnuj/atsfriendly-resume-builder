@@ -1,11 +1,12 @@
 # Partner / Reseller Module — Roadmap
 
-- [ ] Stage 1: DB schema (10 tables, partner role, credit functions, RLS) + admin Partner Management & Packages routes
-- [ ] Stage 2: Partner accounts, wallet, credit enforcement server functions
-- [ ] Stage 3: Partner dashboard (credits, usage, revenue, margin, transactions, filters)
-- [ ] Stage 4: Customer pricing + margin calculator (admin min/max, estimate labeling)
-- [ ] Stage 5: Commission ledger + monthly settlement reports
-- [ ] Stage 6: Commercial invoices + tax settings (unregistered-supplier mode, no GST)
-- [ ] Stage 7: Referral attribution (partner code/link, locked after paid generation)
-- [ ] Stage 8: Admin reports (realized vs pending revenue, usage reports)
-- [ ] Tests: vitest math/validation, SQL-level credit enforcement, Playwright flows; no real AI calls or payments
+- [x] Stage 1: DB schema (10 tables, partner role, credit functions, RLS) + admin Partner Management & Packages routes
+- [x] Stage 2: Partner accounts (email-claim linking), wallet, credit enforcement DB functions (server-only execute)
+- [x] Stage 3: Partner dashboard (credits, daily usage, revenue, margin, transactions)
+- [x] Stage 4: Customer pricing + margin calculator (admin min/max ₹39–₹99, estimate labeling)
+- [x] Stage 5: Commission ledger + monthly settlement (manual settle, no auto-deduction)
+- [x] Stage 6: Commercial invoices (print/PDF, unregistered-supplier note, no GST) + tax settings with confirmation gate
+- [x] Stage 7: Referral capture (?ref=CODE stored 30 days, link shown on partner dashboard)
+- [x] Stage 8: Admin reports (realized vs pending revenue, credits sold/consumed, margins, commissions)
+- [x] Tests: 8 vitest math tests, SQL acceptance tests (30/31 limit, idempotency, release, isolation, suspend, purchase), Playwright admin+partner flows
+- [ ] Remaining: wire partner_consume_credit into the live AI generation path for partner-attributed generations (deferred to protect the existing AI credit system); date-range filters on partner dashboard; partner verify-invoice UI test needs a second auth account
