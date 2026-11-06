@@ -65,7 +65,7 @@ function PartnerCredits() {
   const [reference, setReference] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { data: packages, isLoading } = useQuery({
+  const { data: packages, isLoading, error } = useQuery({
     queryKey: ["partner-packages", user.id],
     queryFn: () => listPackages(),
     retry: false,

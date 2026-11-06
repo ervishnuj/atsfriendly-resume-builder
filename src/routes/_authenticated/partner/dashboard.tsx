@@ -59,14 +59,18 @@ function PartnerDashboard() {
     );
   }
 
-  if (error || !data) {
+  if (error || !data || !data.linked) {
+    const inactive = data && !data.linked && data.reason === "inactive";
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card className="max-w-md p-8 text-center">
-          <h1 className="text-xl font-semibold">No partner account linked</h1>
+          <h1 className="text-xl font-semibold">
+            {inactive ? "Partner account not active" : "No partner account linked"}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This login is not linked to a partner account. If you recently joined as a partner,
-            ask the administrator to create your partner profile with this login's email address.
+            {inactive
+              ? "This partner account has been deactivated or suspended. Contact the administrator."
+              : "This login is not linked to a partner account. If you recently joined as a partner, ask the administrator to create your partner profile with this login's email address."}
           </p>
           <Button asChild className="mt-4">
             <Link to="/builder">Back to builder</Link>
