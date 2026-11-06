@@ -122,6 +122,10 @@ function PartnerDashboard() {
             <p className="text-xs text-muted-foreground">
               Partner code <span className="font-mono">{partner.partnerCode}</span>
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Your referral link:{" "}
+              <span className="font-mono break-all">{partnerReferralLink(partner.partnerCode)}</span>
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
