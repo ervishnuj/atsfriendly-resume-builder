@@ -21,6 +21,7 @@ import {
 import { getMyPartnerDashboard, setMySellingPrice } from "@/lib/partners.functions";
 import { formatINR, formatDate } from "@/lib/billing-shared";
 import { grossMargin, ownerShare, partnerRetainedMargin, validateSellingPrice } from "@/lib/partner-math";
+import { partnerReferralLink } from "@/lib/partner-ref";
 
 export const Route = createFileRoute("/_authenticated/partner/dashboard")({
   head: () => ({
