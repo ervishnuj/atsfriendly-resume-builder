@@ -489,11 +489,17 @@ export const adminUploadQr = createServerFn({ method: "POST" })
     await requireAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const ext = data.fileName.split(".").pop()?.toLowerCase() ?? "png";
-    const path = `qr/${Date.now()}.${ext.replace(/[^a-z0-9]/g, "")}`;
     const bytes = Uint8Array.from(atob(data.dataBase64), (c) => c.charCodeAt(0));
+    // Detect the real image type from file bytes; never trust the client's type or extension.
+    const b = bytes;
+    let detected: { ext: string; mime: string } | null = null;
+    if (b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) detected = { ext: "png", mime: "image/png" };
+    else if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) detected = { ext: "jpg", mime: "image/jpeg" };
+    else if (b.length > 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) detected = { ext: "webp", mime: "image/webp" };
+    if (!detected) throw new Error("Please upload a PNG, JPEG or WebP image.");
+    const path = `qr/${Date.now()}.${detected.ext}`;
     const { error } = await supabaseAdmin.storage.from("upi-qr").upload(path, bytes, {
-      contentType: data.contentType,
+      contentType: detected.mime,
       upsert: true,
     });
     if (error) throw new Error(error.message);
