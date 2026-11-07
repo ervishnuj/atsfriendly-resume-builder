@@ -652,13 +652,15 @@ export const getPartnerInvoice = createServerFn({ method: "GET" })
 
     const { data: row, error } = await supabaseAdmin
       .from("partner_invoices")
-      .select("*, partners(business_name, partner_code, contact_person, phone, email, location, user_id)")
+      .select("*, partners(business_name, partner_code, contact_person, phone, email, location, user_id, status)")
       .eq("id", data.invoiceId)
       .maybeSingle();
     if (error || !row) throw new Error("Invoice not found.");
 
-    const linkedUserId = (row.partners as { user_id?: string | null } | null)?.user_id ?? null;
-    if (linkedUserId !== context.userId) {
+    const partnerRow = row.partners as { user_id?: string | null; status?: string | null } | null;
+    const linkedUserId = partnerRow?.user_id ?? null;
+    const isActiveOwner = linkedUserId === context.userId && partnerRow?.status === "active";
+    if (!isActiveOwner) {
       // Not the owning partner — only an admin may view it.
       await requireAdmin(context.userId);
     }
