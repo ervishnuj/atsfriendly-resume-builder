@@ -1,5 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
+- [ ] Verify four selected security fixes in the app: invoice suspension, QR validation, admin-only business and partner settings reads; clean up temporary fixtures.
+
 - [x] Stage 1: DB schema (10 tables, partner role, credit functions, RLS) + admin Partner Management & Packages routes
 - [x] Stage 2: Partner accounts (email-claim linking), wallet, credit enforcement DB functions (server-only execute)
 - [x] Stage 3: Partner dashboard (credits, daily usage, revenue, margin, transactions)
