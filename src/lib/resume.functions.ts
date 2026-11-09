@@ -28,6 +28,7 @@ const GuardedInputSchema = ResumeInputSchema.extend({
 export type GeneratedResumeResponse = {
   resume: OptimizedResume;
   usage: AiUsageSummary;
+  partnerCreditCharged?: boolean;
 };
 
 /**
@@ -39,6 +40,14 @@ export const generateResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => GuardedInputSchema.parse(input))
   .handler(async ({ data, context }): Promise<GeneratedResumeResponse> => {
+    const { resolveGenerationPartner, runPartnerGeneration } = await import("./partner-generation.server");
+    const partner = await resolveGenerationPartner(context.userId);
+    if (partner) {
+      return runPartnerGeneration(context.userId, partner.id, data.requestId, async () => {
+        const { generateOptimizedResume } = await import("./resume-ai.server");
+        return generateOptimizedResume(data.profile, data.jobDescription, data.currentResumeText);
+      });
+    }
     const { assertAiAccess } = await import("./billing.server");
     const access = await assertAiAccess(context.userId, "RESUME");
 
@@ -220,8 +229,14 @@ export const optimizeLinkedInProfile = createServerFn({ method: "POST" })
 /** Read-only usage counters for the UI. The backend remains the source of truth. */
 export const getMyAiUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ resume: AiUsageSummary; analysis: AiUsageSummary }> => {
+  .handler(async ({ context }): Promise<{ resume: AiUsageSummary; analysis: AiUsageSummary; partner?: { balance: number } }> => {
     const { getAiUsage } = await import("./ai-usage.server");
+    const { resolveGenerationPartner, getPartnerGenerationUsage } = await import("./partner-generation.server");
+    const partner = await resolveGenerationPartner(context.userId);
+    if (partner) {
+      const usage = await getPartnerGenerationUsage(partner.id);
+      return { resume: usage, analysis: await getAiUsage(context.userId, "ANALYSIS"), partner: { balance: usage.balance } };
+    }
     return {
       resume: await getAiUsage(context.userId, "RESUME"),
       analysis: await getAiUsage(context.userId, "ANALYSIS"),

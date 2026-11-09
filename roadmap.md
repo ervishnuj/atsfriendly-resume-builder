@@ -1,5 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
+- [ ] Connect signed-in partner resume generation to wallet deductions, failure refunds and insufficient-credit handling; preserve individual allowances and test without paid AI.
+
 - [x] Restored the existing verified owner's settings access through the protected admin role; browser confirmed both direct settings reads and admin functions agree, and four read-only integration tests passed without widening settings policies.
 
 - [x] Security checks available with owner's admin session: settings forms/read functions, admin invoice suspension exception, suspended dashboard, valid/invalid QR uploads; temporary invoices, partners and uploads removed.

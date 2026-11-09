@@ -1220,6 +1220,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      finish_partner_resume_generation: {
+        Args: {
+          _partner_id: string
+          _request_id: string
+          _result: Json
+          _success: boolean
+          _user_id: string
+        }
+        Returns: Json
+      }
       get_ai_usage: { Args: { _kind: string; _user_id: string }; Returns: Json }
       get_partner_usage: { Args: { _partner_id: string }; Returns: Json }
       grant_free_entitlement: { Args: { _user_id: string }; Returns: boolean }
@@ -1260,6 +1270,10 @@ export type Database = {
           _request_id: string
           _user_id: string
         }
+        Returns: Json
+      }
+      start_partner_resume_generation: {
+        Args: { _partner_id: string; _request_id: string; _user_id: string }
         Returns: Json
       }
     }
