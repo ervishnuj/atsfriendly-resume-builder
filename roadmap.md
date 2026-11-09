@@ -1,7 +1,9 @@
 # Partner / Reseller Module — Roadmap
 
+- [x] Restored the existing verified owner's settings access through the protected admin role; browser confirmed both direct settings reads and admin functions agree, and four read-only integration tests passed without widening settings policies.
+
 - [x] Security checks available with owner's admin session: settings forms/read functions, admin invoice suspension exception, suspended dashboard, valid/invalid QR uploads; temporary invoices, partners and uploads removed.
-- [ ] Remaining security verification: suspended non-admin invoice denial and partner settings restrictions need a user-selected non-admin account; direct admin settings reads returned no rows (owner has no admin-role row), and incomplete PNG headers were accepted. Testing only; no security code changed.
+- [ ] Remaining security verification: suspended non-admin invoice denial and signed-in partner settings rejection need a user-selected non-admin account; incomplete PNG headers were accepted and remain outside the settings-only fix. Non-admin settings role predicates and policies are verified.
 
 - [x] Stage 1: DB schema (10 tables, partner role, credit functions, RLS) + admin Partner Management & Packages routes
 - [x] Stage 2: Partner accounts (email-claim linking), wallet, credit enforcement DB functions (server-only execute)
