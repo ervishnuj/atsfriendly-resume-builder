@@ -1,6 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
-- [ ] Verify four selected security fixes in the app: invoice suspension, QR validation, admin-only business and partner settings reads; clean up temporary fixtures.
+- [x] Security checks available with owner's admin session: settings forms/read functions, admin invoice suspension exception, suspended dashboard, valid/invalid QR uploads; temporary invoices, partners and uploads removed.
+- [ ] Remaining security verification: suspended non-admin invoice denial and partner settings restrictions need a user-selected non-admin account; direct admin settings reads returned no rows (owner has no admin-role row), and incomplete PNG headers were accepted. Testing only; no security code changed.
 
 - [x] Stage 1: DB schema (10 tables, partner role, credit functions, RLS) + admin Partner Management & Packages routes
 - [x] Stage 2: Partner accounts (email-claim linking), wallet, credit enforcement DB functions (server-only execute)
