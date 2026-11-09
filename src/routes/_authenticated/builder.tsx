@@ -105,6 +105,8 @@ function Index() {
   const trackKeyRef = useRef<string>("");
   const savedVersionRef = useRef<{ key: string; id: string } | null>(null);
   const [currentResumeText, setCurrentResumeText] = useState("");
+  const generationRequestRef = useRef<{ input: string; id: string } | null>(null);
+  const [partnerGenerationNotice, setPartnerGenerationNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingScore, setCheckingScore] = useState(false);
   const [recheckedAnalysis, setRecheckedAnalysis] = useState<AtsAnalysis | null>(null);
@@ -145,6 +147,7 @@ function Index() {
     queryFn: () => fetchAiUsage(),
   });
   const resumeUsage = aiUsage?.resume ?? null;
+  const isPartnerGeneration = aiUsage?.partner !== undefined;
   const dailyLimitReached = resumeUsage ? resumeUsage.remaining <= 0 : false;
   const isAdminAccess = subscription?.admin === true;
   const isSubscribed = subscription?.active === true;
@@ -470,7 +473,10 @@ function Index() {
   }, [versionParam]);
 
   const handleGenerate = async () => {
-    if (!isSubscribed) {
+    if (loading) return;
+    // Re-read server-verified partner status; never rely on a referral code.
+    const freshUsage = await queryClient.fetchQuery({ queryKey: ["ai-usage", userId], queryFn: () => fetchAiUsage() }).catch(() => null);
+    if (!isSubscribed && !freshUsage?.partner) {
       // Never send a paying user back to pricing on stale client state —
       // re-read the entitlement from the server first.
       const fresh = await queryClient.fetchQuery({
@@ -495,7 +501,12 @@ function Index() {
     setRecheckedAnalysis(null);
     setEditingResume(false);
     setResumeDraft(null);
-    const requestId = newGenerationRequestId();
+    setPartnerGenerationNotice(null);
+    const input = JSON.stringify({ profile, jd, currentResumeText });
+    if (!generationRequestRef.current || generationRequestRef.current.input !== input) {
+      generationRequestRef.current = { input, id: newGenerationRequestId() };
+    }
+    const requestId = generationRequestRef.current.id;
     try {
       const res = await run({ data: { profile, jobDescription: jd, requestId, currentResumeText: currentResumeText || undefined } });
       setResult(res.resume);
@@ -506,12 +517,18 @@ function Index() {
       setTrackOpen(true);
       await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
       toast.success(
-        `Resume generated · ATS Score ${res.resume.atsScore}/100 · ${res.usage.remaining} of ${res.usage.limit} AI generations left today`,
+        res.partnerCreditCharged !== undefined
+          ? `Resume generated · ${res.partnerCreditCharged ? "1 partner credit used" : "Saved result restored; no additional credit used"} · ${res.usage.remaining} generations left today`
+          : `Resume generated · ATS Score ${res.resume.atsScore}/100 · ${res.usage.remaining} of ${res.usage.limit} AI generations left today`,
       );
+      generationRequestRef.current = null;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       const limit = parseAiLimitError(msg);
-      if (limit) {
+      if (msg.startsWith("PARTNER_")) {
+        setPartnerGenerationNotice(msg.replace(/^PARTNER_[A-Z_]+:\s*/, ""));
+        toast.error(msg.replace(/^PARTNER_[A-Z_]+:\s*/, ""));
+      } else if (limit) {
         // A usage limit is NOT a payment problem — never route the user to pricing.
         await queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] });
         toast.warning(limit.message);
@@ -526,6 +543,10 @@ function Index() {
       }
     } finally {
       setLoading(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["ai-usage", userId] }),
+        queryClient.invalidateQueries({ queryKey: ["partner-dashboard", userId] }),
+      ]);
     }
   };
 
@@ -657,6 +678,7 @@ function Index() {
                 AI resumes today {resumeUsage.used} / {resumeUsage.limit}
               </Badge>
             )}
+            {aiUsage?.partner && <Badge variant="secondary">Partner credits {aiUsage.partner.balance}</Badge>}
             <Button asChild variant="ghost" size="sm">
               <Link to="/tracker">Tracker</Link>
             </Button>
@@ -723,7 +745,7 @@ function Index() {
       </nav>
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-3 py-4 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] print:block print:p-0">
         <section className={`space-y-4 print:hidden ${mobileStep === "resume" ? "hidden lg:block" : ""}`}>
-          {!isSubscribed && !isAdminAccess && gateStatus && (
+          {!isSubscribed && !isAdminAccess && !isPartnerGeneration && gateStatus && (
             <PaymentGateBanner
               status={gateStatus}
               onDismiss={() => {
@@ -732,6 +754,7 @@ function Index() {
               }}
             />
           )}
+          {partnerGenerationNotice && <div role="alert" className="space-y-2 border-b border-border pb-4 text-sm"><p>{partnerGenerationNotice}</p><div className="flex flex-wrap gap-2"><Button asChild variant="outline" size="sm"><Link to="/partner/credits">Buy partner credits</Link></Button><Button asChild variant="ghost" size="sm"><Link to="/partner/dashboard">Partner Dashboard</Link></Button></div></div>}
           {dailyLimitReached && (
             <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
               <p className="text-sm font-semibold">Your plan is still active — the limit resets at midnight IST.</p>
