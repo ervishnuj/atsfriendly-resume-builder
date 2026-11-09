@@ -1,5 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
+- [ ] Restore the existing verified owner's settings access through the protected admin role; verify admin reads and non-admin denial without widening settings policies.
+
 - [x] Security checks available with owner's admin session: settings forms/read functions, admin invoice suspension exception, suspended dashboard, valid/invalid QR uploads; temporary invoices, partners and uploads removed.
 - [ ] Remaining security verification: suspended non-admin invoice denial and partner settings restrictions need a user-selected non-admin account; direct admin settings reads returned no rows (owner has no admin-role row), and incomplete PNG headers were accepted. Testing only; no security code changed.
 
