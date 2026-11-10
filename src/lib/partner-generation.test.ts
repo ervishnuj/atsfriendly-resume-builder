@@ -15,7 +15,7 @@ function stubRpc(start: unknown) {
     throw new Error(`Unexpected RPC: ${name}`);
   });
 }
-beforeEach(() => rpc.mockReset());
+beforeEach(() => { rpc.mockReset(); });
 
 describe("partner resume credit orchestration", () => {
   it("blocks insufficient credits before any generation", async () => {
