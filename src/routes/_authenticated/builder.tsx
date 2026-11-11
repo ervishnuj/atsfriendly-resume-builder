@@ -475,7 +475,15 @@ function Index() {
   const handleGenerate = async () => {
     if (loading) return;
     // Re-read server-verified partner status; never rely on a referral code.
-    const freshUsage = await queryClient.fetchQuery({ queryKey: ["ai-usage", userId], queryFn: () => fetchAiUsage() }).catch(() => null);
+    let freshUsage;
+    try {
+      freshUsage = await queryClient.fetchQuery({ queryKey: ["ai-usage", userId], queryFn: () => fetchAiUsage() });
+    } catch (error) {
+      const message = error instanceof Error ? error.message.replace(/^PARTNER_[A-Z_]+:\s*/, "") : "Unable to verify generation access. Please try again.";
+      setPartnerGenerationNotice(message);
+      toast.error(message);
+      return;
+    }
     if (!isSubscribed && !freshUsage?.partner) {
       // Never send a paying user back to pricing on stale client state —
       // re-read the entitlement from the server first.
