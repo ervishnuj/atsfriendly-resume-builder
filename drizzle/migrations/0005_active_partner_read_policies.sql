@@ -1,0 +1,16 @@
+DROP POLICY IF EXISTS "Partners read own prices" ON public.partner_package_prices;
+CREATE POLICY "Partners read own prices" ON public.partner_package_prices FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own wallet" ON public.partner_credit_wallets;
+CREATE POLICY "Partners read own wallet" ON public.partner_credit_wallets FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own transactions" ON public.partner_credit_transactions;
+CREATE POLICY "Partners read own transactions" ON public.partner_credit_transactions FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own daily usage" ON public.partner_daily_usage;
+CREATE POLICY "Partners read own daily usage" ON public.partner_daily_usage FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own sales" ON public.partner_sales;
+CREATE POLICY "Partners read own sales" ON public.partner_sales FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own commissions" ON public.partner_commission_ledger;
+CREATE POLICY "Partners read own commissions" ON public.partner_commission_ledger FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+DROP POLICY IF EXISTS "Partners read own invoices" ON public.partner_invoices;
+CREATE POLICY "Partners read own invoices" ON public.partner_invoices FOR SELECT TO authenticated USING (partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid() AND status = 'active'));
+REVOKE EXECUTE ON FUNCTION public.get_partner_usage(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_partner_usage(uuid) TO service_role;
