@@ -36,6 +36,13 @@
       "when": 1794193716440,
       "tag": "0004_connect_partner_resume_generation",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794369558678,
+      "tag": "0005_active_partner_read_policies",
+      "breakpoints": true
     }
   ]
 }
