@@ -1,6 +1,6 @@
 # Partner / Reseller Module — Roadmap
 
-- [ ] Connect signed-in partner resume generation to wallet deductions, failure refunds and insufficient-credit handling; preserve individual allowances and test without paid AI.
+- [x] Connected signed-in partner resume generation to atomic success-only deductions and insufficient-credit handling; failures release availability without deductions. Unit/regression tests and rollback-only database tests passed; signed-in empty-wallet flow verified, with no paid AI or payments.
 
 - [x] Restored the existing verified owner's settings access through the protected admin role; browser confirmed both direct settings reads and admin functions agree, and four read-only integration tests passed without widening settings policies.
 
@@ -16,4 +16,4 @@
 - [x] Stage 7: Referral capture (?ref=CODE stored 30 days, link shown on partner dashboard)
 - [x] Stage 8: Admin reports (realized vs pending revenue, credits sold/consumed, margins, commissions)
 - [x] Tests: 8 vitest math tests, SQL acceptance tests (30/31 limit, idempotency, release, isolation, suspend, purchase), Playwright admin+partner flows
-- [ ] Remaining: wire partner_consume_credit into the live AI generation path for partner-attributed generations (deferred to protect the existing AI credit system); date-range filters on partner dashboard; partner verify-invoice UI test needs a second auth account
+- [ ] Remaining verification: successful live AI generation intentionally untested to avoid paid AI; partner verify-invoice UI and earlier non-admin security checks need a user-selected second account. Date-range filters are outside the current request.
