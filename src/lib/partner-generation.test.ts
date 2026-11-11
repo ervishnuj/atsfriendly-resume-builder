@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.hoisted(() => vi.fn());
-vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc } }));
+vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc, from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { user_id: "user" }, error: null }) }) }) }) } }));
 vi.mock("./partners.server", () => ({ getPartnerForUser: vi.fn() }));
 import { runPartnerGeneration } from "./partner-generation.server";
 
@@ -55,5 +55,12 @@ describe("partner resume credit orchestration", () => {
     stubRpc({ allowed: false, code: "DUPLICATE_IN_FLIGHT" });
     await expect(runPartnerGeneration("user", "partner", "request-123", vi.fn())).rejects.toThrow("DUPLICATE_GENERATION_IN_FLIGHT");
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+  it("returns a successful resume with exactly one credit charged", async () => {
+    stubRpc({ allowed: true, code: "OK" });
+    rpc.mockImplementation(async (name: string) => ({ data: name === "start_partner_resume_generation" ? { allowed: true, code: "OK" } : name === "finish_partner_resume_generation" ? { ok: true, code: "OK" } : name === "get_partner_usage" ? usage : { resetAt: "2026-11-12T18:30:00Z" }, error: null }));
+    const result = await runPartnerGeneration("user", "partner", "request-123", async () => resume);
+    expect(result).toMatchObject({ resume, partnerCreditCharged: true, usage: { limit: 30, used: 1, balance: 29 } });
+    expect(rpc.mock.calls.filter(([name]) => name === "finish_partner_resume_generation")).toHaveLength(1);
   });
 });
