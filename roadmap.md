@@ -1,5 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
+- [ ] Verify the seven partner financial read paths for own active account, another active account, suspended account, and unrelated signed-in identity; use rollback-only fixtures without AI, payments, or permission changes.
+
 - [x] Connected signed-in partner resume generation to atomic success-only deductions and insufficient-credit handling; failures release availability without deductions. Unit/regression tests and rollback-only database tests passed; signed-in empty-wallet flow verified, with no paid AI or payments.
 
 - [x] Restored the existing verified owner's settings access through the protected admin role; browser confirmed both direct settings reads and admin functions agree, and four read-only integration tests passed without widening settings policies.
