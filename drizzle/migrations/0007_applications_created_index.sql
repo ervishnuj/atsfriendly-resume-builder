@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS job_applications_user_created_idx ON public.job_applications (user_id, created_at DESC);
