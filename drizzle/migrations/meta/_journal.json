@@ -43,6 +43,13 @@
       "when": 1794369558678,
       "tag": "0005_active_partner_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794505820728,
+      "tag": "0006_owner_date_indexes",
+      "breakpoints": true
     }
   ]
 }
