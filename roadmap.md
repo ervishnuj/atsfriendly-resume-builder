@@ -1,6 +1,7 @@
 # Partner / Reseller Module — Roadmap
 
-- [ ] Verify the seven partner financial read paths for own active account, another active account, suspended account, and unrelated signed-in identity; use rollback-only fixtures without AI, payments, or permission changes.
+- [x] Verified seven partner financial read paths with 28 live RLS checks (two active identities, suspended identity, unrelated authenticated identity), plus four direct usage RPC denials; all synthetic database fixtures rolled back. Twelve actual-handler authorization tests and fifteen credit/math regressions passed; no production logic or permissions changed.
+- [ ] Real signed-in partner browser verification remains blocked on user-selected active and suspended non-admin accounts; database role simulation and mocked handler tests do not constitute real-account end-to-end verification.
 
 - [x] Connected signed-in partner resume generation to atomic success-only deductions and insufficient-credit handling; failures release availability without deductions. Unit/regression tests and rollback-only database tests passed; signed-in empty-wallet flow verified, with no paid AI or payments.
 
