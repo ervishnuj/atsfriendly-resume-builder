@@ -5,8 +5,8 @@ INSERT INTO auth.users (id, aud, role, email, instance_id) VALUES
  ('d0000000-0000-4000-8000-00000000000b','authenticated','authenticated','qa-user-b@example.invalid','00000000-0000-0000-0000-000000000000')
  ON CONFLICT DO NOTHING;
 SET LOCAL ROLE authenticated;
-CREATE TEMP TABLE IF NOT EXISTS qa_ids(k text primary key, v uuid);
-GRANT ALL ON qa_ids TO authenticated;
+
+
 DO $$
 DECLARE a uuid := 'd0000000-0000-4000-8000-00000000000a'; b uuid := 'd0000000-0000-4000-8000-00000000000b';
  rv_a uuid; rv_b uuid; ja uuid; lp uuid; ip uuid; n int; t text; checks int := 0;
