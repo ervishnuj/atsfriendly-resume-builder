@@ -12,6 +12,12 @@ export const ANALYTICS_EVENTS = [
   "COVER_LETTER_GENERATED",
   "PAYMENT_STARTED",
   "PAYMENT_COMPLETED",
+  "HOMEPAGE_VIEWED",
+  "CHECKER_STARTED",
+  "RESUME_UPLOADED",
+  "RESUME_UPLOAD_FAILED",
+  "SIGNUP_COMPLETED",
+  "PRICING_VIEWED",
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
@@ -29,6 +35,18 @@ export const AnalyticsPayloadSchema = z.discriminatedUnion("event", [
   z.object({ event: z.literal("COVER_LETTER_GENERATED"), meta: empty.optional() }).strict(),
   z.object({ event: z.literal("PAYMENT_STARTED"), meta: empty.optional() }).strict(),
   z.object({ event: z.literal("PAYMENT_COMPLETED"), meta: empty.optional() }).strict(),
+  z.object({ event: z.literal("HOMEPAGE_VIEWED"), meta: empty.optional() }).strict(),
+  z.object({ event: z.literal("CHECKER_STARTED"), meta: empty.optional() }).strict(),
+  z.object({ event: z.literal("RESUME_UPLOADED"), meta: z.object({ type: z.enum(["pdf", "docx", "other"]) }).strict() }).strict(),
+  z.object({ event: z.literal("RESUME_UPLOAD_FAILED"), meta: z.object({ type: z.enum(["pdf", "docx", "other"]) }).strict() }).strict(),
+  z.object({ event: z.literal("SIGNUP_COMPLETED"), meta: empty.optional() }).strict(),
+  z.object({ event: z.literal("PRICING_VIEWED"), meta: empty.optional() }).strict(),
+]);
+
+/** Events that may be recorded without a signed-in user (no personal data). */
+export const ANONYMOUS_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<AnalyticsEvent>([
+  "HOMEPAGE_VIEWED", "CHECKER_STARTED", "ATS_CHECK_COMPLETED", "RESUME_UPLOADED",
+  "RESUME_UPLOAD_FAILED", "SIGNUP_COMPLETED", "PRICING_VIEWED",
 ]);
 
 export type AnalyticsPayload = z.infer<typeof AnalyticsPayloadSchema>;

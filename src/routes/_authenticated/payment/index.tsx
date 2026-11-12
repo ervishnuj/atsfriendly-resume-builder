@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/payment/")({
         content: "One-time and time-based plans for the ATS Resume Builder, paid over UPI.",
       },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

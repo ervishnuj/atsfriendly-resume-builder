@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/analytics-events";
 import { FileText, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { extractResumeText, MAX_RESUME_BYTES } from "@/lib/resume-import";
@@ -34,8 +35,10 @@ export function AtsResumeUpload({ onText, onBusy }: Props) {
       const text = await extractResumeText(file);
       if (request.current !== id) return;
       onText(text); setLoaded(true);
+      track("RESUME_UPLOADED", { type: fileKind(file.name) });
     } catch (caught) {
       if (request.current !== id) return;
+      track("RESUME_UPLOAD_FAILED", { type: fileKind(file.name) });
       setError(caught instanceof Error ? caught.message : "Could not read this resume. Try another file or paste its text.");
     } finally {
       if (request.current === id) { setBusy(false); onBusy(false); }
@@ -63,4 +66,8 @@ export function AtsResumeUpload({ onText, onBusy }: Props) {
       {error && <p role="alert" className="text-sm text-destructive">{error} Replace the file or choose Paste Resume Text.</p>}
     </div>
   );
+}
+function fileKind(name: string): "pdf" | "docx" | "other" {
+  const n = name.toLowerCase();
+  return n.endsWith(".pdf") ? "pdf" : n.endsWith(".docx") ? "docx" : "other";
 }

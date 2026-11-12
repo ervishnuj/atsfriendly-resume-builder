@@ -57,6 +57,27 @@
       "when": 1794505836739,
       "tag": "0007_applications_created_index",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794506290357,
+      "tag": "0008_support_status_and_error_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794506584413,
+      "tag": "0009_admin_user_counts",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794506625436,
+      "tag": "0010_service_role_analytics_grants",
+      "breakpoints": true
     }
   ]
 }

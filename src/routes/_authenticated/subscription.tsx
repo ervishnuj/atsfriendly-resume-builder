@@ -36,6 +36,12 @@ import {
 } from "@/lib/account.functions";
 import { clearBrowserUserData } from "@/lib/profile-storage";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getMyProfile } from "@/lib/profile-sync.functions";
+import { listResumeVersions } from "@/lib/versions.functions";
+import { listJobApplications } from "@/lib/applications.functions";
+import { listLearningPlans } from "@/lib/learning-plans.functions";
 
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
@@ -48,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/subscription")({
       { property: "og:title", content: "My Subscription — ATS Resume Builder" },
       { property: "og:description", content: "Your plan status and payment history." },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
@@ -64,6 +71,7 @@ const statusColor: Record<string, string> = {
 
 function SubscriptionPage() {
   const { user } = Route.useRouteContext();
+  const account = user as { email?: string | null; created_at?: string | null };
   const fetchSub = useServerFn(getCurrentSubscription);
   const fetchPayments = useServerFn(getPaymentHistory);
   const clearAiHistory = useServerFn(clearMyAiResultHistory);
@@ -74,6 +82,49 @@ function SubscriptionPage() {
   const [clearingHistory, setClearingHistory] = useState(false);
   const [deletingResumes, setDeletingResumes] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
+  const fetchProfile = useServerFn(getMyProfile);
+  const fetchVersions = useServerFn(listResumeVersions);
+  const fetchApps = useServerFn(listJobApplications);
+  const fetchPlans = useServerFn(listLearningPlans);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const [profile, resumeVersions, applications, learningPlans, paymentHistory] = await Promise.all([
+        fetchProfile(), fetchVersions(), fetchApps(), fetchPlans(), fetchPayments(),
+      ]);
+      const blob = new Blob([JSON.stringify({
+        exportedAt: new Date().toISOString(),
+        account: { email: account.email, createdAt: account.created_at },
+        profile, resumeVersions, applications, learningPlans, paymentHistory,
+      }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `theresumerocket-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Your data file has been downloaded.");
+    } catch {
+      toast.error("We couldn't prepare your data file. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    if (!account.email) return;
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(account.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSendingReset(false);
+    if (error) toast.error("We couldn't send the reset link. Please try again in a few minutes.");
+    else toast.success("Password change link requested. Check your inbox.");
+  }
   const { data: subscription, isLoading } = useQuery({
     queryKey: ["subscription", user.id],
     queryFn: () => fetchSub(),
@@ -139,6 +190,33 @@ function SubscriptionPage() {
       </header>
 
       <main className="mx-auto max-w-4xl space-y-6 px-6 py-10">
+        <Card className="p-6">
+          <h2 className="text-sm font-semibold">Account</h2>
+          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-muted-foreground">Email</dt>
+              <dd className="break-all font-medium">{account.email ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Member since</dt>
+              <dd className="font-medium">{account.created_at ? formatDate(account.created_at) : "—"}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => void handlePasswordReset()} disabled={sendingReset || !account.email}>
+              {sendingReset && <Loader2 className="h-4 w-4 animate-spin" />}
+              Change password
+            </Button>
+            <Button variant="outline" onClick={() => void handleExport()} disabled={exporting}>
+              {exporting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Download my data
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Change password emails you a secure link. Download my data saves your profile, resumes, applications, learning plans and payments as a file.
+          </p>
+        </Card>
+
         <Card className="p-6">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -332,9 +410,14 @@ function SubscriptionPage() {
                     Payment and audit records may be retained without a live account link. This cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-delete">Type DELETE to confirm</Label>
+                  <Input id="confirm-delete" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} autoComplete="off" />
+                </div>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Keep account</AlertDialogCancel>
+                  <AlertDialogCancel onClick={() => setConfirmText("")}>Keep account</AlertDialogCancel>
                   <AlertDialogAction
+                    disabled={confirmText.trim() !== "DELETE"}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => void handleDeleteAccount()}
                   >

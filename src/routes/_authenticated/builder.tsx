@@ -78,6 +78,7 @@ export const Route = createFileRoute("/_authenticated/builder")({
         content: "Tailor verified experience to a job and review honest ATS readiness and match scores with Resume Rocket.",
       },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

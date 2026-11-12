@@ -37,11 +37,13 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as AuthenticatedAdminMonitoringRouteImport } from './routes/_authenticated/admin/monitoring'
 import { Route as AuthenticatedAdminPartnerBillingRouteImport } from './routes/_authenticated/admin/partner-billing'
 import { Route as AuthenticatedAdminPartnerPackagesRouteImport } from './routes/_authenticated/admin/partner-packages'
 import { Route as AuthenticatedAdminPartnerReportsRouteImport } from './routes/_authenticated/admin/partner-reports'
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin/partners'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
+import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin/support'
 import { Route as AuthenticatedAdminUpiConfigRouteImport } from './routes/_authenticated/admin/upi-config'
 import { Route as AuthenticatedPartnerCreditsRouteImport } from './routes/_authenticated/partner/credits'
 import { Route as AuthenticatedPartnerDashboardRouteImport } from './routes/_authenticated/partner/dashboard'
@@ -189,6 +191,12 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminMonitoringRoute =
+  AuthenticatedAdminMonitoringRouteImport.update({
+    id: '/admin/monitoring',
+    path: '/admin/monitoring',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPartnerBillingRoute =
   AuthenticatedAdminPartnerBillingRouteImport.update({
     id: '/admin/partner-billing',
@@ -217,6 +225,12 @@ const AuthenticatedAdminPaymentsRoute =
   AuthenticatedAdminPaymentsRouteImport.update({
     id: '/admin/payments',
     path: '/admin/payments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminSupportRoute =
+  AuthenticatedAdminSupportRouteImport.update({
+    id: '/admin/support',
+    path: '/admin/support',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminUpiConfigRoute =
@@ -284,11 +298,13 @@ export interface FileRoutesByFullPath {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/admin/monitoring': typeof AuthenticatedAdminMonitoringRoute
   '/admin/partner-billing': typeof AuthenticatedAdminPartnerBillingRoute
   '/admin/partner-packages': typeof AuthenticatedAdminPartnerPackagesRoute
   '/admin/partner-reports': typeof AuthenticatedAdminPartnerReportsRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/partner/credits': typeof AuthenticatedPartnerCreditsRoute
   '/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
@@ -324,11 +340,13 @@ export interface FileRoutesByTo {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/guides': typeof GuidesIndexRoute
+  '/admin/monitoring': typeof AuthenticatedAdminMonitoringRoute
   '/admin/partner-billing': typeof AuthenticatedAdminPartnerBillingRoute
   '/admin/partner-packages': typeof AuthenticatedAdminPartnerPackagesRoute
   '/admin/partner-reports': typeof AuthenticatedAdminPartnerReportsRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/partner/credits': typeof AuthenticatedPartnerCreditsRoute
   '/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
@@ -366,11 +384,13 @@ export interface FileRoutesById {
   '/guides/$slug': typeof GuidesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/_authenticated/admin/monitoring': typeof AuthenticatedAdminMonitoringRoute
   '/_authenticated/admin/partner-billing': typeof AuthenticatedAdminPartnerBillingRoute
   '/_authenticated/admin/partner-packages': typeof AuthenticatedAdminPartnerPackagesRoute
   '/_authenticated/admin/partner-reports': typeof AuthenticatedAdminPartnerReportsRoute
   '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/upi-config': typeof AuthenticatedAdminUpiConfigRoute
   '/_authenticated/partner/credits': typeof AuthenticatedPartnerCreditsRoute
   '/_authenticated/partner/dashboard': typeof AuthenticatedPartnerDashboardRoute
@@ -408,11 +428,13 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog/'
     | '/guides/'
+    | '/admin/monitoring'
     | '/admin/partner-billing'
     | '/admin/partner-packages'
     | '/admin/partner-reports'
     | '/admin/partners'
     | '/admin/payments'
+    | '/admin/support'
     | '/admin/upi-config'
     | '/partner/credits'
     | '/partner/dashboard'
@@ -448,11 +470,13 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog'
     | '/guides'
+    | '/admin/monitoring'
     | '/admin/partner-billing'
     | '/admin/partner-packages'
     | '/admin/partner-reports'
     | '/admin/partners'
     | '/admin/payments'
+    | '/admin/support'
     | '/admin/upi-config'
     | '/partner/credits'
     | '/partner/dashboard'
@@ -489,11 +513,13 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/blog/'
     | '/guides/'
+    | '/_authenticated/admin/monitoring'
     | '/_authenticated/admin/partner-billing'
     | '/_authenticated/admin/partner-packages'
     | '/_authenticated/admin/partner-reports'
     | '/_authenticated/admin/partners'
     | '/_authenticated/admin/payments'
+    | '/_authenticated/admin/support'
     | '/_authenticated/admin/upi-config'
     | '/_authenticated/partner/credits'
     | '/_authenticated/partner/dashboard'
@@ -728,6 +754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/monitoring': {
+      id: '/_authenticated/admin/monitoring'
+      path: '/admin/monitoring'
+      fullPath: '/admin/monitoring'
+      preLoaderRoute: typeof AuthenticatedAdminMonitoringRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/partner-billing': {
       id: '/_authenticated/admin/partner-billing'
       path: '/admin/partner-billing'
@@ -761,6 +794,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/payments'
       fullPath: '/admin/payments'
       preLoaderRoute: typeof AuthenticatedAdminPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/support': {
+      id: '/_authenticated/admin/support'
+      path: '/admin/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/upi-config': {
@@ -812,11 +852,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTrackerRoute: typeof AuthenticatedTrackerRoute
+  AuthenticatedAdminMonitoringRoute: typeof AuthenticatedAdminMonitoringRoute
   AuthenticatedAdminPartnerBillingRoute: typeof AuthenticatedAdminPartnerBillingRoute
   AuthenticatedAdminPartnerPackagesRoute: typeof AuthenticatedAdminPartnerPackagesRoute
   AuthenticatedAdminPartnerReportsRoute: typeof AuthenticatedAdminPartnerReportsRoute
   AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
+  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminUpiConfigRoute: typeof AuthenticatedAdminUpiConfigRoute
   AuthenticatedPartnerCreditsRoute: typeof AuthenticatedPartnerCreditsRoute
   AuthenticatedPartnerDashboardRoute: typeof AuthenticatedPartnerDashboardRoute
@@ -829,12 +871,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTrackerRoute: AuthenticatedTrackerRoute,
+  AuthenticatedAdminMonitoringRoute: AuthenticatedAdminMonitoringRoute,
   AuthenticatedAdminPartnerBillingRoute: AuthenticatedAdminPartnerBillingRoute,
   AuthenticatedAdminPartnerPackagesRoute:
     AuthenticatedAdminPartnerPackagesRoute,
   AuthenticatedAdminPartnerReportsRoute: AuthenticatedAdminPartnerReportsRoute,
   AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
+  AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAdminUpiConfigRoute: AuthenticatedAdminUpiConfigRoute,
   AuthenticatedPartnerCreditsRoute: AuthenticatedPartnerCreditsRoute,
   AuthenticatedPartnerDashboardRoute: AuthenticatedPartnerDashboardRoute,
