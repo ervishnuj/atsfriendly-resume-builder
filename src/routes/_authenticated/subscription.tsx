@@ -71,6 +71,7 @@ const statusColor: Record<string, string> = {
 
 function SubscriptionPage() {
   const { user } = Route.useRouteContext();
+  const account = user as { email?: string | null; created_at?: string | null };
   const fetchSub = useServerFn(getCurrentSubscription);
   const fetchPayments = useServerFn(getPaymentHistory);
   const clearAiHistory = useServerFn(clearMyAiResultHistory);
@@ -97,7 +98,7 @@ function SubscriptionPage() {
       ]);
       const blob = new Blob([JSON.stringify({
         exportedAt: new Date().toISOString(),
-        account: { email: user.email, createdAt: user.created_at },
+        account: { email: account.email, createdAt: account.created_at },
         profile, resumeVersions, applications, learningPlans, paymentHistory,
       }, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -115,9 +116,9 @@ function SubscriptionPage() {
   }
 
   async function handlePasswordReset() {
-    if (!user.email) return;
+    if (!account.email) return;
     setSendingReset(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(account.email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setSendingReset(false);
@@ -194,15 +195,15 @@ function SubscriptionPage() {
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Email</dt>
-              <dd className="break-all font-medium">{user.email ?? "—"}</dd>
+              <dd className="break-all font-medium">{account.email ?? "—"}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Member since</dt>
-              <dd className="font-medium">{user.created_at ? formatDate(user.created_at) : "—"}</dd>
+              <dd className="font-medium">{account.created_at ? formatDate(account.created_at) : "—"}</dd>
             </div>
           </dl>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="outline" onClick={() => void handlePasswordReset()} disabled={sendingReset || !user.email}>
+            <Button variant="outline" onClick={() => void handlePasswordReset()} disabled={sendingReset || !account.email}>
               {sendingReset && <Loader2 className="h-4 w-4 animate-spin" />}
               Change password
             </Button>
