@@ -34,13 +34,15 @@ export const trackPublicEvent = createServerFn({ method: "POST" })
       const userId = await getOptionalVerifiedUserId(request).catch(() => null);
       if (!userId && !ANONYMOUS_EVENTS.has(data.event)) return { ok: false };
       const { consumeVisitorLimit } = await import("./abuse.server");
-      if (!(await consumeVisitorLimit(request, "analytics", 900, 120, 1000))) return { ok: false };
+      if (!(await consumeVisitorLimit(request, "analytics", 900, 120, 1000))) { console.warn("analytics_throttled"); return { ok: false }; }
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error } = await supabaseAdmin
         .from("analytics_events")
         .insert({ user_id: userId, event: data.event, meta: data.meta ?? {} });
+      if (error) console.warn("analytics_insert_failed", error.code);
       return { ok: !error };
-    } catch {
+    } catch (e) {
+      console.warn("analytics_failed", e instanceof Error ? e.message : "unknown");
       return { ok: false };
     }
   });
