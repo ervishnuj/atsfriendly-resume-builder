@@ -40,3 +40,4 @@ Signed-in linked partners use start_partner_resume_generation/finish_partner_res
 
 Partner read authorization tests use an isolated Vitest config without the server-function transform to exercise actual handlers; live RLS checks use rollback-only synthetic fixtures without changing auth users, permissions, or real financial records.
 - User data isolation: rollback-only two-account database test lives in scripts/user-isolation-qa.sql (run through the privileged SQL tool; it ends by raising PASS to force rollback) — keeps proof of owner-only access without keeping test data.
+- Root vitest.config.ts splits the full run into projects: app tests use vite.config.ts; partner-access handler tests run without the server-function transform — so one command runs every test correctly.
