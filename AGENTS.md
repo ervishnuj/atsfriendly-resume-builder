@@ -37,3 +37,5 @@ Partner/reseller module: all money movement (credit consumption, release, purcha
 Business and partner settings direct reads require the protected public.user_roles admin row, including for the existing owner; never widen SELECT to all authenticated users to repair missing admin assignments. Settings-access integration tests are read-only backend checks and must never mutate permissions or settings.
 
 Signed-in linked partners use start_partner_resume_generation/finish_partner_resume_generation inside the existing resume RPC: in-progress rows reserve wallet availability, and successful result caching and credit consumption commit atomically; individual entitlement paths and analysis limits remain separate. Referral codes never authorize wallet spending.
+
+Partner read authorization tests use an isolated Vitest config without the server-function transform to exercise actual handlers; live RLS checks use rollback-only synthetic fixtures without changing auth users, permissions, or real financial records.
