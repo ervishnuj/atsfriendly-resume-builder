@@ -116,6 +116,10 @@ export async function finishAiGeneration(
     _success: success,
     _result: success ? result : null,
   });
+  if (!success) {
+    const { logAppError } = await import("./error-log.server");
+    await logAppError({ category: "AI_GENERATION_FAILED", service: "ai", requestId });
+  }
 }
 
 export async function getAiUsage(userId: string, kind: AiKind): Promise<AiUsageSummary> {

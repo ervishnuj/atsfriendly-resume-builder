@@ -1,4 +1,4 @@
-import { trackEvent } from "./analytics.functions";
+import { trackPublicEvent } from "./analytics.functions";
 import type { AnalyticsEvent, AnalyticsPayload } from "./analytics-schemas";
 export { ANALYTICS_EVENTS } from "./analytics-schemas";
 
@@ -9,5 +9,5 @@ export { ANALYTICS_EVENTS } from "./analytics-schemas";
  */
 export function track(event: AnalyticsEvent, meta?: Record<string, unknown>): void {
   const payload = { event, ...(meta ? { meta } : {}) } as AnalyticsPayload;
-  void trackEvent({ data: payload }).catch(() => undefined);
+  void trackPublicEvent({ data: payload }).catch(() => undefined);
 }
