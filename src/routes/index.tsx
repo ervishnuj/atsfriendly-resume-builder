@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { track } from "@/lib/analytics-events";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -87,6 +88,7 @@ function useSignedIn() {
 
 function Landing() {
   const signedIn = useSignedIn();
+  useEffect(() => { track("HOMEPAGE_VIEWED"); }, []);
   const buildTo = signedIn ? "/builder" : "/login";
   const pricingTo = signedIn ? "/payment" : "/login";
   const fetchPlans = useServerFn(listPlans);

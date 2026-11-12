@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { track } from "@/lib/analytics-events";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -71,6 +72,7 @@ export const Route = createFileRoute("/pricing")({
 
 function PricingPage() {
   const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => { track("PRICING_VIEWED"); }, []);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
     const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
