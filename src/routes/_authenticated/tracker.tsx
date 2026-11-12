@@ -80,6 +80,7 @@ export const Route = createFileRoute("/_authenticated/tracker")({
         content: "Track applications from resume generated to offer, linked to your job-specific resumes.",
       },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary" },
     ],
   }),

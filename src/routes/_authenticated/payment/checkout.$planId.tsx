@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/payment/checkout/$planId")
       { property: "og:title", content: "UPI Checkout — ATS Resume Builder" },
       { property: "og:description", content: "Complete your subscription payment over UPI." },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
