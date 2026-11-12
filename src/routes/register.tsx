@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { track } from "@/lib/analytics-events";
 import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -86,6 +87,7 @@ function RegisterPage() {
         );
         return;
       }
+      track("SIGNUP_COMPLETED");
       if (data.session) {
         navigate({ to: "/builder", replace: true });
         return;

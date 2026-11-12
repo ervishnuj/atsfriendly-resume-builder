@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { track } from "@/lib/analytics-events";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -74,12 +75,13 @@ function AtsCheckerPage() {
   const analyze = async () => {
     if (analyzing || extracting || !ready) return;
     const request = ++analysisRequest.current;
+    track("CHECKER_STARTED");
     setAnalyzing(true);
     await new Promise(resolve => window.setTimeout(resolve, 40));
     if (request !== analysisRequest.current) return;
     try {
       const next = quickAtsCheck(activeText, jobDescription);
-      setGuidance(atsKeywordGuidance(activeText, next)); setResult(next);
+      setGuidance(atsKeywordGuidance(activeText, next)); setResult(next); track("ATS_CHECK_COMPLETED");
     } catch { setAnalysisError("Could not analyze this text. Check both inputs and try again."); }
     finally { if (request === analysisRequest.current) setAnalyzing(false); }
   };
