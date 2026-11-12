@@ -62,11 +62,10 @@ export const adminGetMonitoring = createServerFn({ method: "POST" })
       count(db.from("analytics_events").select("id", { count: "exact", head: true })
         .eq("event", event).gte("created_at", since));
 
-    const [registeredUsers, newUsers, resumeSuccess, resumeFailed, analysisSuccess, analysisFailed,
+    const [{ data: userCounts }, resumeSuccess, resumeFailed, analysisSuccess, analysisFailed,
       uploadFailures, aiErrors, paymentFailures, activePartners, homepageViews, checkerStarted,
       checkerCompleted, signups] = await Promise.all([
-      count(db.from("app_users").select("id", { count: "exact", head: true })),
-      count(db.from("app_users").select("id", { count: "exact", head: true }).gte("created_at", since)),
+      db.rpc("admin_user_counts", { _since: since }),
       ai("RESUME", "SUCCESS"), ai("RESUME", "FAILED"), ai("ANALYSIS", "SUCCESS"), ai("ANALYSIS", "FAILED"),
       ev("RESUME_UPLOAD_FAILED"),
       count(db.from("app_error_log").select("id", { count: "exact", head: true })
@@ -82,6 +81,9 @@ export const adminGetMonitoring = createServerFn({ method: "POST" })
       db.from("payments").select("user_id").eq("status", "SUCCESS").gte("created_at", since).limit(10000),
       db.from("partner_credit_transactions").select("credits").eq("kind", "consumption").gte("created_at", since).limit(10000),
     ]);
+    const uc = (userCounts ?? {}) as { total?: number; new?: number };
+    const registeredUsers = Number(uc.total ?? 0);
+    const newUsers = Number(uc.new ?? 0);
     const paying = new Set((paidRows ?? []).map((r) => r.user_id).filter(Boolean));
     return {
       since,
