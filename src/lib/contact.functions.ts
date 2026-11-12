@@ -8,6 +8,8 @@ export const CONTACT_CATEGORIES = [
   "Billing & Payments",
   "Feedback",
   "Bug Report",
+  "Incorrect ATS Suggestion",
+  "Resume Generation Help",
   "Other",
 ] as const;
 
