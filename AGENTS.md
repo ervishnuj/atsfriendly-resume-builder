@@ -39,3 +39,4 @@ Business and partner settings direct reads require the protected public.user_rol
 Signed-in linked partners use start_partner_resume_generation/finish_partner_resume_generation inside the existing resume RPC: in-progress rows reserve wallet availability, and successful result caching and credit consumption commit atomically; individual entitlement paths and analysis limits remain separate. Referral codes never authorize wallet spending.
 
 Partner read authorization tests use an isolated Vitest config without the server-function transform to exercise actual handlers; live RLS checks use rollback-only synthetic fixtures without changing auth users, permissions, or real financial records.
+- User data isolation: rollback-only two-account database test lives in scripts/user-isolation-qa.sql (run through the privileged SQL tool; it ends by raising PASS to force rollback) — keeps proof of owner-only access without keeping test data.
