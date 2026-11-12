@@ -71,6 +71,13 @@
       "when": 1794506584413,
       "tag": "0009_admin_user_counts",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794506625436,
+      "tag": "0010_service_role_analytics_grants",
+      "breakpoints": true
     }
   ]
 }
