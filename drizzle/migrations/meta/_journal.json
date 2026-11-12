@@ -64,6 +64,13 @@
       "when": 1794506290357,
       "tag": "0008_support_status_and_error_log",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794506584413,
+      "tag": "0009_admin_user_counts",
+      "breakpoints": true
     }
   ]
 }

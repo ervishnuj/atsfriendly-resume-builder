@@ -1230,6 +1230,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_user_counts: { Args: { _since: string }; Returns: Json }
       clear_expired_ai_results: {
         Args: { _retention_days: number }
         Returns: number
