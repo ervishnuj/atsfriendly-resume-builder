@@ -171,9 +171,9 @@
 
 /* --- Landing / marketing brand tokens --- */
 :root {
-  --brand: oklch(0.52 0.21 275);
+  --brand: oklch(0.52 0.2 262);
   --brand-foreground: oklch(0.985 0.005 275);
-  --brand-soft: oklch(0.96 0.03 275);
+  --brand-soft: oklch(0.96 0.03 262);
   --violet: oklch(0.56 0.24 300);
   --emerald: oklch(0.62 0.15 162);
   --emerald-soft: oklch(0.95 0.04 162);
