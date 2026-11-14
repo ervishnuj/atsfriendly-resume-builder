@@ -3,20 +3,8 @@ import { track } from "@/lib/analytics-events";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  FileDown,
-  Gauge,
-  Layers,
-  Lock,
-  QrCode,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  Zap,
-} from "lucide-react";
+import { FileDown, ShieldCheck, Zap } from "lucide-react";
+import { HomeAudiences, HomeCheckerPromo, HomeFeatures, HomeHero, HomeTrust, HomeWorkflow } from "@/components/home/HomeSections";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -24,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { listPlans } from "@/lib/billing.functions";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { HeroResumeCard } from "@/components/landing/HeroResumeCard";
 import { PricingCards } from "@/components/PricingCards";
 
 const TITLE = "AI Resume Builder | ATS-Friendly Resume Generator";
@@ -104,245 +91,24 @@ function Landing() {
     <div id="top" className="min-h-screen bg-background">
       <LandingHeader signedIn={signedIn} />
 
-      {/* HERO */}
-      <section className="bg-hero-glow">
-        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 py-16 lg:grid-cols-2 lg:py-24">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-brand" /> AI-powered resume optimization
-            </span>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
-              Build an <span className="text-gradient-brand">ATS-Friendly Resume</span> in Minutes.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Create a job-ready resume tailored to the job description using AI. Optimize keywords, improve your ATS
-              match and download a professional resume in minutes.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                asChild
-                size="lg"
-                className="bg-gradient-brand text-brand-foreground shadow-glow transition-opacity hover:opacity-90"
-              >
-                <Link to={buildTo}>
-                  Build My Resume <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/ats-checker">Free ATS Resume Checker</Link>
-              </Button>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">Free ATS checker: upload PDF/DOCX or paste text — no sign-up required.</p>
-            <p className="mt-2 text-sm text-muted-foreground">Starting from ₹39</p>
-
-            <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              {[
-                "⚡ Instant PDF Download",
-                "📄 ATS-Friendly Templates",
-                "🔒 Secure Payments",
-                "🇮🇳 UPI Supported",
-                "🤖 AI-Powered Optimization",
-              ].map((b) => (
-                <li key={b}>{b}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="lg:pl-6">
-            <HeroResumeCard />
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <Section
-        id="features"
-        title="Built for Better Job Applications."
-        subtitle="Everything you need to create, optimize and improve your resume."
-      >
-        <div className="grid gap-5 md:grid-cols-2">
-          <FeatureCard
-            icon={Sparkles}
-            title="Smart AI Resume Writer"
-            description="Generate professional, job-specific resume content from your profile and the job description."
-            bullets={[
-              "Job-specific content",
-              "Action-oriented bullet points",
-              "Relevant keywords",
-              "Professional summaries",
-            ]}
-            cta={{ label: "Create My Resume", to: buildTo }}
-          />
-
-          <FeatureCard
-            icon={Gauge}
-            title="ATS Score & Optimization"
-            description="Analyze your resume against a job description and identify keywords, skills and areas that need improvement."
-            cta={{ label: "Check My Resume for Free", to: "/ats-checker" }}
-          >
-            <div className="rounded-xl border border-border bg-muted/40 p-4">
-              <p className="text-sm font-semibold">
-                ATS Match: <span className="text-gradient-brand">92%</span>
-              </p>
-              <p className="mt-2 text-[11px] text-muted-foreground">Illustrative example</p>
-
-              <ul className="mt-2 grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                {["Keywords", "Skills", "Experience", "Formatting"].map((i) => (
-                  <li key={i} className="flex items-center gap-1.5">
-                    <Check className="h-3.5 w-3.5 text-emerald-brand" /> {i}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </FeatureCard>
-
-          <FeatureCard
-            icon={Target}
-            title="Skill Gap Analyzer"
-            description="Compare your profile with the job description to identify skills and keywords you already have, areas that are underrepresented, and skills you may need to develop."
-            cta={{ label: "See My Keyword Gaps", to: buildTo }}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-border bg-emerald-soft/60 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Skills you have
-                </p>
-                <ul className="mt-1.5 space-y-1 text-xs">
-                  {["Java", "Spring Boot", "MySQL"].map((s) => (
-                    <li key={s}>✓ {s}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-xl border border-border bg-muted/40 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Skills you need
-                </p>
-                <ul className="mt-1.5 space-y-1 text-xs">
-                  {["Kafka", "Docker", "AWS"].map((s) => (
-                    <li key={s}>• {s}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </FeatureCard>
-
-          <FeatureCard
-            icon={Layers}
-            title="Resume + Personal Portfolio"
-            description="Your profile is stored securely in your account and turned into a polished, ATS-friendly resume. A shareable online portfolio is not available yet."
-            badge="Portfolio coming soon"
-            cta={{ label: "Build My Resume", to: buildTo }}
-          />
-        </div>
-      </Section>
-
-      {/* ATS CHECKER */}
-      <section id="ats-checker" className="border-y border-border bg-muted/30">
-        <div className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Check Your Resume Before You Apply</h2>
-              <p className="mt-4 max-w-xl text-muted-foreground">
-                Analyze your resume against a specific job description and identify potential keyword, skill and
-                formatting gaps.
-              </p>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Upload a PDF or DOCX resume, or paste your resume text, then add a target job description. The free
-                checker needs no sign-up; files and analysis stay in your browser.
-              </p>
-              <Button asChild size="lg" className="mt-7 bg-gradient-brand text-brand-foreground">
-                <Link to="/ats-checker">Check My ATS Score</Link>
-              </Button>
-            </div>
-            <Card className="p-6 shadow-soft">
-              <div className="flex items-baseline justify-between">
-                <p className="text-sm font-semibold">Match report</p>
-                <p className="text-3xl font-bold text-gradient-brand">92%</p>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Illustrative example — actual results vary by resume and job description.
-                </p>
-              </div>
-              <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-[92%] rounded-full bg-gradient-brand" />
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                {["Keywords matched", "Skills aligned", "Experience relevance", "Clean formatting"].map((i) => (
-                  <span key={i} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-brand" /> {i}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* WORKFLOW */}
-      <Section
-        title="One Job Description. One Tailored Resume."
-        subtitle="From pasted JD to a downloadable, keyword-matched resume."
-      >
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            "Paste Job Description",
-            "Analyze Requirements",
-            "Match Your Profile",
-            "Generate Optimized Resume",
-            "Check ATS Score",
-            "Download PDF",
-          ].map((step, i) => (
-            <li
-              key={step}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-soft transition-transform hover:-translate-y-0.5"
-            >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
-                {i + 1}
-              </span>
-              <span className="min-w-0 text-sm font-medium">{step}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8">
-          <Button asChild size="lg" className="bg-gradient-brand text-brand-foreground">
-            <Link to={buildTo}>Generate My Resume</Link>
-          </Button>
-        </div>
-      </Section>
-
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="border-y border-border bg-muted/30">
-        <div className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-          <h2 className="text-3xl font-bold tracking-tight">Create Your Resume in 3 Simple Steps</h2>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {[
-              {
-                t: "Create Your Profile",
-                d: "Add your experience, education, skills and professional links once.",
-              },
-              {
-                t: "Add the Job Description",
-                d: "Paste the job description for the role you want to apply for.",
-              },
-              {
-                t: "Generate & Optimize",
-                d: "Let AI tailor your resume, analyze the ATS match and identify missing skills.",
-              },
-            ].map((s, i) => (
-              <Card key={s.t} className="p-6 shadow-soft">
-                <span className="text-sm font-bold text-brand">Step {i + 1}</span>
-                <h3 className="mt-2 text-lg font-semibold">{s.t}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.d}</p>
-              </Card>
-            ))}
-          </div>
-          <Button asChild size="lg" className="mt-9 bg-gradient-brand text-brand-foreground">
-            <Link to={buildTo}>Start Building</Link>
-          </Button>
-        </div>
-      </section>
+      <HomeHero buildTo={buildTo} />
+      <HomeWorkflow />
+      <HomeFeatures />
+      <HomeAudiences />
+      <HomeCheckerPromo />
 
       {/* PRICING */}
-      <Section id="pricing" title="Simple, Transparent Pricing" subtitle="Choose the plan that works best for you.">
+      <Section id="pricing" title="Simple, Transparent Pricing" subtitle="One-time UPI payments. Nothing renews automatically.">
+        <div className="mb-8 grid gap-3 text-sm sm:grid-cols-2">
+          <Card className="p-5 shadow-soft">
+            <p className="font-semibold">Free — no account</p>
+            <p className="mt-1 text-muted-foreground">Public ATS checker with PDF/DOCX upload or pasted text.</p>
+          </Card>
+          <Card className="p-5 shadow-soft">
+            <p className="font-semibold">Free — with an account</p>
+            <p className="mt-1 text-muted-foreground">One free resume PDF and one account-based ATS analysis. Paid plans add more.</p>
+          </Card>
+        </div>
         <PricingCards
           plans={plans}
           renderCta={(plan) => (
@@ -355,86 +121,13 @@ function Landing() {
             </Button>
           )}
         />
+        <p className="mt-4 text-sm text-muted-foreground">
+          Payments are made by UPI and activated after verification.{" "}
+          <Link to="/pricing" className="text-brand hover:underline">See full plan details</Link>
+        </p>
       </Section>
 
-      {/* UPI */}
-      <section className="border-y border-border bg-muted/30">
-        <div className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Pay Easily with UPI</h2>
-              <p className="mt-4 max-w-lg text-muted-foreground">
-                Secure INR payments for your Resume Builder subscription. Pay to our verified UPI ID or scan the QR code
-                from any UPI app, then submit your UTR reference — access is activated as soon as the payment is
-                verified.
-              </p>
-              <ul className="mt-6 flex flex-wrap gap-2 text-sm">
-                {["UPI", "Google Pay", "PhonePe", "Paytm"].map((m) => (
-                  <li key={m} className="rounded-lg border border-border bg-card px-3 py-1.5 font-medium">
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Card className="flex items-center gap-5 p-6 shadow-soft">
-              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
-                <QrCode className="h-8 w-8" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold">Scan & Pay</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  The active UPI QR code and instructions are shown on the checkout page. Payments stay pending until
-                  manually verified.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Lock className="h-3.5 w-3.5" /> No card details stored
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Verified activation
-                  </span>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* COMPARISON */}
-      <Section title="Why Choose Our AI Resume Builder?" subtitle="A quick look at how a JD-first workflow compares.">
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="p-4 font-semibold">Feature</th>
-                <th className="p-4 font-medium text-muted-foreground">Traditional Resume Tools</th>
-                <th className="p-4 font-medium text-muted-foreground">Design Tools</th>
-                <th className="p-4 font-semibold text-brand">Our AI Resume Builder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["ATS-Friendly Formatting", "Depends on template", "Depends on design"],
-                ["JD-Based Resume", "Limited", "Limited"],
-                ["ATS Analysis", "Depends on plan", "Limited"],
-                ["Skill Gap Analysis", "Limited", "No"],
-                ["AI Content Generation", "Depends on plan", "Limited"],
-                ["UPI Support", "Depends on provider", "Depends on provider"],
-                ["PDF Export", "✓", "✓"],
-              ].map(([f, a, b]) => (
-                <tr key={f} className="border-b border-border/70 last:border-0">
-                  <td className="p-4 font-medium">{f}</td>
-                  <td className="p-4 text-muted-foreground">{a}</td>
-                  <td className="p-4 text-muted-foreground">{b}</td>
-                  <td className="p-4">
-                    <Check className="h-4 w-4 text-emerald-brand" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+      <HomeTrust />
 
       {/* FAQ */}
       <section id="faq" className="border-y border-border bg-muted/30">
@@ -509,7 +202,7 @@ function Landing() {
               variant="outline"
               className="border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground"
             >
-              <Link to="/ats-checker">Check ATS Score</Link>
+              <Link to="/ats-checker">Check My Resume Free</Link>
             </Button>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-brand-foreground/80">
@@ -548,54 +241,5 @@ function Section({
       {subtitle && <p className="mt-3 max-w-2xl text-muted-foreground">{subtitle}</p>}
       <div className="mt-10">{children}</div>
     </section>
-  );
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  bullets,
-  badge,
-  cta,
-  children,
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  bullets?: string[];
-  badge?: string;
-  cta: { label: string; to: string };
-  children?: React.ReactNode;
-}) {
-  return (
-    <Card className="flex flex-col p-6 shadow-soft transition-transform hover:-translate-y-1">
-      <div className="flex items-start justify-between gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
-          <Icon className="h-5 w-5" />
-        </span>
-        {badge && (
-          <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-            {badge}
-          </span>
-        )}
-      </div>
-      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      {bullets && (
-        <ul className="mt-4 grid grid-cols-2 gap-1.5 text-sm text-muted-foreground">
-          {bullets.map((b) => (
-            <li key={b} className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 shrink-0 text-emerald-brand" /> {b}
-            </li>
-          ))}
-        </ul>
-      )}
-      {children && <div className="mt-4">{children}</div>}
-      <div className="mt-6 flex-1" />
-      <Button asChild variant="outline" className="w-full sm:w-auto sm:self-start">
-        <Link to={cta.to}>{cta.label}</Link>
-      </Button>
-    </Card>
   );
 }
