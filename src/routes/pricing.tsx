@@ -97,6 +97,19 @@ function PricingPage() {
           Pay only for what you need. No auto-renewals, no hidden charges — secure UPI payments in Indian Rupees.
         </p>
 
+        <div className="mt-10 grid gap-3 text-sm sm:grid-cols-3">
+          {[
+            ["Free, no account", "Public ATS checker: upload a PDF/DOCX or paste text and compare it with a job description."],
+            ["Free, with an account", "1 free resume PDF and 1 account-based ATS analysis."],
+            ["Paid plans", "One-time UPI payment for more AI resumes, analyses and downloads for a fixed validity period."],
+          ].map(([t, d]) => (
+            <div key={t} className="rounded-xl border border-border bg-card p-4 shadow-soft">
+              <p className="font-semibold">{t}</p>
+              <p className="mt-1 text-muted-foreground">{d}</p>
+            </div>
+          ))}
+        </div>
+
         <h2 className="mt-12 text-xl font-semibold tracking-tight">Choose the plan that fits your job search</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Every plan includes AI-optimized resumes tailored to the job description you paste in.
