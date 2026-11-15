@@ -1,4 +1,13 @@
-# Partner / Reseller Module — Roadmap
+# Project Roadmap
+
+## Premium UI/UX redesign
+- [ ] Approve the staged visual redesign plan.
+- [ ] Standardise shared colours, typography, controls, navigation and public pages.
+- [ ] Improve checker and builder presentation without changing scoring, generation or export rules.
+- [ ] Present existing account data in a protected dashboard; restyle tracker, account, partner and admin pages.
+- [ ] Verify desktop and 360px, 390px and 430px layouts, safe interactions and regression tests; report unverified flows without publishing.
+
+## Partner / Reseller Module
 
 - [x] Verified seven partner financial read paths with 28 live RLS checks (two active identities, suspended identity, unrelated authenticated identity), plus four direct usage RPC denials; all synthetic database fixtures rolled back. Twelve actual-handler authorization tests and fifteen credit/math regressions passed; no production logic or permissions changed.
 - [ ] Real signed-in partner browser verification remains blocked on user-selected active and suspended non-admin accounts; database role simulation and mocked handler tests do not constitute real-account end-to-end verification.
