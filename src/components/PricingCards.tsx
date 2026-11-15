@@ -27,13 +27,13 @@ export function PricingCards({
       {plans.map((plan) => (
         <Card
           key={plan.id}
-          className={`relative flex flex-col rounded-2xl p-6 shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg ${
+          className={`relative flex flex-col rounded-lg p-6 shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg ${
             plan.highlight ? "border-brand ring-2 ring-brand md:-mt-3 md:pb-9" : ""
           }`}
         >
           {plan.highlight && (
             <span className="absolute -top-3 left-6 rounded-full bg-gradient-brand px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-foreground">
-              Most Popular
+              Featured plan
             </span>
           )}
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{plan.planName}</h2>

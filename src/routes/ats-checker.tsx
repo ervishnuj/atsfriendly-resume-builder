@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { atsKeywordGuidance } from "@/lib/ats-keyword-guidance";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Loader2, Upload, ClipboardPaste } from "lucide-react";
+import { PageHeading } from "@/components/ui/page-patterns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TITLE = "Free ATS Resume Checker & Score Scanner | Resume Rocket";
@@ -94,36 +95,23 @@ function AtsCheckerPage() {
   const ready = activeText.trim().length > 80 && jobDescription.trim().length > 80;
   const scoreColor = useMemo(() => {
     if (!result) return "";
-    if (result.atsMatchScore >= 75) return "text-emerald-600";
-    if (result.atsMatchScore >= 50) return "text-amber-600";
-    return "text-rose-600";
+    if (result.atsMatchScore >= 75) return "text-success-foreground";
+    if (result.atsMatchScore >= 50) return "text-warning-foreground";
+    return "text-destructive";
   }, [result]);
 
   return (
     <div className="min-h-screen bg-background">
       <LandingHeader signedIn={signedIn} />
 
-      <main className="mx-auto max-w-6xl px-5 py-14 lg:py-18">
-        <div className="max-w-3xl">
-          <Badge variant="secondary" className="mb-3 gap-1">
-            <ShieldCheck className="h-3.5 w-3.5" /> Free · no sign-up · nothing leaves your browser
-          </Badge>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Free ATS Resume Checker
-          </h1>
-          <p className="mt-3 text-muted-foreground">
-            Upload a PDF or DOCX resume, or paste its text, then add a target job description. Files and analysis stay in your browser; nothing is uploaded or stored.
-          </p>
-          <p className="mt-3 text-sm">
-            <Link to="/how-it-works" hash="ats-score" className="font-medium hover:underline">
-              Not sure what to paste? View the ATS Checker Guide →
-            </Link>
-          </p>
-        </div>
+      <main className="mx-auto max-w-6xl px-5 py-10 lg:py-12">
+        <PageHeading eyebrow="Free · no signup required" title="Free ATS Resume Checker" description="Compare your resume with the job you want. Get separate readiness and job-match estimates, with evidence-aware keyword suggestions." />
+        <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-foreground" />Your resume and job description stay in your browser. No file upload or storage.</p>
 
-        <h2 className="mt-12 text-xl font-semibold tracking-tight">Check Your Resume Against a Job Description</h2>
+        <h2 className="mt-8 text-lg font-semibold">Check Your Resume Against a Job Description</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="min-w-0 border-t border-border py-4">
+          <div className="min-w-0 rounded-lg border border-border bg-card p-5 shadow-soft">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-semibold"><span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-xs text-primary">1</span>Your resume</h3>
             <Tabs value={mode} onValueChange={value => { invalidate(); setMode(value); }}>
               <TabsList className="mb-4 grid h-auto w-full grid-cols-2">
                 <TabsTrigger value="upload" className="min-h-11 gap-1 whitespace-normal"><Upload className="h-4 w-4 shrink-0" />Upload Resume</TabsTrigger>
@@ -139,14 +127,15 @@ function AtsCheckerPage() {
               <Textarea id="ats-resume" value={resumeText} onChange={e => { invalidate(); setResumeText(e.target.value); }} placeholder="Paste the full text of your resume here…" className="mt-2 min-h-[280px] text-sm" />
             </div>
           </div>
-          <Card className="p-4">
+          <Card className="p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-semibold"><span className="grid h-7 w-7 place-items-center rounded-md bg-ai-soft text-xs text-ai">2</span>Your target role</h3>
             <label htmlFor="ats-jd" className="text-sm font-medium">Target job description</label>
             <Textarea
               id="ats-jd"
               value={jobDescription}
               onChange={(e) => { invalidate(); setJobDescription(e.target.value); }}
               placeholder="Paste the job description you are applying for…"
-              className="mt-2 min-h-[280px] font-mono text-xs"
+              className="mt-2 min-h-[320px] text-sm"
             />
           </Card>
         </div>
@@ -179,11 +168,11 @@ function AtsCheckerPage() {
                   <Card className="flex flex-col items-center justify-center p-6 text-center">
                     <div className={`text-5xl font-bold ${scoreColor}`}>{result.atsMatchScore}</div>
                     <div className="mt-1 text-sm font-medium">{result.band}</div>
-                    <p className="mt-1 text-xs text-muted-foreground">Job match score /100</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Job match estimate /100</p>
                   </Card>
                   <Card className="flex flex-col items-center justify-center p-6 text-center">
                     <div className="text-3xl font-bold">{result.atsScore}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">ATS readiness score /100</div>
+                    <div className="mt-1 text-xs text-muted-foreground">ATS readiness estimate /100</div>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {result.matchedKeywords.length} of {result.keywordsChecked} job keywords found ·{" "}
                       {result.wordCount} words
@@ -191,11 +180,11 @@ function AtsCheckerPage() {
                   </Card>
                 </div>
 
-                <Card className="space-y-4 p-5">
+                <div className="min-w-0 space-y-5">
                   <AtsBreakdownPanel breakdown={result.breakdown} matchBreakdown={result.matchBreakdown} />
                   <div>
                     <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Matched keywords ({result.matchedKeywords.length})
+                      <CheckCircle2 className="h-4 w-4 text-success-foreground" /> Matched keywords ({result.matchedKeywords.length})
                     </h3>
                     <div className="flex flex-wrap gap-1">
                       {result.matchedKeywords.length ? (
@@ -204,12 +193,12 @@ function AtsCheckerPage() {
                           return (
                             <Tooltip key={k}>
                               <TooltipTrigger asChild>
-                                <Badge variant="secondary" className="cursor-help bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                <Badge variant="secondary" className="cursor-help bg-success-soft text-success-foreground">
                                   {k}
                                 </Badge>
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Found in resume:</p>
+                              <TooltipContent className="max-w-xs border-border bg-card text-foreground">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-success-foreground">Found in resume:</p>
                                 <p className="mt-1 text-xs italic leading-tight">{snippet || "Generic match"}</p>
                               </TooltipContent>
                             </Tooltip>
@@ -222,7 +211,7 @@ function AtsCheckerPage() {
                   </div>
                   <div>
                     <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-                      <XCircle className="h-4 w-4 text-rose-600" /> Missing keywords ({result.missingKeywords.length})
+                      <XCircle className="h-4 w-4 text-destructive" /> Missing keywords ({result.missingKeywords.length})
                     </h3>
                     <div className="flex flex-wrap gap-1">
                       {result.missingKeywords.length ? (
@@ -232,8 +221,8 @@ function AtsCheckerPage() {
                             variant="secondary"
                             className={
                               result.missingRequiredKeywords.includes(k)
-                                ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200"
-                                : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-warning-soft text-warning-foreground"
                             }
                           >
                             {k}
@@ -270,17 +259,17 @@ function AtsCheckerPage() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">Job match weights: required/core skills 40 points, technical coverage 25, responsibilities 15, experience 10, education 5, title 5. Within technical coverage, explicit mandatory requirements carry weight 1, other relevant skills 0.75, and preferred skills 0.35. Generic phrases are excluded. Evidence of a keyword is not proof of proficiency.</p>
-                </Card>
+                </div>
               </div>
 
-              <Card className="mt-4 flex flex-col items-start gap-3 bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-6 flex flex-col items-start gap-4 border-y border-border bg-ai-soft/40 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
                   Tailor a finished resume using your real skills and supplied evidence, without adding unsupported qualifications.
                 </p>
-                <Button asChild className="bg-gradient-brand text-brand-foreground">
+                <Button asChild variant="ai">
                   <Link to={signedIn ? "/builder" : "/register"}>Build my tailored resume</Link>
                 </Button>
-              </Card>
+              </div>
             </section>
           </TooltipProvider>
         )}

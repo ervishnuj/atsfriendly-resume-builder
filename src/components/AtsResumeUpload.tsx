@@ -16,6 +16,7 @@ export function AtsResumeUpload({ onText, onBusy }: Props) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => () => { request.current += 1; }, []);
 
@@ -49,8 +50,10 @@ export function AtsResumeUpload({ onText, onBusy }: Props) {
   return (
     <div className="space-y-3">
       <input ref={input} aria-label="Upload resume file" type="file" className="hidden" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(event) => { void process(event.target.files?.[0]); }} />
-      <div className="flex min-h-32 flex-col items-center justify-center gap-3 border border-dashed border-border p-4">
-        <Upload className="h-6 w-6 text-muted-foreground" />
+      <div onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); if (!busy) void process(e.dataTransfer.files[0]); }} className={`flex min-h-64 flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-5 text-center transition-colors ${dragging ? "border-primary bg-accent" : "border-border bg-accent/30"}`}>
+        <span className="grid h-14 w-14 place-items-center rounded-lg bg-card text-primary shadow-soft"><FileText className="h-7 w-7" /></span>
+        <p className="font-semibold">Drop your resume here</p>
+
         <p className="text-xs text-muted-foreground">PDF or DOCX · up to {MAX_RESUME_BYTES / 1024 / 1024} MB</p>
         <Button variant="outline" disabled={busy} onClick={() => input.current?.click()} className="gap-2">
           <Upload className="h-4 w-4" />{fileName ? "Replace file" : "Choose resume"}
@@ -62,7 +65,7 @@ export function AtsResumeUpload({ onText, onBusy }: Props) {
         <Button variant="ghost" size="icon" aria-label="Remove uploaded resume" title="Remove uploaded resume" onClick={remove}><X className="h-4 w-4" /></Button>
       </div>}
       {busy && <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Extracting resume text…</p>}
-      {loaded && <p role="status" className="text-sm text-primary">Resume text extracted. Ready for analysis.</p>}
+      {loaded && <p role="status" className="text-sm text-success-foreground">✓ Resume text extracted. Ready for analysis.</p>}
       {error && <p role="alert" className="text-sm text-destructive">{error} Replace the file or choose Paste Resume Text.</p>}
     </div>
   );
