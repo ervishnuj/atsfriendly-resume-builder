@@ -187,14 +187,14 @@ function Landing() {
 
       {/* FINAL CTA */}
       <section className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-brand px-8 py-14 text-center text-brand-foreground shadow-glow">
+        <div className="relative overflow-hidden rounded-lg bg-gradient-brand px-8 py-14 text-center text-brand-foreground shadow-glow">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Your Next Job Application Starts Here.</h2>
           <p className="mx-auto mt-4 max-w-xl text-brand-foreground/85">
             Build a professional, ATS-friendly resume tailored to the role you're targeting.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" variant="secondary">
-              <Link to={buildTo}>Build My Resume</Link>
+              <Link to={buildTo}>Create My Resume</Link>
             </Button>
             <Button
               asChild

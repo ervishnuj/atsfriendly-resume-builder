@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { clearBrowserUserData } from "@/lib/profile-storage";
 
 const NAV = [
-  { label: "Home", href: "/#top" },
+  { label: "Home", href: "/" },
+  { label: "Free ATS Checker", href: "/ats-checker" },
+  { label: "Resume Builder", href: "/builder" },
   { label: "Features", href: "/#features" },
-  { label: "How It Works", href: "/how-it-works" },
-  { label: "ATS Checker", href: "/ats-checker" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Guides", href: "/guides" },
-  { label: "Blog", href: "/blog" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "FAQ", href: "/#faq" },
 ];
 
 export function LandingHeader({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const pathname = useLocation({ select: location => location.pathname });
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -29,75 +28,48 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3 xl:flex xl:justify-between">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-card/95 backdrop-blur-xl">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 xl:flex xl:justify-between">
         <Link to="/" aria-label="Resume Rocket home" className="flex min-w-0 items-center">
           <BrandLogo className="h-8 sm:h-10" />
         </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-1 xl:flex">
           {NAV.map((n) => (
             <a
               key={n.label}
               href={n.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-current={pathname === n.href ? "page" : undefined}
+              className={`rounded-md px-2 py-2 text-sm font-medium transition-colors ${pathname === n.href ? "bg-accent text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
             >
               {n.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 xl:flex">
-          {signedIn ? (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/builder">Dashboard</Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/subscription">Subscription</Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/tracker">Tracker</Link>
-              </Button>
-              <Button size="sm" variant="outline" onClick={signOut}>
-                Logout
-              </Button>
-              <Button asChild size="sm" className="bg-gradient-brand text-brand-foreground hover:opacity-90">
-                <Link to="/builder">Build My Resume</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button asChild size="sm" className="bg-gradient-brand text-brand-foreground hover:opacity-90">
-                <Link to="/login">Build My Resume</Link>
-              </Button>
-            </>
-          )}
+        <div className="col-start-2 row-start-1 flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm" className="hidden xl:inline-flex">
+            <Link to={signedIn ? "/dashboard" : "/login"}>{signedIn ? "Dashboard" : "Login"}</Link>
+          </Button>
+          <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Link to="/ats-checker">Check My Resume Free</Link>
+          </Button>
+          <Button type="button" variant="outline" size="icon" onClick={() => setOpen(v => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" className="xl:hidden">
+            {open ? <X /> : <Menu />}
+          </Button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border xl:hidden"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
       </div>
 
       {open && (
         <div className="border-t border-border bg-background xl:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col px-5 py-3">
+          <nav id="mobile-navigation" aria-label="Mobile navigation" className="mx-auto flex max-w-7xl flex-col px-5 py-3">
             {NAV.map((n) => (
               <a
                 key={n.label}
                 href={n.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-current={pathname === n.href ? "page" : undefined}
+                className={`rounded-md px-2 py-3 text-sm font-medium ${pathname === n.href ? "bg-accent text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 {n.label}
               </a>
@@ -106,7 +78,7 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
               {signedIn ? (
                 <>
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                    <Link to="/builder">Dashboard</Link>
+                    <Link to="/dashboard">Dashboard</Link>
                   </Button>
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
                     <Link to="/subscription">Subscription</Link>
@@ -117,8 +89,8 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
                   <Button variant="ghost" onClick={signOut}>
                     Logout
                   </Button>
-                  <Button asChild className="bg-gradient-brand text-brand-foreground" onClick={() => setOpen(false)}>
-                    <Link to="/builder">Build My Resume</Link>
+                  <Button asChild className="bg-primary text-primary-foreground" onClick={() => setOpen(false)}>
+                    <Link to="/builder">Create My Resume</Link>
                   </Button>
                 </>
               ) : (
@@ -126,8 +98,8 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
                     <Link to="/login">Login</Link>
                   </Button>
-                  <Button asChild className="bg-gradient-brand text-brand-foreground" onClick={() => setOpen(false)}>
-                    <Link to="/login">Build My Resume</Link>
+                  <Button asChild className="bg-primary text-primary-foreground" onClick={() => setOpen(false)}>
+                    <Link to="/login">Create My Resume</Link>
                   </Button>
                 </>
               )}

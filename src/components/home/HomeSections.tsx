@@ -6,29 +6,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-const primaryBtn = "bg-gradient-brand text-brand-foreground shadow-glow hover:opacity-90";
+const primaryBtn = "bg-primary text-primary-foreground shadow-soft hover:bg-primary/90";
 
 export function HomeHero({ buildTo }: { buildTo: string }) {
   return (
-    <section className="bg-hero-glow">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto grid max-w-6xl items-center gap-9 px-5 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
         <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-brand" /> Free ATS checker + job-specific resumes
           </span>
           <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
-            Your Resume Deserves More Than an <span className="text-gradient-brand">ATS Rejection.</span>
+            Build a Resume That Matches Your <span className="text-primary">Dream Job.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-            Check your resume against your target job description, discover relevant missing keywords and create a
-            job-specific resume with TheResumeRocket.
+            Check your resume against job descriptions, discover relevant missing keywords and create a job-specific resume with TheResumeRocket.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className={primaryBtn}>
               <Link to="/ats-checker">Check My Resume Free <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to={buildTo}>Build My Resume</Link>
+              <Link to={buildTo}>Create My Resume</Link>
             </Button>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">Start with our free ATS checker. No signup required.</p>
@@ -41,29 +40,29 @@ export function HomeHero({ buildTo }: { buildTo: string }) {
 
 function SamplePreview() {
   return (
-    <Card className="min-w-0 p-5 shadow-glow sm:p-6" aria-label="Sample ATS report with fictional data">
+    <Card className="min-w-0 p-5 shadow-glow sm:p-6" aria-label="TheResumeRocket · Sample report with fictional data">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold">Sample ATS report</p>
-        <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-medium text-brand">Fictional sample data</span>
+        <p className="text-sm font-semibold">TheResumeRocket · Sample report</p>
+        <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-medium text-brand">Demonstration data</span>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <Score label="ATS readiness" value={78} />
-        <Score label="Job description match" value={64} />
+        <Score label="ATS readiness estimate" value={78} />
+        <Score label="Job match estimate" value={64} />
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <KeywordList title="Matched keywords" items={["Java", "Spring Boot", "REST APIs", "MySQL"]} ok />
         <KeywordList title="Relevant missing" items={["Docker", "Microservices", "JUnit"]} />
       </div>
-      <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3 text-xs">
+      <div className="mt-4 rounded-lg border border-border bg-muted/40 p-3 text-xs">
         <p className="font-semibold">Suggestion</p>
         <p className="mt-1 text-muted-foreground">Mention JUnit only if you have actually written tests with it — e.g. in a project.</p>
       </div>
       <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-        <div className="rounded-xl border border-border p-3">
+        <div className="rounded-lg border border-border p-3">
           <p className="font-semibold text-muted-foreground">Before</p>
           <p className="mt-1">Worked on backend code.</p>
         </div>
-        <div className="rounded-xl border border-border bg-brand-soft/60 p-3">
+        <div className="rounded-lg border border-border bg-brand-soft/60 p-3">
           <p className="font-semibold text-brand">After</p>
           <p className="mt-1">Built REST APIs in Java and Spring Boot for an order-tracking module.</p>
         </div>
@@ -75,7 +74,7 @@ function SamplePreview() {
 
 function Score({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-border p-3">
+    <div className="rounded-lg border border-border p-3">
       <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-bold text-brand">{value}<span className="text-sm">/100</span></p>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -88,7 +87,7 @@ function Score({ label, value }: { label: string; value: number }) {
 function KeywordList({ title, items, ok }: { title: string; items: string[]; ok?: boolean }) {
   const Icon = ok ? CheckCircle2 : XCircle;
   return (
-    <div className="rounded-xl border border-border p-3">
+    <div className="rounded-lg border border-border p-3">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
       <ul className="mt-2 flex flex-wrap gap-1.5">
         {items.map((k) => (
@@ -125,7 +124,7 @@ export function HomeWorkflow() {
             <li key={s.t}>
               <Card className="h-full p-6 shadow-soft">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-soft text-brand"><s.icon className="h-5 w-5" /></span>
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-soft text-brand"><s.icon className="h-5 w-5" /></span>
                   <span className="text-sm font-bold text-brand">Step {i + 1}</span>
                 </div>
                 <h3 className="mt-4 text-lg font-semibold">{s.t}</h3>
@@ -156,11 +155,11 @@ export function HomeFeatures() {
   ];
   return (
     <section id="features" className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-      <Heading title="Everything You Need for Job-Specific Applications" subtitle="All of these features work today." />
+      <Heading title="Everything You Need for Job-Specific Applications"  />
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((f) => (
           <Card key={f.t} className="p-5 shadow-soft">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-soft text-brand"><f.icon className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-soft text-brand"><f.icon className="h-5 w-5" /></span>
             <h3 className="mt-4 font-semibold">{f.t}</h3>
             <p className="mt-1.5 text-sm text-muted-foreground">{f.d}</p>
           </Card>
@@ -185,7 +184,7 @@ export function HomeAudiences() {
           {groups.map((g) => (
             <Card key={g.t} className="p-6 shadow-soft">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-soft text-brand"><g.icon className="h-5 w-5" /></span>
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-soft text-brand"><g.icon className="h-5 w-5" /></span>
                 <h3 className="text-lg font-semibold">{g.t}</h3>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -204,7 +203,7 @@ export function HomeAudiences() {
 export function HomeCheckerPromo() {
   return (
     <section id="ats-checker" className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
-      <div className="rounded-3xl border border-border bg-card p-8 shadow-soft sm:p-12">
+      <div className="border-y border-border bg-accent/50 px-5 py-10 sm:px-8">
         <h2 className="text-3xl font-bold tracking-tight">Not Sure Whether Your Resume Is ATS-Friendly?</h2>
         <p className="mt-4 max-w-2xl text-muted-foreground">
           Upload your resume or paste your resume text, add a target job description and see areas where your resume can improve.

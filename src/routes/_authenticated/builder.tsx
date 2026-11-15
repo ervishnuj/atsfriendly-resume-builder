@@ -676,7 +676,7 @@ function Index() {
               </Badge>
             )}
             <Button asChild variant="ghost" size="sm">
-              <Link to="/">Home</Link>
+              <Link to="/dashboard">Dashboard</Link>
             </Button>
             <Button onClick={handleGenerate} disabled={loading || dailyLimitReached} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -736,18 +736,18 @@ function Index() {
       </header>
 
       {loading && <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-5 sm:px-6 print:hidden"><div className="flex items-center gap-3 border-b border-border pb-4 text-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Analyzing the role and your profile, optimizing verified content, then validating and scoring the finished resume…</span></div></div>}
-      <nav aria-label="Resume steps" className="sticky top-0 z-30 border-b border-border bg-background/95 px-3 py-2 backdrop-blur lg:hidden print:hidden">
+      <nav aria-label="Resume steps" className="sticky top-0 z-30 border-b border-border bg-card/95 px-3 py-3 backdrop-blur print:hidden">
         <ol className="grid grid-cols-3 gap-1">
           {([["job", "1. Job"], ["profile", "2. Profile"], ["resume", "3. Resume"]] as const).map(([id, label]) => (
             <li key={id}>
-              <button
+              <Button variant={mobileStep === id ? "default" : "ghost"}
                 type="button"
                 onClick={() => { setMobileStep(id); window.scrollTo({ top: 0 }); }}
                 aria-current={mobileStep === id ? "step" : undefined}
-                className={`min-h-11 w-full rounded-lg px-2 text-sm font-medium transition-colors ${mobileStep === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                className="min-h-11 w-full px-2 text-sm font-medium"
               >
                 {label}
-              </button>
+              </Button>
             </li>
           ))}
         </ol>
@@ -779,7 +779,7 @@ function Index() {
               <h2 id="jd-heading" className="text-sm font-semibold">
                 Target Job Description
               </h2>
-              <span className="text-xs text-muted-foreground">Primary input</span>
+              <span className="text-xs text-ai">Job-specific optimization</span>
             </div>
             <p className="mb-2 text-xs">
               <Link to="/how-it-works" hash="build" className="text-muted-foreground hover:text-foreground hover:underline">

@@ -58,6 +58,7 @@ import {
 import { listResumeVersions, type ResumeVersion } from "@/lib/versions.functions";
 import { track } from "@/lib/analytics-events";
 import { formatDate } from "@/lib/billing-shared";
+import { PageHeading, StatusBadge } from "@/components/ui/page-patterns";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import {
   ApplicationDetailsDialog,
@@ -267,6 +268,7 @@ function TrackerPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
+        <PageHeading eyebrow="Your job search" title="Every application. One place." description="Follow your applications from a tailored resume to the next interview." />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           <Stat label="Total" value={stats.total} />
           <Stat label="Resumes generated" value={stats.resumesGenerated} />
@@ -433,9 +435,9 @@ function TrackerPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="text-sm font-semibold">{app.jobTitle}</h2>
-                          <Badge variant={isSubmitted(app.status) ? "default" : "secondary"}>
+                          <StatusBadge status={app.status}>
                             {APPLICATION_STATUS_LABELS[app.status]}
-                          </Badge>
+                          </StatusBadge>
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {app.company || "Company not set"} · {platformLabel(app)} · {formatDate(trackedDate(app))}

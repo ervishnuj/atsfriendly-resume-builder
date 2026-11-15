@@ -15,7 +15,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AtsCheckerRouteImport } from './routes/ats-checker'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -31,6 +30,7 @@ import { Route as ResumeTipsRouteImport } from './routes/resume-tips'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedBuilderRouteImport } from './routes/_authenticated/builder'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedTrackerRouteImport } from './routes/_authenticated/tracker'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -78,11 +78,6 @@ const AuthRoute = AuthRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -158,6 +153,11 @@ const TermsRoute = TermsRouteImport.update({
 const AuthenticatedBuilderRoute = AuthenticatedBuilderRouteImport.update({
   id: '/builder',
   path: '/builder',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSubscriptionRoute =
@@ -276,7 +276,6 @@ export interface FileRoutesByFullPath {
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -292,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/builder': typeof AuthenticatedBuilderRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tracker': typeof AuthenticatedTrackerRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -318,7 +318,6 @@ export interface FileRoutesByTo {
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -334,6 +333,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/builder': typeof AuthenticatedBuilderRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tracker': typeof AuthenticatedTrackerRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -362,7 +362,6 @@ export interface FileRoutesById {
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -378,6 +377,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/_authenticated/builder': typeof AuthenticatedBuilderRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/tracker': typeof AuthenticatedTrackerRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -406,7 +406,6 @@ export interface FileRouteTypes {
     | '/ats-checker'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/faq'
     | '/forgot-password'
     | '/how-it-works'
@@ -422,6 +421,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/builder'
+    | '/dashboard'
     | '/subscription'
     | '/tracker'
     | '/blog/$slug'
@@ -448,7 +448,6 @@ export interface FileRouteTypes {
     | '/ats-checker'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/faq'
     | '/forgot-password'
     | '/how-it-works'
@@ -464,6 +463,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/builder'
+    | '/dashboard'
     | '/subscription'
     | '/tracker'
     | '/blog/$slug'
@@ -491,7 +491,6 @@ export interface FileRouteTypes {
     | '/ats-checker'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/faq'
     | '/forgot-password'
     | '/how-it-works'
@@ -507,6 +506,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/_authenticated/builder'
+    | '/_authenticated/dashboard'
     | '/_authenticated/subscription'
     | '/_authenticated/tracker'
     | '/blog/$slug'
@@ -535,7 +535,6 @@ export interface RootRouteChildren {
   AtsCheckerRoute: typeof AtsCheckerRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
   FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -598,13 +597,6 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -710,6 +702,13 @@ declare module '@tanstack/react-router' {
       path: '/builder'
       fullPath: '/builder'
       preLoaderRoute: typeof AuthenticatedBuilderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/subscription': {
@@ -850,6 +849,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuilderRoute: typeof AuthenticatedBuilderRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTrackerRoute: typeof AuthenticatedTrackerRoute
   AuthenticatedAdminMonitoringRoute: typeof AuthenticatedAdminMonitoringRoute
@@ -869,6 +869,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuilderRoute: AuthenticatedBuilderRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTrackerRoute: AuthenticatedTrackerRoute,
   AuthenticatedAdminMonitoringRoute: AuthenticatedAdminMonitoringRoute,
@@ -898,7 +899,6 @@ const rootRouteChildren: RootRouteChildren = {
   AtsCheckerRoute: AtsCheckerRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
   FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,

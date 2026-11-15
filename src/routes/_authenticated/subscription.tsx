@@ -38,6 +38,7 @@ import { clearBrowserUserData } from "@/lib/profile-storage";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PageHeading } from "@/components/ui/page-patterns";
 import { getMyProfile } from "@/lib/profile-sync.functions";
 import { listResumeVersions } from "@/lib/versions.functions";
 import { listJobApplications } from "@/lib/applications.functions";
@@ -62,11 +63,11 @@ export const Route = createFileRoute("/_authenticated/subscription")({
 });
 
 const statusColor: Record<string, string> = {
-  SUCCESS: "bg-emerald-100 text-emerald-800",
-  PENDING: "bg-amber-100 text-amber-900",
+  SUCCESS: "bg-success-soft text-success-foreground",
+  PENDING: "bg-warning-soft text-warning-foreground",
   CREATED: "bg-muted text-muted-foreground",
   FAILED: "bg-destructive/10 text-destructive",
-  REFUNDED: "bg-blue-100 text-blue-800",
+  REFUNDED: "bg-accent text-primary",
 };
 
 function SubscriptionPage() {
@@ -177,7 +178,7 @@ function SubscriptionPage() {
     <div className="min-h-screen bg-muted/30">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <h1 className="text-lg font-semibold tracking-tight">My subscription</h1>
+          <p className="text-lg font-semibold">TheResumeRocket · Account</p>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
               <Link to="/payment">Plans</Link>
@@ -190,6 +191,7 @@ function SubscriptionPage() {
       </header>
 
       <main className="mx-auto max-w-4xl space-y-6 px-6 py-10">
+        <PageHeading eyebrow="Account settings" title="Your account, your control." description="Manage your plan, payment history and private resume data." />
         <Card className="p-6">
           <h2 className="text-sm font-semibold">Account</h2>
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
