@@ -43,3 +43,6 @@ Partner read authorization tests use an isolated Vitest config without the serve
 - Root vitest.config.ts splits the full run into projects: app tests use vite.config.ts; partner-access handler tests run without the server-function transform — so one command runs every test correctly.
 - Admin monitoring/support live in src/lib/admin-monitoring.functions.ts behind requireAdmin; operational errors go to app_error_log via error-log.server.ts with no personal content — one admin-only place for health data.
 - Funnel events use trackPublicEvent: a fixed strict event list, anonymous only for ANONYMOUS_EVENTS, throttled per hashed IP — counts visitors without storing personal data.
+- Application visual treatments use shared semantic tokens and shadcn controls; screen-only typography does not override print/template typography — keeps UI consistency separate from resume exports.
+- The dashboard lives under the existing authenticated layout and reuses owner-scoped reads with per-user query keys and explicit list-cap labels — provides a private overview without new data services.
+- Builder profile navigation is local presentation state over existing fields, including the shared experience/projects collection — keeps saved profile and generation contracts unchanged.

@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AdminGate, AdminNav } from "@/components/admin/AdminGate";
 import { adminGetMonitoring, adminListErrors, adminSetErrorStatus } from "@/lib/admin-monitoring.functions";
 import { formatDate } from "@/lib/billing-shared";
+import { PageHeading } from "@/components/ui/page-patterns";
 
 export const Route = createFileRoute("/_authenticated/admin/monitoring")({
   head: () => ({
@@ -74,6 +75,7 @@ function Monitoring({ userId }: { userId: string }) {
         </div>
       </header>
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
+        <PageHeading eyebrow="Administration" title="Platform overview" description="Verified usage, payment activity and operational health." />
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Period">
           <Button variant={period === "day" ? "default" : "outline"} size="sm" onClick={() => setPeriod("day")} aria-pressed={period === "day"}>Today</Button>
           <Button variant={period === "month" ? "default" : "outline"} size="sm" onClick={() => setPeriod("month")} aria-pressed={period === "month"}>This month</Button>
@@ -105,7 +107,7 @@ function Monitoring({ userId }: { userId: string }) {
                   <div><dt className="text-muted-foreground">Visit → checker</dt><dd className="font-semibold">{pct(f.checkerStarted, f.homepageViews)}</dd></div>
                   <div><dt className="text-muted-foreground">Checker → sign-up</dt><dd className="font-semibold">{f.signups} sign-ups ({pct(f.signups, f.checkerCompleted)})</dd></div>
                   <div><dt className="text-muted-foreground">Sign-up → paid</dt><dd className="font-semibold">{f.payingCustomers} paying ({pct(f.payingCustomers, f.signups)})</dd></div>
-                  <div><dt className="text-muted-foreground">Generation success rate</dt><dd className="font-semibold">{pct(s!.resumeSuccess, s!.resumeSuccess + s!.resumeFailed)}</dd></div>
+                  <div><dt className="text-muted-foreground">Generation success rate</dt><dd className="font-semibold">{s ? pct(s.resumeSuccess, s.resumeSuccess + s.resumeFailed) : "—"}</dd></div>
                 </dl>
               </Card>
             )}

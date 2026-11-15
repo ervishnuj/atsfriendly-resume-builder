@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, User, Wrench, Briefcase, GraduationCap } from "lucide-react";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { Plus, Trash2, User, Wrench, Briefcase, GraduationCap, AlignLeft } from "lucide-react";
+import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 
 export type Profile = {
   personal: {
@@ -63,14 +63,21 @@ type Props = {
 
 export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
   const p = profile;
+  const [sections, setSections] = useState<string[]>(["personal"]);
+  const steps = [["personal", "Details"], ["summary", "Summary"], ["skills", "Skills"], ["experience", "Experience / Projects"], ["education", "Education"]];
   const err = (path: string) => fieldErrors[path];
   const setPersonal = (k: keyof Profile["personal"], v: string) =>
     setProfile((s) => ({ ...s, personal: { ...s.personal, [k]: v } }));
 
   return (
+    <div>
+    <nav aria-label="Profile sections" className="mb-4 flex flex-wrap gap-2">
+      {steps.map(([id, title], i) => <Button key={id} type="button" variant={sections.includes(id) ? "default" : "outline"} size="sm" aria-pressed={sections.includes(id)} onClick={() => setSections([id])}>{i + 1}. {title}</Button>)}
+    </nav>
     <Accordion
       type="multiple"
-      defaultValue={["personal", "skills", "experience", "education"]}
+      value={sections}
+      onValueChange={setSections}
       className="w-full"
     >
       <AccordionItem value="personal">
@@ -91,9 +98,15 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
               <Field type="url" path="personal.portfolio" error={err("personal.portfolio")} label="Portfolio / Website" value={p.personal.portfolio} onChange={(v) => setPersonal("portfolio", v)} />
             </div>
           </div>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="summary">
+        <AccordionTrigger><span className="flex items-center gap-2"><AlignLeft className="h-4 w-4" />Professional summary</span></AccordionTrigger>
+        <AccordionContent className="space-y-3 pt-2">
           <div>
-            <Label className="mb-1 block text-xs">Short Summary (optional — AI will rewrite)</Label>
+            <Label htmlFor="profile-summary" className="mb-1 block text-xs">Short Summary (optional — AI will rewrite)</Label>
             <Textarea
+              id="profile-summary"
               rows={3}
               value={p.personal.summary}
               onChange={(e) => setPersonal("summary", e.target.value)}
@@ -115,6 +128,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
               <div className="mb-2 flex items-center gap-2">
                 <Input
                   id={`field-skills.${i}.category`}
+                  aria-label={`Skill category ${i + 1}`}
                   aria-invalid={!!err(`skills.${i}.category`)}
                   className={err(`skills.${i}.category`) ? ERROR_RING : undefined}
                   value={s.category}
@@ -144,6 +158,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
               {err(`skills.${i}.category`) && <ErrorText>{err(`skills.${i}.category`)}</ErrorText>}
               <Textarea
                 id={`field-skills.${i}.items`}
+                aria-label={`Skills in category ${i + 1}`}
                 aria-invalid={!!err(`skills.${i}.items`)}
                 className={err(`skills.${i}.items`) ? ERROR_RING : undefined}
                 rows={2}
@@ -250,7 +265,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
                 </div>
               </div>
               <div>
-                <Label className="mb-1 block text-xs">Key Responsibilities / Achievements (one per line)</Label>
+                <Label htmlFor={`field-experience.${i}.bullets`} className="mb-1 block text-xs">Key Responsibilities / Achievements (one per line)</Label>
                 <Textarea
                   id={`field-experience.${i}.bullets`}
                   aria-invalid={!!err(`experience.${i}.bullets`)}
@@ -346,6 +361,7 @@ export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
         </AccordionContent>
       </AccordionItem>
     </Accordion>
+    </div>
   );
 }
 

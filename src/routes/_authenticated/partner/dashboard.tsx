@@ -22,6 +22,7 @@ import { getMyPartnerDashboard, setMySellingPrice } from "@/lib/partners.functio
 import { formatINR, formatDate } from "@/lib/billing-shared";
 import { grossMargin, ownerShare, partnerRetainedMargin, validateSellingPrice } from "@/lib/partner-math";
 import { partnerReferralLink } from "@/lib/partner-ref";
+import { PageHeading } from "@/components/ui/page-patterns";
 
 export const Route = createFileRoute("/_authenticated/partner/dashboard")({
   head: () => ({
@@ -140,6 +141,7 @@ function PartnerDashboard() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+        <PageHeading eyebrow="Partner workspace" title="Credits, customers and progress." description="Your prepaid balance, daily usage and verified sales in one place." />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Prepaid credits left</p>
