@@ -43,11 +43,11 @@ export const Route = createFileRoute("/_authenticated/admin/payments")({
 });
 
 const statusColor: Record<string, string> = {
-  SUCCESS: "bg-emerald-100 text-emerald-800",
-  PENDING: "bg-amber-100 text-amber-900",
+  SUCCESS: "bg-success-soft text-success-foreground",
+  PENDING: "bg-warning-soft text-warning-foreground",
   CREATED: "bg-muted text-muted-foreground",
   FAILED: "bg-destructive/10 text-destructive",
-  REFUNDED: "bg-blue-100 text-blue-800",
+  REFUNDED: "bg-accent text-primary",
 };
 
 function AdminPayments() {

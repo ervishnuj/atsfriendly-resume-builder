@@ -246,10 +246,10 @@ function AdminPartnerReports() {
                         variant="secondary"
                         className={
                           c.status === "settled"
-                            ? "bg-emerald-100 text-emerald-800"
+                            ? "bg-success-soft text-success-foreground"
                             : c.status === "voided"
                               ? "bg-muted text-muted-foreground"
-                              : "bg-amber-100 text-amber-900"
+                              : "bg-warning-soft text-warning-foreground"
                         }
                       >
                         {c.status}

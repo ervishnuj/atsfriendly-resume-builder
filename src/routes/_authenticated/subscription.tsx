@@ -224,7 +224,7 @@ function SubscriptionPage() {
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           ) : subscription?.admin ? (
             <div className="space-y-3">
-              <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
+              <Badge className="gap-1 bg-warning-soft text-warning-foreground hover:bg-warning-soft">
                 <Crown className="h-3.5 w-3.5" /> Admin access
               </Badge>
               <h2 className="text-2xl font-semibold">Unlimited access</h2>
@@ -239,7 +239,7 @@ function SubscriptionPage() {
             </div>
           ) : subscription?.active ? (
             <div className="space-y-2">
-              <Badge className="gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+              <Badge className="gap-1 bg-success-soft text-success-foreground hover:bg-success-soft">
                 <Crown className="h-3.5 w-3.5" /> Active
               </Badge>
               <h2 className="text-2xl font-semibold">{subscription.planName}</h2>
@@ -272,9 +272,9 @@ function SubscriptionPage() {
                 const notice = paymentGateNotice(inactive?.paymentStatus);
                 const toneClass =
                   notice.tone === "info"
-                    ? "bg-amber-100 text-amber-900 hover:bg-amber-100"
+                    ? "bg-warning-soft text-warning-foreground hover:bg-warning-soft"
                     : notice.tone === "warning"
-                      ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                      ? "bg-accent text-primary hover:bg-accent"
                       : "bg-destructive/10 text-destructive hover:bg-destructive/10";
                 const last = inactive?.lastPayment ?? null;
                 return (

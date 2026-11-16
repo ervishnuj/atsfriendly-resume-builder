@@ -81,8 +81,8 @@ function PlansPage() {
           <PaymentGateBanner status={gateStatus} className="mb-6" />
         )}
         {isAdmin && (
-          <Card className="mb-6 border-amber-300/60 bg-amber-50 p-6 dark:bg-amber-950/20">
-            <Badge className="gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100">
+          <Card className="mb-6 border-warning/40 bg-warning-soft p-6 dark:bg-warning-soft">
+            <Badge className="gap-1 bg-warning-soft text-warning-foreground hover:bg-warning-soft">
               <Crown className="h-3.5 w-3.5" /> Admin account
             </Badge>
             <h2 className="mt-3 text-xl font-semibold">
@@ -97,7 +97,7 @@ function PlansPage() {
           </Card>
         )}
         {!isAdmin && subscription?.active && (
-          <Badge className="mb-6 gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+          <Badge className="mb-6 gap-1 bg-success-soft text-success-foreground hover:bg-success-soft">
             <Crown className="h-3.5 w-3.5" /> {subscription.planName} active ·{" "}
             {subscription.creditsRemaining !== null
               ? `${subscription.creditsRemaining} PDF download left`

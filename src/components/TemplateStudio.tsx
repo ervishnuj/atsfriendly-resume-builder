@@ -478,7 +478,7 @@ export function TemplateStudio({ data, templateId, config, onSelect }: Props) {
               {warnings.length > 0 && (
                 <div
                   role="status"
-                  className="rounded-md border border-amber-300/70 bg-amber-50 p-3 dark:bg-amber-950/20"
+                  className="rounded-md border border-warning/40 bg-warning-soft p-3 dark:bg-warning-soft"
                 >
                   <p className="flex items-center gap-1 text-sm font-semibold">
                     <AlertTriangle className="h-4 w-4" /> Warning: this customization may reduce ATS readability.

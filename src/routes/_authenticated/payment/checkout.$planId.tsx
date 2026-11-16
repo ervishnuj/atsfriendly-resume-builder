@@ -90,7 +90,7 @@ function CheckoutPage() {
       <main className="mx-auto max-w-3xl px-6 py-10">
         {isAdmin ? (
           <Card className="p-6">
-            <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
+            <div className="flex items-center gap-2 text-warning-foreground dark:text-warning-foreground">
               <Crown className="h-5 w-5" />
               <h2 className="text-xl font-semibold">Admin access</h2>
             </div>
