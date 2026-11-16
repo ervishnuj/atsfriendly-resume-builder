@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, User, Wrench, Briefcase, GraduationCap, AlignLeft } from "lucide-react";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 
 export type Profile = {
   personal: {
@@ -64,6 +64,10 @@ type Props = {
 export function ProfileForm({ profile, setProfile, fieldErrors = {} }: Props) {
   const p = profile;
   const [sections, setSections] = useState<string[]>(["personal"]);
+  useEffect(() => {
+    const required = Object.keys(fieldErrors).map(path => path.split(".")[0]);
+    if (required.length) setSections(previous => [...new Set([...previous, ...required])]);
+  }, [fieldErrors]);
   const steps = [["personal", "Details"], ["summary", "Summary"], ["skills", "Skills"], ["experience", "Experience / Projects"], ["education", "Education"]];
   const err = (path: string) => fieldErrors[path];
   const setPersonal = (k: keyof Profile["personal"], v: string) =>
