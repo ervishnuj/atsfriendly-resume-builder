@@ -162,7 +162,7 @@ function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <button
+                  <Button variant="ghost" size="icon"
                     type="button"
                     onClick={() => setShow((v) => !v)}
                     className="absolute inset-y-0 right-0 text-muted-foreground"
