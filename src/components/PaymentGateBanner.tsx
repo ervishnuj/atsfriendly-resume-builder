@@ -18,9 +18,9 @@ export function PaymentGateBanner({ status, onDismiss, className }: Props) {
   const notice = paymentGateNotice(status);
   const tone =
     notice.tone === "info"
-      ? "border-amber-300/60 bg-amber-50 dark:bg-amber-950/20"
+      ? "border-warning/40 bg-warning-soft dark:bg-warning-soft"
       : notice.tone === "warning"
-        ? "border-blue-300/60 bg-blue-50 dark:bg-blue-950/20"
+        ? "border-primary/40 bg-accent dark:bg-accent"
         : "border-destructive/40 bg-destructive/5";
   const Icon = notice.tone === "info" ? Clock : notice.tone === "warning" ? Info : AlertCircle;
 

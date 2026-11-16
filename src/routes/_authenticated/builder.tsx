@@ -644,7 +644,7 @@ function Index() {
                   variant="secondary"
                   className={
                     isSubscribed
-                      ? "hidden gap-1 bg-amber-100 text-amber-900 hover:bg-amber-100 sm:inline-flex dark:bg-amber-900/40 dark:text-amber-100"
+                      ? "hidden gap-1 bg-warning-soft text-warning-foreground hover:bg-warning-soft sm:inline-flex dark:bg-warning-soft dark:text-warning-foreground"
                       : "hidden gap-1 sm:inline-flex"
                   }
                 >
@@ -669,7 +669,7 @@ function Index() {
             {savedLocally && (
               <Badge
                 variant="secondary"
-                className="hidden gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 sm:inline-flex dark:bg-emerald-900/40 dark:text-emerald-200"
+                className="hidden gap-1 bg-success-soft text-success-foreground hover:bg-success-soft sm:inline-flex dark:bg-success-soft dark:text-success-foreground"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Profile Saved To Account
@@ -765,7 +765,7 @@ function Index() {
           )}
           {partnerGenerationNotice && <div role="alert" className="space-y-2 border-b border-border pb-4 text-sm"><p>{partnerGenerationNotice}</p><div className="flex flex-wrap gap-2"><Button asChild variant="outline" size="sm"><Link to="/partner/credits">Buy partner credits</Link></Button><Button asChild variant="ghost" size="sm"><Link to="/partner/dashboard">Partner Dashboard</Link></Button></div></div>}
           {dailyLimitReached && (
-            <Card role="status" className="border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
+            <Card role="status" className="border-warning/40 bg-warning-soft p-4 dark:bg-warning-soft">
               <p className="text-sm font-semibold">Your plan is still active — the limit resets at midnight IST.</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 You have used {resumeUsage?.used ?? 0} of {resumeUsage?.limit ?? 5} AI resume generations today. Your
@@ -807,7 +807,7 @@ function Index() {
                 {savedLocally && (
                   <Badge
                     variant="secondary"
-                    className="gap-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200"
+                    className="gap-1 bg-success-soft text-success-foreground hover:bg-success-soft dark:bg-success-soft dark:text-success-foreground"
                   >
                     <CheckCircle2 className="h-3 w-3" />
                     Saved
@@ -1013,7 +1013,7 @@ function Index() {
                       <Badge
                         key={k}
                         variant="secondary"
-                        className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200"
+                        className="bg-success-soft text-success-foreground hover:bg-success-soft dark:bg-success-soft dark:text-success-foreground"
                       >
                         {k}
                       </Badge>
@@ -1029,7 +1029,7 @@ function Index() {
                       <Badge
                         key={k}
                         variant="secondary"
-                        className="bg-rose-100 text-rose-800 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-200"
+                        className="bg-destructive/10 text-destructive hover:bg-destructive/10 dark:bg-destructive/10 dark:text-destructive"
                       >
                         {k}
                       </Badge>

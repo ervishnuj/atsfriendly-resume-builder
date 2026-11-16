@@ -65,7 +65,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-800",
+  active: "bg-success-soft text-success-foreground",
   inactive: "bg-muted text-muted-foreground",
   suspended: "bg-destructive/10 text-destructive",
 };

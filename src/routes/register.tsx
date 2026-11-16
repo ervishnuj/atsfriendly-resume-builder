@@ -102,7 +102,7 @@ function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-5 py-12">
-      <Card className="w-full max-w-md p-8">
+      <Card className="w-full max-w-md border-t-4 border-t-primary p-6 sm:p-8">
         <Link to="/">
           <BrandLogo className="mx-auto h-10" />
         </Link>
@@ -165,11 +165,11 @@ function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShow((v) => !v)}
-                    className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                    className="absolute inset-y-0 right-0 text-muted-foreground"
                     aria-label={show ? "Hide password" : "Show password"}
                   >
                     {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  </Button>
                 </div>
                 {errors.password && (
                   <p className="mt-1 text-xs text-destructive">{errors.password}</p>

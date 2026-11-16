@@ -226,7 +226,7 @@ function AdminPartnerPackages() {
                   <TableCell>{formatINR(p.priceInr)}</TableCell>
                   <TableCell>{formatINR(costPerCredit(p.priceInr, p.credits))}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={p.active ? "bg-emerald-100 text-emerald-800" : ""}>
+                    <Badge variant="secondary" className={p.active ? "bg-success-soft text-success-foreground" : ""}>
                       {p.active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>

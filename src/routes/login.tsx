@@ -110,7 +110,7 @@ function LoginPage() {
       </section>
 
       <section className="flex items-center justify-center px-5 py-12">
-        <Card className="w-full max-w-md p-8">
+        <Card className="w-full max-w-md border-t-4 border-t-primary p-6 sm:p-8">
           <div className="lg:hidden">
             <Link to="/">
               <BrandLogo className="mx-auto h-10" />
@@ -149,14 +149,14 @@ function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   aria-invalid={Boolean(fieldError.password)}
                 />
-                <button
+                <Button variant="ghost" size="icon"
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                  className="absolute inset-y-0 right-0 text-muted-foreground"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
               {fieldError.password && (
                 <p className="mt-1 text-xs text-destructive">{fieldError.password}</p>

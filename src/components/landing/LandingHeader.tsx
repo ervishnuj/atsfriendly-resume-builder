@@ -51,8 +51,8 @@ export function LandingHeader({ signedIn }: { signedIn: boolean }) {
           <Button asChild variant="ghost" size="sm" className="hidden xl:inline-flex">
             <Link to={signedIn ? "/dashboard" : "/login"}>{signedIn ? "Dashboard" : "Login"}</Link>
           </Button>
-          <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link to="/ats-checker">Check My Resume Free</Link>
+          <Button asChild size="sm" className="max-w-28 px-2 text-xs sm:max-w-none sm:px-3">
+            <Link to="/ats-checker"><span className="sm:hidden">Free ATS Check</span><span className="hidden sm:inline">Check My Resume Free</span></Link>
           </Button>
           <Button type="button" variant="outline" size="icon" onClick={() => setOpen(v => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" className="xl:hidden">
             {open ? <X /> : <Menu />}

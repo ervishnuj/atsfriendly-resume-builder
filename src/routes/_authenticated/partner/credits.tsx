@@ -49,8 +49,8 @@ export const Route = createFileRoute("/_authenticated/partner/credits")({
 });
 
 const statusColor: Record<string, string> = {
-  paid: "bg-emerald-100 text-emerald-800",
-  pending: "bg-amber-100 text-amber-900",
+  paid: "bg-success-soft text-success-foreground",
+  pending: "bg-warning-soft text-warning-foreground",
   cancelled: "bg-muted text-muted-foreground",
 };
 

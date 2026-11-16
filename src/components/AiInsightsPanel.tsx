@@ -282,10 +282,10 @@ function ChipRow({
   if (!items?.length) return null;
   const cls =
     tone === "good"
-      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200"
+      ? "bg-success-soft text-success-foreground hover:bg-success-soft dark:bg-success-soft dark:text-success-foreground"
       : tone === "warn"
-        ? "bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-100"
-        : "bg-rose-100 text-rose-800 hover:bg-rose-100 dark:bg-rose-900/40 dark:text-rose-200";
+        ? "bg-warning-soft text-warning-foreground hover:bg-warning-soft dark:bg-warning-soft dark:text-warning-foreground"
+        : "bg-destructive/10 text-destructive hover:bg-destructive/10 dark:bg-destructive/10 dark:text-destructive";
   return (
     <div>
       <div className="mb-1 text-xs font-medium text-muted-foreground">
