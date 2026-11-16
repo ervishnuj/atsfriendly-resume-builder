@@ -1,11 +1,12 @@
 # Project Roadmap
 
 ## Premium UI/UX redesign
-- [ ] Approve the staged visual redesign plan.
-- [ ] Standardise shared colours, typography, controls, navigation and public pages.
-- [ ] Improve checker and builder presentation without changing scoring, generation or export rules.
-- [ ] Present existing account data in a protected dashboard; restyle tracker, account, partner and admin pages.
-- [ ] Verify desktop and 360px, 390px and 430px layouts, safe interactions and regression tests; report unverified flows without publishing.
+- [x] Approved the staged visual redesign plan.
+- [x] Standardised shared colours, locally served typography, controls, navigation and public pages.
+- [x] Improved checker and builder presentation without changing scoring, generation or export rules.
+- [x] Presented existing account data in a protected dashboard; restyled tracker, account, partner and admin pages.
+- [x] Verified desktop/tablet and 360px, 390px and 430px layouts, synthetic uploads, safe interactions and 119 regression tests; no publishing.
+- [ ] Funded-partner and live generation/export/payment checks remain blocked on a user-selected partner account and explicit approval to spend credits or make financial changes; no such operations were attempted.
 
 ## Partner / Reseller Module
 
