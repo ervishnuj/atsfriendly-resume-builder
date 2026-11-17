@@ -17,6 +17,8 @@ type Props = {
   printable?: boolean;
   /** Use PDF typography in non-printable measuring/page-preview copies. */
   pdfLayout?: boolean;
+  /** Gallery thumbnails must not introduce extra page-level headings. */
+  decorativeHeading?: boolean;
 };
 
 const clampContact = (body: number) => Math.min(9, Math.max(8, body - 0.5));
@@ -25,8 +27,9 @@ const clampContact = (body: number) => Math.min(9, Math.max(8, body - 0.5));
  * Template-driven A4 resume renderer. Everything is real HTML text — no
  * images, tables, skill bars or graphics — so the export stays ATS-readable.
  */
-export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true, pdfLayout = false }: Props) {
+export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = true, pdfLayout = false, decorativeHeading = false }: Props) {
   const isPrintTarget = printable && !scale;
+  const NameHeading = decorativeHeading && !isPrintTarget ? "p" : "h1";
   const printConfig = resumePrintConfig(config);
   const c = pdfLayout || isPrintTarget ? printConfig : config;
   const p = data.optimizedProfile.personal;
@@ -241,7 +244,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
       {isPrintTarget && <style dangerouslySetInnerHTML={{ __html: printCss }} />}
 
       <header data-resume-block style={{ textAlign: c.headerAlignment }}>
-        <h1
+        <NameHeading
           style={{
             fontSize: `${c.nameFontSize}pt`,
             fontWeight: 700,
@@ -252,7 +255,7 @@ export function ResumePreview({ data, config = ATS_CLASSIC, scale, printable = t
           }}
         >
           {p.fullName || "Your Name"}
-        </h1>
+        </NameHeading>
         {p.title && (
           <p style={{ margin: "2px 0 0", color: c.accentColor, fontWeight: 600 }}>{p.title}</p>
         )}

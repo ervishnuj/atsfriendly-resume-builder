@@ -18,7 +18,7 @@ import { CheckCircle2, ShieldCheck, Sparkles, XCircle, Loader2, Upload, Clipboar
 import { PageHeading } from "@/components/ui/page-patterns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const TITLE = "Free ATS Resume Checker & Score Scanner | Resume Rocket";
+const TITLE = "Free ATS Resume Checker Online | TheResumeRocket";
 const DESCRIPTION =
   "Upload a PDF or DOCX resume, or paste text, for a free job-description match score and evidence-aware keyword guidance. Processed locally without sign-up.";
 const PAGE_URL = "https://theresumerocket.com/ats-checker";
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/ats-checker")({
           operatingSystem: "Any (web browser)",
           description: DESCRIPTION,
           offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
-          provider: { "@type": "Organization", name: "Resume Rocket" },
+          provider: { "@type": "Organization", name: "TheResumeRocket" },
         }),
       },
     ],
@@ -275,6 +275,9 @@ function AtsCheckerPage() {
         )}
 
         <section className="mt-16 max-w-3xl">
+          <h2 className="text-xl font-semibold">Check a PDF, DOCX or pasted resume</h2>
+          <p className="mt-3 text-sm text-muted-foreground">Choose a text-based PDF or DOCX up to 5 MB, or paste your resume text above. Add the target job description to compare the same evidence against that role. Extraction and scoring run locally in your browser; no account is needed and your file, resume text and results are not uploaded or saved by this checker. Anonymous usage events do not contain your resume.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Image-only scans need OCR before checking; this tool does not perform OCR. For a password-protected file, use an unlocked copy you are authorised to open. If extraction fails or scrambles the reading order, try a selectable-text export or paste clean text.</p>
           <h2 className="text-xl font-semibold tracking-tight">How this ATS scanner works</h2>
           <p className="mt-3 text-sm text-muted-foreground">
             Employers use applicant tracking systems in different ways; there is no universal ATS score or pass threshold. This checker estimates job-description alignment and resume readiness using consistent rules. It extracts meaningful terms and phrases from the posting, looks for them in your resume with common variants (React / React.js, Node.js / Node, K8s / Kubernetes), and checks text structure, section headings, dates, and content length. It does not reproduce an employer’s screening decision or verify your qualifications.
@@ -286,6 +289,11 @@ function AtsCheckerPage() {
             <li>Below 50 — limited alignment detected; review your supplied evidence and the role requirements before making changes.</li>
           </ul>
           <p className="mt-3 text-sm text-muted-foreground">The separate ATS readiness score reviews the extracted text, not every visual detail of your PDF or DOCX. Neither score guarantees an interview. Keep learning and training clearly labeled, and add missing keywords only when your real background supports them.</p>
+          <h3 className="mt-6 text-base font-semibold">Matched words are a review prompt, not proof of expertise</h3>
+          <p className="mt-3 text-sm text-muted-foreground">Review required and preferred terms in context. A missing word may be a wording gap, an unrelated requirement or a genuine skill gap. For example, add JUnit to a Java project only if you actually wrote JUnit tests; completing a course is not professional testing experience.</p>
+          <h3 className="mt-6 text-base font-semibold">Check readability as well as keywords</h3>
+          <p className="mt-3 text-sm text-muted-foreground">Keep standard headings and consistent month/year dates, and check that copied text follows a sensible order. Follow the employer's file instructions. Read the <Link to="/guides/$slug" params={{ slug: "ats-resume-format" }} className="text-primary underline">ATS resume format and date guide</Link> or the <Link to="/guides/$slug" params={{ slug: "ats-keywords" }} className="text-primary underline">job-description keyword guide</Link> for practical examples.</p>
+          <p className="mt-3 text-sm text-muted-foreground">For account-based rewriting and exports, see the <Link to="/ai-resume-builder" className="text-primary underline">AI resume builder overview</Link> and <Link to="/pricing" className="text-primary underline">current plans and limits</Link>. The public checker remains free and separate from paid generation.</p>
         </section>
       </main>
 

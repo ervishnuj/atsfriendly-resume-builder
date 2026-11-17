@@ -2,6 +2,13 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import { isPrivateSearchPath } from "@/lib/search-visibility";
+
+const searchVisibilityMiddleware = createMiddleware().server(async ({ next, request }) => {
+  if (isPrivateSearchPath(new URL(request.url).pathname)) setResponseHeader("X-Robots-Tag", "noindex");
+  return next();
+});
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -28,5 +35,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, csrfMiddleware, searchVisibilityMiddleware],
 }));

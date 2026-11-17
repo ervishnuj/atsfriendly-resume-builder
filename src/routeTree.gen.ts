@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AiResumeBuilderRouteImport } from './routes/ai-resume-builder'
 import { Route as AtsCheckerRouteImport } from './routes/ats-checker'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -63,6 +64,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiResumeBuilderRoute = AiResumeBuilderRouteImport.update({
+  id: '/ai-resume-builder',
+  path: '/ai-resume-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtsCheckerRoute = AtsCheckerRouteImport.update({
@@ -273,6 +279,7 @@ const AuthenticatedPaymentCheckoutPlanIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-resume-builder': typeof AiResumeBuilderRoute
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-resume-builder': typeof AiResumeBuilderRoute
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/ai-resume-builder': typeof AiResumeBuilderRoute
   '/ats-checker': typeof AtsCheckerRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -403,6 +412,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/ai-resume-builder'
     | '/ats-checker'
     | '/auth'
     | '/contact'
@@ -445,6 +455,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/ai-resume-builder'
     | '/ats-checker'
     | '/auth'
     | '/contact'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/about'
+    | '/ai-resume-builder'
     | '/ats-checker'
     | '/auth'
     | '/contact'
@@ -532,6 +544,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  AiResumeBuilderRoute: typeof AiResumeBuilderRoute
   AtsCheckerRoute: typeof AtsCheckerRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -576,6 +589,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-resume-builder': {
+      id: '/ai-resume-builder'
+      path: '/ai-resume-builder'
+      fullPath: '/ai-resume-builder'
+      preLoaderRoute: typeof AiResumeBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ats-checker': {
@@ -896,6 +916,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  AiResumeBuilderRoute: AiResumeBuilderRoute,
   AtsCheckerRoute: AtsCheckerRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
