@@ -48,7 +48,7 @@ function ResumeTemplatesPage() {
           <Card key={template.id} className="overflow-hidden">
             <div className="h-80 overflow-hidden border-b border-border bg-muted/40 p-4" aria-label={`${template.name} preview`}>
               <div className="origin-top-left scale-[0.34] sm:scale-[0.38]">
-                <ResumePreview data={SAMPLE} config={template.config} printable={false} />
+                <ResumePreview data={SAMPLE} config={template.config} printable={false} decorativeHeading />
               </div>
             </div>
             <div className="p-5">
@@ -62,6 +62,7 @@ function ResumeTemplatesPage() {
           </Card>
         ))}
       </div>
+      <p className="text-sm text-muted-foreground">All previews use fictional demonstration data, not customer resumes or verified achievements.</p>
       <p className="text-sm text-muted-foreground">The template changes presentation only. Always review the content and run the ATS check against the target job description before applying.</p>
     </PublicPage>
   );

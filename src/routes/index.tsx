@@ -14,9 +14,9 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { PricingCards } from "@/components/PricingCards";
 
-const TITLE = "AI Resume Builder | ATS-Friendly Resume Generator";
+const TITLE = "TheResumeRocket – Free ATS Resume Checker & AI Resume Builder";
 const DESCRIPTION =
-  "Create an ATS-friendly resume tailored to your job description with AI. Analyze your ATS score, identify skill gaps and download your professional resume.";
+  "Check your resume with our free ATS resume checker. Compare it with job descriptions, find relevant missing keywords and create job-specific resumes with TheResumeRocket.";
 const URL = "https://theresumerocket.com/";
 
 export const Route = createFileRoute("/")({
@@ -43,14 +43,13 @@ export const Route = createFileRoute("/")({
           "@graph": [
             {
               "@type": "WebSite",
-              name: "Resume Rocket",
-              alternateName: "ATS Resume Builder",
+              name: "TheResumeRocket",
               url: URL,
               description: DESCRIPTION,
             },
             {
               "@type": "Organization",
-              name: "Resume Rocket",
+              name: "TheResumeRocket",
               url: URL,
               logo: "https://theresumerocket.com/favicon.png",
               description: "AI-powered ATS resume optimization: tailored resumes, ATS scoring and skill-gap analysis.",
