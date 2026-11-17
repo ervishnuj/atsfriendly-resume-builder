@@ -1,5 +1,13 @@
 # Project Roadmap
 
+## Google SEO and organic growth
+- [x] Read the supplied SEO brief, existing growth research, public routes and verified Search Console data.
+- [ ] Review and approve the prioritised implementation plan and keyword-to-page mapping.
+- [ ] Improve existing public metadata, factual guide content, internal links and private-page search exclusions without changing application behaviour.
+- [ ] Add a public builder overview and evidence-led, unique role guides in reviewed stages; retain the protected builder URL.
+- [ ] Validate sitemap, structured data, public checker, performance and mobile layouts; deliver a 30/60/90-day report.
+- [ ] Publishing and any manual Google indexing request require the owner's explicit approval; no ranking guarantee or paid promotion.
+
 ## Premium UI/UX redesign
 - [x] Approved the staged visual redesign plan.
 - [x] Standardised shared colours, locally served typography, controls, navigation and public pages.
