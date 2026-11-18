@@ -48,8 +48,19 @@ export const Route = createFileRoute("/guides/$slug")({
             headline: guide.title,
             description: guide.description,
             url,
-            author: { "@type": "Organization", name: "Resume Rocket" },
-            publisher: { "@type": "Organization", name: "Resume Rocket" },
+            author: { "@type": "Organization", name: "TheResumeRocket" },
+            publisher: { "@type": "Organization", name: "TheResumeRocket" },
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org", "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: BASE + "/" },
+              { "@type": "ListItem", position: 2, name: "Guides", item: BASE + "/guides" },
+              { "@type": "ListItem", position: 3, name: guide.title, item: url },
+            ],
           }),
         },
       ],
@@ -96,9 +107,11 @@ function GuidePage() {
       <LandingHeader signedIn={signedIn} />
       <main className="mx-auto max-w-3xl px-5 py-14">
         <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+          <Link to="/" className="hover:text-foreground hover:underline">Home</Link><span aria-hidden="true"> / </span>
           <Link to="/guides" className="hover:text-foreground hover:underline">
             Guides
           </Link>
+          <span aria-hidden="true"> / </span><span aria-current="page">{guide.title}</span>
         </nav>
 
         <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
@@ -132,6 +145,7 @@ function GuidePage() {
             </section>
           ))}
         </article>
+        <p className="mt-8 text-sm text-muted-foreground">Ready to turn your own evidence into a resume? See the <Link to="/ai-resume-builder" className="text-primary underline">job-specific resume builder</Link>, <Link to="/resume-templates" className="text-primary underline">available templates</Link> and <Link to="/pricing" className="text-primary underline">current plan details</Link>.</p>
 
         <Card className="mt-10 p-5">
           <h2 className="text-base font-semibold">Key takeaways</h2>

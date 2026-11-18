@@ -30,12 +30,12 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "5 September 2026",
     publishedIso: "2026-09-05",
     intro:
-      "An applicant tracking system does not judge your career. It extracts text, maps it into fields, and scores that structured record against a requisition. Most rejections that feel unfair are really extraction failures — the system never saw the thing that would have qualified you.",
+      "Applicant tracking systems help employers collect and organise applications. Depending on the configuration, screening may involve eligibility questions, recruiter review, parsing and search. A rejection alone does not reveal its cause. The four checks below address preventable presentation problems, not every hiring decision.",
     sections: [
       {
         heading: "Failure one: the parser could not read the document",
         paragraphs: [
-          "If a PDF was exported as an image, or produced by a design tool that draws text as vector outlines, the file contains no selectable characters. The ATS stores an empty record and you score zero on every requirement.",
+          "An image-only PDF or outlined text may not contain selectable characters. Extraction can fail without OCR; systems differ in OCR support. A text-based export is easier to review and less dependent on that support.",
         ],
         bullets: [
           "Self-test: open your PDF, select all, copy, and paste into a plain text editor. If nothing appears, or the order is scrambled, that is what the ATS sees.",
@@ -45,7 +45,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Failure two: sections landed in the wrong field",
         paragraphs: [
-          "Parsers match headings against a known vocabulary. \"Where I've made an impact\" is not in that vocabulary, so those bullets get filed as unclassified text and never count toward the experience requirement.",
+          "Clear headings such as Experience and Education make content easier to classify. Unusual labels can create ambiguity; they do not prove that an employer will ignore your experience.",
         ],
         bullets: [
           "Use plain headings: Summary, Skills, Experience, Education, Certifications, Projects.",
@@ -55,7 +55,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Failure three: dates that cannot be computed",
         paragraphs: [
-          "Recruiters filter on years of experience, and that number is computed from your date ranges. Mixed or partial formats often parse as missing, which silently drops you below the minimum tenure filter even when you exceed it.",
+          "Recruiters may review or filter experience dates. Ambiguous ranges can complicate that review. Use consistent month/year ranges where known, without inventing dates.",
         ],
         bullets: [
           "Pick one format — \"Mar 2023 – Present\" — and repeat it in every entry.",
@@ -65,7 +65,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Failure four: the words do not match the requisition",
         paragraphs: [
-          "Screening scores are largely term overlap. If the posting says \"CI/CD\" and your resume only says \"automated deployment pipelines\", a strict matcher scores nothing for that requirement. Write their term and your natural phrasing together.",
+          "Some search and matching tools depend on terms, while others recognise related language. If you genuinely implemented CI/CD, say so alongside a concrete deployment example. A different phrase alone does not establish the reason for rejection.",
           "To see which of the job's terms your resume is missing, paste both into the free checker — no sign-up needed. Only add a missing term if you genuinely have that skill or experience.",
         ],
       },
@@ -80,9 +80,9 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
     takeaways: [
-      "Most ATS rejections are extraction failures, not judgements about you.",
+      "A rejection does not identify its cause; check readability, eligibility and job relevance separately.",
       "Copy-paste your own PDF — that is the version the software reads.",
-      "Standard headings, consistent dates and the posting's own wording fix the majority of cases.",
+      "Standard headings, consistent dates and supported terminology can reduce avoidable ambiguity.",
     ],
   },
   {
@@ -96,7 +96,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "5 September 2026",
     publishedIso: "2026-09-05",
     intro:
-      "Tailoring does not mean rewriting. Roughly 80% of your resume stays fixed; the score moves on the top third and the skills list. Here is the workflow, with time budgets, that we use when scoring resumes against real postings.",
+      "Tailoring does not mean rewriting. Your factual history stays fixed; relevant emphasis can change across the summary, skills and bullets. Here is the workflow, with time budgets, that we use when scoring resumes against real postings.",
     sections: [
       {
         heading: "Minutes 0–5: extract the requirements",
@@ -107,7 +107,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Minutes 5–10: rewrite the summary",
         paragraphs: [
-          "Your summary is the highest-leverage three lines on the page, because both the matcher and the human read it first. Structure it as: target role, years, domain, two headline achievements with numbers.",
+          "Use a short summary to clarify your target role and relevant evidence. Include years, domain or achievements only when accurate; there is no universal rule that a matcher reads the summary first.",
         ],
         bullets: [
           "Mirror the posting's job title if your work honestly matches it.",
@@ -118,9 +118,10 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Minutes 10–15: reorder and rewrite the top bullets",
         paragraphs: [
-          "Under your most recent role, promote the bullets that map onto the required list and rewrite them to use the posting's terms. Each bullet: verb, what you did, the term they used, and a measurable outcome.",
+          "Under your most recent role, promote the bullets that map onto the required list and rewrite them to use the posting's terms. Each bullet: a truthful action, what you did, relevant terminology and a supported outcome or scope.",
         ],
         bullets: [
+          "Fictional illustration: the following after-example adds details that must be verified, not inferred from the before sentence.",
           "Before: \"Responsible for deployment automation across services.\"",
           "After: \"Built CI/CD pipelines in GitHub Actions for 14 services, cutting release time from 3 hours to 20 minutes.\"",
         ],
@@ -134,7 +135,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Minutes 18–20: score and stop",
         paragraphs: [
-          "Run the resume and the posting through the free ATS check. Above roughly 75% coverage of meaningful terms you are competitive, and further additions start reading as stuffing. Fix only the missing required terms you can honestly support, then send it.",
+          "Run the resume and the posting through the free ATS check. No universal coverage percentage establishes competitiveness. Fix only the missing required terms you can honestly support, then send it.",
         ],
       },
     ],
@@ -164,13 +165,13 @@ export const BLOG_POSTS: BlogPost[] = [
         ],
         bullets: [
           "Verbs that work: led, shipped, built, migrated, reduced, negotiated, automated, recovered.",
-          "Verbs to drop: assisted with, was responsible for, participated in, helped.",
+          "Keep the verb truthful: use assisted or contributed when you did not lead or own the work.",
         ],
       },
       {
         heading: "Find a number even when the work feels unmeasurable",
         paragraphs: [
-          "Almost every task has a volume, a frequency, a duration, a rupee value or a headcount attached to it. If you truly cannot measure the outcome, measure the input.",
+          "Use a real volume, frequency, duration or scope when you can verify it. If no reliable metric exists, explain the deliverable and why it mattered; never fabricate a number.",
         ],
         bullets: [
           "Volume: tickets, accounts, campaigns, records, releases per month.",
@@ -181,6 +182,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         heading: "Before and after",
+        paragraphs: ["These are fictional illustrations with invented metrics and tools. They are not rewrites of verified candidate evidence; use only facts you can support."],
         bullets: [
           "Support: \"Handled customer queries.\" → \"Resolved 120+ weekly support tickets in Zendesk, holding CSAT at 4.7/5 across two quarters.\"",
           "Finance: \"Prepared monthly reports.\" → \"Closed monthly IFRS reporting for three entities, cutting close time from 9 to 5 working days.\"",
@@ -218,50 +220,50 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Myth: hidden white keyword text boosts your score",
         paragraphs: [
-          "It is detectable, and recruiters see it the moment they open the parsed text view. It reads as an attempt to game the process and is a standard reason for immediate rejection. There is no upside worth this risk.",
+          "Hidden text may appear in extracted views and mislead a reviewer. It is not a legitimate way to present qualifications; use visible, relevant terms with genuine evidence.",
         ],
       },
       {
         heading: "Myth: an ATS cannot read PDFs",
         paragraphs: [
-          "Every major system reads text-based PDFs. What it cannot read is an image-based export or text drawn as outlines by a design tool. The file type is not the problem; how it was produced is. When a portal explicitly asks for .docx, send .docx.",
+          "Many systems support text-based PDFs, but parser and OCR capabilities vary. Selectable text is easier to inspect than an image export. Follow the portal's file-type instructions; if it asks for DOCX, send DOCX.",
         ],
       },
       {
         heading: "Myth: a resume must be one page",
         paragraphs: [
-          "One page is right under about eight years of experience. Beyond that, compressing a real career into one page usually means deleting the evidence that qualifies you. Two pages is normal and no system penalises it.",
+          "Choose length based on relevant evidence and the application instructions, not a fixed years-of-experience threshold. One page can suit a focused early-career resume; longer histories may need two. No universal ATS page-count rule applies.",
         ],
       },
       {
         heading: "Myth: the ATS auto-rejects you",
         paragraphs: [
-          "In most configurations the system ranks and filters; a human sets the thresholds and reviews what surfaces. Knockout questions — work authorisation, licences — do auto-reject, but your bullet phrasing does not trigger an automatic no.",
+          "Employers configure screening differently. Eligibility questions may trigger automatic rules, and other applications may be searched, ranked or reviewed by recruiters. A rejection does not reveal which process applied; read the actual eligibility requirements.",
         ],
       },
       {
         heading: "Myth: creative design helps you stand out",
         paragraphs: [
-          "It helps only if a human sees it first, which in a portal application they do not. Columns, text boxes and header-bar contact details are the most common causes of mangled records. Save the designed version for direct email and portfolio sites.",
+          "Design should support readability for both people and software. Columns, text boxes and header contact details can complicate extraction in some systems. Review the copied text order and follow the portal instructions rather than assuming a visual style always passes or fails.",
         ],
       },
       {
         heading: "Myth: keyword stuffing wins",
         paragraphs: [
-          "Coverage above roughly 75% of the meaningful terms makes you competitive. Past that, additional unsupported terms add nothing to the score and cost you at the human screen, where every claim needs a bullet behind it.",
+          "Keyword coverage is only one signal, and no universal percentage guarantees competitiveness. Unsupported terms can mislead the reader even if a checker recognises them. Prioritise relevant evidence over repetition.",
         ],
       },
       {
         heading: "Myth: one resume can serve every application",
         paragraphs: [
-          "The single highest-return habit in a job search is rewriting the summary and the top three bullets for each posting. It takes twenty minutes and it is the part of the score you fully control.",
+          "Tailoring relevant evidence to a posting can clarify your fit. Start with the summary and the most relevant bullets, but keep every factual claim unchanged. The time required varies and no edit guarantees a particular score or response.",
         ],
       },
     ],
     takeaways: [
-      "Never hide text; it is detected and it is disqualifying.",
+      "Never hide or fabricate keywords; keep claims visible and truthful.",
       "Text-based PDFs are fine — image exports are not.",
-      "Ranking, not automatic rejection, is what most systems actually do.",
+      "Screening behaviour depends on employer settings, eligibility rules and recruiter workflows.",
     ],
   },
   {
@@ -275,20 +277,21 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "5 September 2026",
     publishedIso: "2026-09-05",
     intro:
-      "Screening software rewards continuity: matching titles, matching tools, unbroken dates. A career change breaks all three. The answer is not a functional resume — those parse badly and recruiters distrust them — but a chronological resume with a deliberately reframed top third.",
+      "A career change may require explaining how existing experience supports a different role. A reverse-chronological history with a focused summary makes dates and transferable work easy to inspect. Keep official titles accurate and separate newly learned skills from employment.",
     sections: [
       {
         heading: "Do not use a functional resume",
         paragraphs: [
-          "Grouping everything under skill headings with employers relegated to a footer is the format parsers handle worst: bullets detach from employers, tenure cannot be computed, and recruiters read it as concealment. Keep reverse-chronological structure and do the reframing inside it.",
+          "A skills-only presentation can make employers and dates harder to associate with your work. Keep a clear chronological history and use a skills summary to highlight transferable evidence rather than hiding the timeline.",
         ],
       },
       {
         heading: "Rewrite the summary as a bridge",
         paragraphs: [
-          "State the target role, the transferable core, and the proof that you have already done the work in some form. Three lines, ending with a number.",
+          "State the target role, transferable skills and real evidence of related work. Use a genuine metric if available, or a concrete scope when it is not.",
         ],
         bullets: [
+          "Fictional example, not a real candidate or a template for invented achievements.",
           "\"Operations lead moving into data analytics. Six years turning warehouse throughput data into weekly decisions; built the SQL and Power BI reporting that cut stockouts 24%. Google Data Analytics certified, 2026.\"",
         ],
       },
@@ -328,7 +331,7 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     takeaways: [
       "Stay chronological; reframe the top third instead.",
-      "Every transferable claim needs a bullet with a number.",
+      "Every transferable claim needs real evidence; metrics are optional when no reliable number exists.",
       "Certifications and real projects are how the new field gets verified.",
     ],
   },

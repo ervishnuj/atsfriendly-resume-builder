@@ -9,7 +9,7 @@ import { clearBrowserUserData } from "@/lib/profile-storage";
 const NAV = [
   { label: "Home", href: "/" },
   { label: "Free ATS Checker", href: "/ats-checker" },
-  { label: "Resume Builder", href: "/builder" },
+  { label: "Resume Builder", href: "/ai-resume-builder" },
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/pricing" },
   { label: "Guides", href: "/guides" },

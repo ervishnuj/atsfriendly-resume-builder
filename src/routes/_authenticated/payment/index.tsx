@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/payment/")({
       {
         name: "description",
         content:
-          "Choose the ₹29 Single Resume, ₹99 7-Day Job Pass or ₹249 30-Day Pro Pass to unlock AI resume generation and PDF downloads.",
+          "Review current configured resume plans, AI generation allowances and PDF downloads before paying through the verified UPI process.",
       },
       { property: "og:title", content: "Plans & Pricing — ATS Resume Builder" },
       {

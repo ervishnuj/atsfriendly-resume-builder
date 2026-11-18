@@ -16,7 +16,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
           <FooterCol
             title="Product"
             items={[
-              { label: "Resume Builder", to: signedIn ? "/builder" : "/login" },
+              { label: "Resume Builder", to: "/ai-resume-builder" },
               { label: "ATS Checker", to: "/ats-checker" },
               { label: "Skill Gap Analyzer", to: signedIn ? "/builder" : "/login", hash: "skill-gap-analyzer" },
               { label: "Resume Templates", to: "/resume-templates" },
@@ -53,7 +53,7 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
               {signedIn ? (
                 <>
                   <li>
-                    <Link to="/builder" className="transition-colors hover:text-foreground">
+                    <Link to="/dashboard" className="transition-colors hover:text-foreground">
                       Dashboard
                     </Link>
                   </li>
