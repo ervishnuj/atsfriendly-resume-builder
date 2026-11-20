@@ -2,10 +2,10 @@
 
 ## Google SEO and organic growth
 - [x] Read the supplied SEO brief, existing growth research, public routes and verified Search Console data.
-- [ ] Review and approve the prioritised implementation plan and keyword-to-page mapping.
-- [ ] Improve existing public metadata, factual guide content, internal links and private-page search exclusions without changing application behaviour.
-- [ ] Add a public builder overview and evidence-led, unique role guides in reviewed stages; retain the protected builder URL.
-- [ ] Validate sitemap, structured data, public checker, performance and mobile layouts; deliver a 30/60/90-day report.
+- [x] Approved the prioritised implementation plan and keyword-to-page mapping.
+- [x] Improved existing public metadata, factual guide content, internal links and private-page search exclusions without changing application behaviour.
+- [x] Added a public builder overview and six evidence-led, unique role guides in preview; retained the protected builder URL.
+- [x] Validated 29 public pages, sitemap, structured data parsing, synthetic PDF/DOCX/paste checks, lab performance and mobile layouts; 121 tests passed. Delivered the SEO report and keyword map.
 - [ ] Publishing and any manual Google indexing request require the owner's explicit approval; no ranking guarantee or paid promotion.
 
 ## Premium UI/UX redesign
