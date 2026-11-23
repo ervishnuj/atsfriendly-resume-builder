@@ -30,13 +30,21 @@ export async function getPartnerForUser(userId: string, email: string | null): P
   if (linked) return linked as PartnerRow;
 
   if (!email) return null;
-  const { data: byEmail } = await supabaseAdmin
+  // Use the auth record (not caller claims) and require a confirmed email.
+  const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const verifiedEmail = authUser?.user?.email_confirmed_at ? authUser.user.email?.trim().toLowerCase() : null;
+  if (!verifiedEmail || verifiedEmail !== email.trim().toLowerCase()) return null;
+
+  // Exact (case-insensitive) match only — never pattern matching.
+  const { data: candidates } = await supabaseAdmin
     .from("partners")
     .select("*")
-    .is("user_id", null)
-    .ilike("email", email)
-    .maybeSingle();
-  if (!byEmail) return null;
+    .is("user_id", null);
+  const matches = (candidates ?? []).filter(
+    (p) => typeof p.email === "string" && p.email.trim().toLowerCase() === verifiedEmail,
+  );
+  if (matches.length !== 1) return null;
+  const byEmail = matches[0]!;
 
   const { data: claimed, error } = await supabaseAdmin
     .from("partners")
