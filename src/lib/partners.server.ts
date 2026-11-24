@@ -46,6 +46,15 @@ export async function getPartnerForUser(userId: string, email: string | null): P
   if (matches.length !== 1) return null;
   const byEmail = matches[0]!;
 
+  // Administrators can create partner rows, so they must never self-claim one.
+  const { data: adminRow } = await supabaseAdmin
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (adminRow) return null;
+
   const { data: claimed, error } = await supabaseAdmin
     .from("partners")
     .update({ user_id: userId })

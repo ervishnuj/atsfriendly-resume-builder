@@ -110,7 +110,17 @@ async function listActiveSubscriptions(userId: string) {
     .eq("status", "ACTIVE")
     .gt("end_date", new Date().toISOString())
     .order("end_date", { ascending: false });
-  return data ?? [];
+  const rows = data ?? [];
+  // A refunded/failed/cancelled payment withdraws the entitlement it created.
+  const paymentIds = rows.map((r) => r.payment_id).filter((id): id is string => !!id);
+  if (paymentIds.length === 0) return rows;
+  const { data: revoked } = await supabaseAdmin
+    .from("payments")
+    .select("id")
+    .in("id", paymentIds)
+    .in("status", ["REFUNDED", "FAILED", "CANCELLED"]);
+  const revokedIds = new Set((revoked ?? []).map((p) => p.id as string));
+  return rows.filter((r) => !r.payment_id || !revokedIds.has(r.payment_id));
 }
 
 function isPass(row: { subscription_plans: unknown; credits_total: number }) {

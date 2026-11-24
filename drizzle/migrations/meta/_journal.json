@@ -78,6 +78,13 @@
       "when": 1794506625436,
       "tag": "0010_service_role_analytics_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795497126063,
+      "tag": "0011_scope_partner_purchase_retry",
+      "breakpoints": true
     }
   ]
 }

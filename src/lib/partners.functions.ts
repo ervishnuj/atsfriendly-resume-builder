@@ -70,12 +70,23 @@ export const adminListPartners = createServerFn({ method: "GET" })
     }));
   });
 
+async function assertNotOwnEmail(adminUserId: string, email: string | undefined) {
+  if (email === undefined) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.auth.admin.getUserById(adminUserId);
+  const own = data?.user?.email?.trim().toLowerCase();
+  if (own && own === email.trim().toLowerCase()) {
+    throw new Error("A partner account cannot use your own administrator email.");
+  }
+}
+
 export const adminCreatePartner = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(partnerInput)
   .handler(async ({ data, context }) => {
     const { requireAdmin } = await import("./billing.server");
     await requireAdmin(context.userId);
+    await assertNotOwnEmail(context.userId, data.email);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { generatePartnerCode } = await import("./partners.server");
 
@@ -116,6 +127,7 @@ export const adminUpdatePartner = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireAdmin } = await import("./billing.server");
     await requireAdmin(context.userId);
+    await assertNotOwnEmail(context.userId, data.email);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     if (data.sellingPrice !== undefined && data.sellingPrice !== null) {

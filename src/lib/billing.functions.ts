@@ -399,6 +399,13 @@ export const adminUpdatePayment = createServerFn({ method: "POST" })
       .update({ status: data.status, admin_note: data.note ?? null })
       .eq("id", data.paymentId);
     if (error) throw new Error(error.message);
+    if (data.status === "REFUNDED" || data.status === "FAILED") {
+      await supabaseAdmin
+        .from("subscriptions")
+        .update({ status: "CANCELLED" })
+        .eq("payment_id", data.paymentId)
+        .eq("status", "ACTIVE");
+    }
     return { ok: true };
   });
 
