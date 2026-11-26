@@ -83,16 +83,26 @@ function LoginPage() {
   const signInWithGoogle = async () => {
     setError(null);
     setGoogleLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setError(result.error.message ?? "Unable to sign in right now. Please try again.");
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setError(result.error.message ?? "Unable to sign in right now. Please try again.");
+        return;
+      }
+      if (result.redirected) return;
+      const { data, error: userError } = await supabase.auth.getUser();
+      if (userError || !data.user) {
+        setError("Google sign-in could not be completed. Please try again.");
+        return;
+      }
+      navigate({ to: "/builder", replace: true });
+    } catch {
+      setError("Unable to connect to Google sign-in. Please try again.");
+    } finally {
       setGoogleLoading(false);
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/builder", replace: true });
   };
 
   return (
