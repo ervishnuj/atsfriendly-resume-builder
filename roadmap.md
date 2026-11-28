@@ -3,7 +3,8 @@
 ## Google sign-in repair
 - [x] Refreshed the managed sign-in helper and added recoverable failure handling; checked the sole Google entry point and shared registration, homepage and protected-page session paths.
 - [x] Passed 124 automated tests and browser checks for preview popup routing, cancellation, blocked popups and full-page routing; no account credentials or financial records touched.
-- [ ] Complete real Google sign-in: Google rejects `https://atsfriendly-resume-builder.lovable.app/~oauth/callback` with `redirect_uri_mismatch`. Awaiting confirmation whether the app uses owner-supplied Google credentials; the authorized callback must be corrected in the owning Google OAuth client before end-to-end sign-in can pass. Changes are not published.
+- [x] Callback mismatch resolved (28 Nov): Google now accepts `https://atsfriendly-resume-builder.lovable.app/~oauth/callback` and shows its account sign-in screen on both live addresses.
+- [ ] Owner to finish one real Google account sign-in to confirm the return into the app (requires the owner's Google login).
 
 ## Google SEO and organic growth
 - [x] Read the supplied SEO brief, existing growth research, public routes and verified Search Console data.
