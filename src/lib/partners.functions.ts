@@ -677,9 +677,11 @@ export const getPartnerInvoice = createServerFn({ method: "GET" })
       await requireAdmin(context.userId);
     }
 
-    const { data: tax } = await supabaseAdmin
+    // Read through the caller's client so the admin-only settings policy is
+    // never bypassed. Partners still receive their invoice with safe defaults.
+    const { data: tax } = await context.supabase
       .from("business_tax_settings")
-      .select("*")
+      .select("business_name, business_contact, business_address, gst_registered")
       .eq("id", true)
       .maybeSingle();
 

@@ -391,6 +391,16 @@ export const adminUpdatePayment = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     if (data.status === "SUCCESS") {
+      const { data: payment, error: paymentError } = await supabaseAdmin
+        .from("payments")
+        .select("user_id")
+        .eq("id", data.paymentId)
+        .maybeSingle();
+      if (paymentError) throw new Error(paymentError.message);
+      if (!payment) throw new Error("Payment not found");
+      if (payment.user_id === context.userId) {
+        throw new Error("Administrators cannot approve their own payments.");
+      }
       await activatePaymentSubscription(data.paymentId, data.note);
       return { ok: true };
     }

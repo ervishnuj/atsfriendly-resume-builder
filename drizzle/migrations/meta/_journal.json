@@ -85,6 +85,13 @@
       "when": 1795497126063,
       "tag": "0011_scope_partner_purchase_retry",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795843546621,
+      "tag": "0012_prevent_admin_self_payment_approval",
+      "breakpoints": true
     }
   ]
 }

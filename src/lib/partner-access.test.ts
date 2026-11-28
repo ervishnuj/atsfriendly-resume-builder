@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   rows: {} as Record<string, Array<Record<string, any>>>,
   reads: [] as Array<{ table: string; filters: Array<[string, unknown]> }>,
+  userReads: [] as string[],
   rpc: vi.fn(),
+  requireAdmin: vi.fn(),
+  activatePaymentSubscription: vi.fn(),
 }));
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
@@ -18,7 +21,10 @@ vi.mock("@tanstack/react-start", () => ({
   },
 }));
 vi.mock("@/integrations/supabase/auth-middleware", () => ({ requireSupabaseAuth: {} }));
-vi.mock("./billing.server", () => ({ requireAdmin: async () => { throw new Error("Forbidden"); } }));
+vi.mock("./billing.server", () => ({
+  requireAdmin: state.requireAdmin,
+  activatePaymentSubscription: state.activatePaymentSubscription,
+}));
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     rpc: state.rpc,
@@ -40,16 +46,38 @@ vi.mock("@/integrations/supabase/client.server", () => ({
     },
   },
 }));
+import { adminUpdatePayment } from "./billing.functions";
 import { getMyPartnerDashboard, getMyPartnerInvoices, getMyPartnerPackages, getPartnerInvoice } from "./partners.functions";
 
-type Handler = (input: { context: { userId: string; claims: { email: null } }; data?: { invoiceId: string } }) => Promise<any>;
+const userClient = {
+  from: (table: string) => {
+    state.userReads.push(table);
+    const query = {
+      select: () => query,
+      eq: () => query,
+      maybeSingle: async () => ({ data: null, error: null }),
+    };
+    return query;
+  },
+};
+type Handler = (input: { context: { userId: string; claims: { email: null }; supabase: typeof userClient }; data?: { invoiceId: string } }) => Promise<any>;
 function call(fn: unknown, userId: string, invoiceId?: string) {
-  return (fn as Handler)({ context: { userId, claims: { email: null } }, data: invoiceId ? { invoiceId } : undefined });
+  return (fn as Handler)({ context: { userId, claims: { email: null }, supabase: userClient }, data: invoiceId ? { invoiceId } : undefined });
+}
+function callAdminPayment(userId: string, paymentId: string) {
+  return (adminUpdatePayment as unknown as Handler)({
+    context: { userId, claims: { email: null }, supabase: userClient },
+    data: { paymentId, status: "SUCCESS", note: "Verified" } as unknown as { invoiceId: string },
+  });
 }
 
 beforeEach(() => {
   state.reads = [];
+  state.userReads = [];
   state.rpc.mockReset();
+  state.requireAdmin.mockReset();
+  state.requireAdmin.mockRejectedValue(new Error("Forbidden"));
+  state.activatePaymentSubscription.mockReset();
   const partners = [
     { id: "A", user_id: "user-A", status: "active", business_name: "Partner A", daily_credit_limit: 30 },
     { id: "B", user_id: "user-B", status: "active", business_name: "Partner B", daily_credit_limit: 30 },
@@ -89,6 +117,12 @@ describe("partner read handler authorization", () => {
       expect((await call(getMyPartnerPackages, `user-${partnerId}`))[0].priceInr).toBe(partnerId === "A" ? 700 : 710);
       expect((await call(getPartnerInvoice, `user-${partnerId}`, `invoice-${partnerId}`)).partnerId).toBe(partnerId);
     });
+    it(`active partner ${partnerId} cannot bypass admin-only business settings`, async () => {
+      const invoice = await call(getPartnerInvoice, `user-${partnerId}`, `invoice-${partnerId}`);
+      expect(invoice.business).toEqual({ name: "TheResumeRocket", contact: "", address: "", gstRegistered: false });
+      expect(state.reads.some(r => r.table === "business_tax_settings")).toBe(false);
+      expect(state.userReads).toContain("business_tax_settings");
+    });
     it(`active partner ${partnerId} cannot open another partner's invoice by ID`, async () => {
       await expect(call(getPartnerInvoice, `user-${partnerId}`, `invoice-${partnerId === "A" ? "B" : "A"}`)).rejects.toThrow("Forbidden");
     });
@@ -113,4 +147,22 @@ describe("partner read handler authorization", () => {
       expect(state.reads.some(r => r.table === "business_tax_settings")).toBe(false);
     });
   }
+});
+
+describe("payment review authorization", () => {
+  it("an administrator cannot approve their own pending payment", async () => {
+    state.requireAdmin.mockResolvedValue({ isAdmin: true, email: "admin@example.com" });
+    state.rows.payments = [{ id: "payment-self", user_id: "admin-user", status: "PENDING" }];
+    await expect(callAdminPayment("admin-user", "payment-self")).rejects.toThrow(
+      "Administrators cannot approve their own payments.",
+    );
+    expect(state.activatePaymentSubscription).not.toHaveBeenCalled();
+  });
+
+  it("an administrator can approve another customer's pending payment", async () => {
+    state.requireAdmin.mockResolvedValue({ isAdmin: true, email: "admin@example.com" });
+    state.rows.payments = [{ id: "payment-customer", user_id: "customer-user", status: "PENDING" }];
+    await expect(callAdminPayment("admin-user", "payment-customer")).resolves.toEqual({ ok: true });
+    expect(state.activatePaymentSubscription).toHaveBeenCalledWith("payment-customer", "Verified");
+  });
 });
